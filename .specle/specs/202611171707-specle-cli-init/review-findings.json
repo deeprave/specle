@@ -1,0 +1,40 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261118T133415+1100",
+      "system": "specle",
+      "kind": "local-review",
+      "url": null,
+      "revision": "365a88fcf636caa240db9bf49f6ca5d70cae0841b32941b8dc6ea962200927f6"
+    }
+  ],
+  "items": [
+    {
+      "id": "local-review-1",
+      "source_ids": [
+        "local-review-20261118T133415+1100"
+      ],
+      "severity": "P3",
+      "description": "Report managed-destination replacement failures as CLI errors.",
+      "evidence": [
+        "src/specle/inventory.py:255-260 performs replacements outside the staging error handler.",
+        "src/specle/inventory.py:290-299 can raise OSError from rmtree(), unlink(), or replace().",
+        "src/specle/main.py:56 catches only SkillInstallationError and SkillMetadataError."
+      ],
+      "analysis": "A permission, deletion, or rename failure after staging is currently emitted as an unhandled traceback. This diverges from the design's replacement-failure contract, which requires an actionable report naming the destination and keeping the index unchanged unless its own replacement succeeded.",
+      "recommendation": "Wrap each managed replacement in an error translation that names its destination, retains the staged-file cleanup where possible, and add a regression test for a replacement failure before index replacement.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "accept",
+      "decision_rationale": "The replacement-failure contract is required for safe forced installation and has been implemented by the completed bounded bugfix.",
+      "route": "bugfix",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "bugfix",
+        "execution": "execute",
+        "resulting_spec_path": ".specle/specs/202611181343-handle-forced-replacement-errors",
+        "reason": "The completed sidecar bugfix provides the destination-specific error translation, transactional resource preservation, and regression coverage requested by this finding."
+      }
+    }
+  ]
+}

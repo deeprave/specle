@@ -1,0 +1,81 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261118T134730+1100",
+      "system": "specle",
+      "kind": "local-review",
+      "url": null,
+      "revision": "2f22030d58eba5af464d381c7ab44c12c598474438e36fb31b9b31b29aea2fae"
+    },
+    {
+      "id": "local-review-20261118T151111+1100",
+      "system": "specle",
+      "kind": "local-review",
+      "url": null,
+      "revision": "c3f22b891fbb7e529ec326c8e02b36faab3cb9f6fe0068480d17fdccb548d8bc"
+    },
+    {
+      "id": "local-review-20261118T164607+1100",
+      "system": "specle",
+      "kind": "local-review",
+      "url": null,
+      "revision": "088d38ed479086116729b22078ea4a9cad2954a1c92c515e4fd2670faa23f045"
+    }
+  ],
+  "items": [
+    {
+      "id": "local-review-1",
+      "source_ids": [
+        "local-review-20261118T134730+1100"
+      ],
+      "severity": "P2",
+      "description": "Keep the prior index intact when replacing the specle skill fails.",
+      "evidence": [
+        "src/specle/inventory.py:218 locates index.json inside the specle skill directory.",
+        "src/specle/inventory.py:255-262 replaces every staged skill before the index.",
+        "src/specle/inventory.py:305-309 deletes an existing skill directory before renaming its staged replacement."
+      ],
+      "analysis": "During `init --force`, replacing the managed specle skill deletes its directory and therefore its existing index before the final index move. If that skill replacement, a later steering replacement, or the final index move fails, the previous index has already been lost. This contradicts the bugfix contract and the CLI-init design's index-last guarantee.",
+      "recommendation": "Stage the generated index so the prior specle directory is not removed until a replacement strategy can preserve the old index, or restructure installation so the index is independently replaceable without deleting its containing skill directory. Add a regression test that injects a failure while replacing specle and asserts the prior index remains available.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "accept",
+      "decision_rationale": "Preserving the previous index through every pre-index failure is part of the bugfix contract and the CLI-init design.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611181343-handle-forced-replacement-errors",
+        "reason": "The abbreviated bugfix contract and test-first plan now require resource-preserving transactional replacement for every managed skill."
+      }
+    },
+    {
+      "id": "local-review-2",
+      "source_ids": [
+        "local-review-20261118T151111+1100"
+      ],
+      "severity": "P2",
+      "description": "Retain a backup when rollback cannot restore it.",
+      "evidence": [
+        "src/specle/inventory.py:266-272 restores backups after a replacement failure, then passes every backup to generic cleanup.",
+        "src/specle/inventory.py:327-338 suppresses restore failures and leaves an unrestored backup in place.",
+        "src/specle/inventory.py:341-352 can then delete that backup."
+      ],
+      "analysis": "If restoration of a prior skill directory fails, its backup is the only remaining recoverable copy. The unconditional post-rollback cleanup treats it as disposable and may delete it, violating the transactional contract's resource-preservation guarantee.",
+      "recommendation": "Have rollback report which backups were restored successfully. Clean only successfully restored backups; retain any unrestored backup and include its path in the raised installation error for manual recovery. Add a regression test that injects a rollback failure.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "accept",
+      "decision_rationale": "An unrestored backup is the last recoverable copy of managed resources and must not be removed.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611181343-handle-forced-replacement-errors",
+        "reason": "The bugfix contract and regression plan now require preserving and reporting an unrestored backup."
+      }
+    }
+  ]
+}
