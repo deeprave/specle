@@ -1,21 +1,10 @@
 from pathlib import Path
 
-import pytest
-
 from specle.inventory import (
-    SkillMetadataError,
+    discover_steering,
+    packaged_distribution_root,
     packaged_skills_root,
-    resolve_dependencies,
 )
-
-
-def test_resolves_required_skills_before_requested_skill(tmp_path: Path) -> None:
-    _write_skill(tmp_path, "base", requires="[]")
-    _write_skill(tmp_path, "release", requires="[base]")
-
-    resolved = resolve_dependencies(tmp_path, "release")
-
-    assert [skill.name for skill in resolved] == ["base", "release"]
 
 
 def test_locates_packaged_skill_inventory() -> None:
@@ -24,31 +13,25 @@ def test_locates_packaged_skill_inventory() -> None:
     assert root.joinpath("spec", "SKILL.md").is_file()
 
 
-def test_rejects_unknown_required_skill(tmp_path: Path) -> None:
-    _write_skill(tmp_path, "release", requires="[missing]")
+def test_packaged_distribution_exposes_skills_and_steering() -> None:
+    root = packaged_distribution_root()
 
-    with pytest.raises(SkillMetadataError, match="does not exist"):
-        resolve_dependencies(tmp_path, "release")
-
-
-def test_rejects_dependency_cycle(tmp_path: Path) -> None:
-    _write_skill(tmp_path, "first", requires="[second]")
-    _write_skill(tmp_path, "second", requires="[first]")
-
-    with pytest.raises(SkillMetadataError, match="dependency cycle"):
-        resolve_dependencies(tmp_path, "first")
+    assert root.name == "blueprints"
+    assert root.joinpath("AGENTS.md").is_file()
+    assert root.joinpath("skills", "spec", "SKILL.md").is_file()
+    assert root.joinpath("steering", "testing.md").is_file()
 
 
-def _write_skill(root: Path, name: str, *, requires: str) -> None:
-    path = root / name / "SKILL.md"
-    path.parent.mkdir()
-    path.write_text(
-        f"""---
-name: {name}
-specle_group: Testing
-requires: {requires}
----
-
-# {name}
-"""
+def test_discovers_packaged_steering_documents() -> None:
+    steering_root = (
+        Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "steering"
     )
+
+    steering = discover_steering(steering_root)
+
+    assert [path.name for path in steering] == [
+        "context.md",
+        "lifecycle.md",
+        "review.md",
+        "testing.md",
+    ]

@@ -46,8 +46,8 @@
         "state": "deferred",
         "workflow": "specle-cli",
         "execution": "none",
-        "resulting_spec_path": ".specle/specs/202611171707-specle-cli",
-        "reason": "The queued Specle CLI specification already defines automatic index generation and the index command; no work is dispatched in this change."
+        "resulting_spec_path": ".specle/specs/202611171707-specle-cli-init",
+        "reason": "The queued Specle CLI initialisation specification defines automatic index generation during init; no work is dispatched in this completed change."
       }
     },
     {

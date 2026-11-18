@@ -1,41 +1,74 @@
 {
-  "$comment": "Runtime context for the active Specle skill-blueprint specification.",
+  "$comment": "Runtime context for the active Specle CLI-initialisation specification.",
   "current_spec": {
-    "name": "202611171130-add-skill-blueprints",
-    "path": ".specle/specs/202611171130-add-skill-blueprints",
+    "name": "202611171707-specle-cli-init",
+    "path": ".specle/specs/202611171707-specle-cli-init",
     "kind": "change",
     "status": "complete",
     "progress": {
-      "tasks_completed": 38,
-      "tasks_total": 38
+      "tasks_completed": 14,
+      "tasks_total": 14
     },
     "present_task": null,
     "verification": {
       "status": "pass",
-      "last_run": "2026-11-18T10:49:03+1100",
+      "last_run": "2026-11-18T17:47:17+1100",
       "gates": {
         "pytest": "pass",
         "ruff check": "pass",
         "ruff format --check": "pass",
-        "ty check": "pass"
+        "ty check": "pass",
+        "wheel resources": "pass"
       }
     },
     "review": {
       "status": "pass",
-      "last_run": "2026-11-18T10:51:41+1100",
+      "last_run": "2026-11-18T17:48:44+1100",
       "findings": 0
     },
-    "revision_note": "Approved after confirming independent-spec hand-offs wait for every other accepted finding to settle."
+    "revision_note": "The accepted PR #1 rollback feedback is implemented, verified, and approved by local review."
   },
-  "recent_specs": [],
-  "queued_specs": [
+  "recent_specs": [
     {
-      "name": "202611171707-specle-cli",
-      "path": ".specle/specs/202611171707-specle-cli",
+      "name": "202611171130-add-skill-blueprints",
+      "path": ".specle/specs/202611171130-add-skill-blueprints",
       "kind": "change",
-      "status": "defined",
-      "next": "estimate"
+      "status": "complete",
+      "progress": {
+        "tasks_completed": 38,
+        "tasks_total": 38
+      },
+      "verification": {
+        "status": "pass",
+        "last_run": "2026-11-18T10:49:03+1100"
+      },
+      "review": {
+        "status": "pass",
+        "last_run": "2026-11-18T10:51:41+1100",
+        "findings": 0
+      }
     },
+    {
+      "name": "202611181343-handle-forced-replacement-errors",
+      "path": ".specle/specs/202611181343-handle-forced-replacement-errors",
+      "kind": "bugfix",
+      "status": "complete",
+      "progress": {
+        "tasks_completed": 13,
+        "tasks_total": 13
+      },
+      "verification": {
+        "status": "pass",
+        "last_run": "2026-11-18T16:45:44+1100"
+      },
+      "review": {
+        "status": "pass",
+        "last_run": "2026-11-18T16:46:07+1100",
+        "findings": 0
+      }
+    }
+  ],
+  "queued_specs": [
     {
       "name": "202611172043-versioned-json-schemas",
       "path": ".specle/specs/202611172043-versioned-json-schemas",

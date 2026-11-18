@@ -2,6 +2,8 @@
 
 This is the portable entrypoint for the repository's spec-driven workflow. A repository-root `AGENTS.md` should direct agents here while retaining only genuinely local execution or tool instructions.
 
+Specle initialisation distributes reusable `skills/` and `steering/` only. It does not install this entrypoint, `.agents/project/`, `.specle/`, a root `AGENTS.md`, or a launcher; those remain project or future-client concerns. This portable entrypoint and both distributed inventories are the source blueprints under `src/specle/blueprints/`.
+
 ## Start here
 
 1. Read `.agents/steering/*.md`. These are reusable policy: context state, lifecycle, and testing principles.
@@ -22,7 +24,7 @@ A clean verification result is `verified`, not `complete`; a subsequent passing 
 
 Alternative paths are `bugfix` for a bounded defect, `refactor` for behaviour-preserving work, and `spike` for an investigation that does not implement changes. Use `prepare` to create a non-active bugfix or refactor for named later implementation.
 
-When each step ends, suggest the next step and any alternatives, if they exist.
+When each step ends, suggest the next step and any alternatives, if they exist. When the user explicitly says `next`, automatically invoke the previously suggested next step; do not require them to restate its command.
 
 ## Root bootstrap block
 

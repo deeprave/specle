@@ -22,7 +22,7 @@ A clean verification result is `verified`, not `complete`; a subsequent passing 
 
 Alternative paths are `bugfix` for a bounded defect, `refactor` for behaviour-preserving work, and `spike` for an investigation that does not implement changes. Use `prepare` to create a non-active bugfix or refactor for named later implementation.
 
-When each step ends, suggest the next step and any alternatives, if they exist.
+When each step ends, suggest the next step and any alternatives, if they exist. When the user explicitly says `next`, automatically invoke the previously suggested next step; do not require them to restate its command.
 
 ## Root bootstrap block
 

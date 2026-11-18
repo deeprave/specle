@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from functools import partial
 from importlib.resources import as_file
 from pathlib import Path
 
@@ -11,9 +12,8 @@ import anyio
 from specle.inventory import (
     SkillInstallationError,
     SkillMetadataError,
-    install_skill,
-    packaged_skills_root,
-    update_skills,
+    initialise_distribution,
+    packaged_distribution_root,
 )
 
 
@@ -24,38 +24,35 @@ def build_parser() -> argparse.ArgumentParser:
         description="Manage Specle agent skills.",
     )
     commands = parser.add_subparsers(dest="command", required=True)
-    install = commands.add_parser(
-        "install", help="Install a managed skill and its dependencies."
+    initialise = commands.add_parser(
+        "init", help="Initialise the shared Specle distribution at a target directory."
     )
-    install.add_argument("skill", help="The managed skill to install.")
-    update = commands.add_parser(
-        "update", help="Update one managed skill or all managed skills."
+    initialise.add_argument(
+        "target_directory",
+        help="Existing directory that will contain the .agents distribution.",
     )
-    update.add_argument("skill", nargs="?", help="The managed skill to update.")
+    initialise.add_argument(
+        "--force",
+        action="store_true",
+        help="Replace existing distribution-managed destinations.",
+    )
     return parser
 
 
 async def main(args: list[str] | None = None) -> None:
     """Run the asynchronous Specle command-line application."""
     parsed = build_parser().parse_args(args)
-    target_root = Path.cwd() / ".agents" / "skills"
 
     try:
-        with as_file(packaged_skills_root()) as source_root:
-            if parsed.command == "install":
-                installed = await anyio.to_thread.run_sync(
-                    install_skill,
+        with as_file(packaged_distribution_root()) as source_root:
+            installed = await anyio.to_thread.run_sync(
+                partial(
+                    initialise_distribution,
                     source_root,
-                    target_root,
-                    parsed.skill,
+                    Path(parsed.target_directory),
+                    force=parsed.force,
                 )
-            else:
-                installed = await anyio.to_thread.run_sync(
-                    update_skills,
-                    source_root,
-                    target_root,
-                    parsed.skill,
-                )
+            )
     except (SkillInstallationError, SkillMetadataError) as error:
         raise SystemExit(str(error)) from error
 

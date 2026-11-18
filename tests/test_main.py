@@ -4,20 +4,35 @@ import pytest
 from specle.main import build_parser, main
 
 
-def test_parser_accepts_install_command() -> None:
-    args = build_parser().parse_args(["install", "release"])
+def test_parser_accepts_init_target_and_force() -> None:
+    args = build_parser().parse_args(["init", "/work/example", "--force"])
 
-    assert args.command == "install"
-    assert args.skill == "release"
+    assert args.command == "init"
+    assert args.target_directory == "/work/example"
+    assert args.force is True
 
 
-def test_install_reports_protected_active_skill(
+def test_parser_requires_an_explicit_init_target() -> None:
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(["init"])
+
+
+@pytest.mark.parametrize("command", ["install", "update"])
+def test_parser_rejects_retired_commands(command: str) -> None:
+    with pytest.raises(SystemExit):
+        build_parser().parse_args([command])
+
+
+def test_init_uses_the_explicit_target(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    protected = tmp_path / ".agents" / "skills" / "spec" / "SKILL.md"
-    protected.parent.mkdir(parents=True)
-    protected.write_text("# External skill\n")
-    monkeypatch.chdir(tmp_path)
+    current_directory = tmp_path / "current"
+    target = tmp_path / "target"
+    current_directory.mkdir()
+    target.mkdir()
+    monkeypatch.chdir(current_directory)
 
-    with pytest.raises(SystemExit, match="protected external skill"):
-        anyio.run(main, ["install", "spec"])
+    anyio.run(main, ["init", str(target)])
+
+    assert (target / ".agents" / "skills" / "spec" / "SKILL.md").is_file()
+    assert not (current_directory / ".agents").exists()
