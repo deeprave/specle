@@ -7,13 +7,13 @@
     "status": "approved",
     "next": "commit",
     "progress": {
-      "tasks_completed": 8,
-      "tasks_total": 8
+      "tasks_completed": 13,
+      "tasks_total": 13
     },
     "present_task": null,
     "verification": {
       "status": "pass",
-      "last_run": "2026-11-18T21:47:17+1100",
+      "last_run": "2026-11-18T22:27:37+1100",
       "gates": {
         "pytest": "pass",
         "ruff check": "pass",
@@ -24,10 +24,10 @@
     },
     "review": {
       "status": "pass",
-      "last_run": "2026-11-18T21:47:50+1100",
-      "findings": 0
+      "last_run": "2026-11-18T22:30:05+1100",
+      "findings": 1
     },
-    "revision_note": "Local review approved the delivery-policy workflow, including origin-preserving no-action and queued hand-off routing."
+    "revision_note": "Revised sidecar policy: executing abbreviated work during active work requires an explicit active-origin relationship; unlinked work is prepared for later separate-worktree execution."
   },
   "recent_specs": [
     {
@@ -95,6 +95,34 @@
       "kind": "change",
       "status": "defined",
       "next": "estimate"
+    },
+    {
+      "name": "202611182207-prevent-assumed-dependencies",
+      "path": ".specle/specs/202611182207-prevent-assumed-dependencies",
+      "kind": "bugfix",
+      "relationship": {
+        "spec_path": ".specle/specs/202611180808-add-delivery-policy",
+        "type": "unblocks",
+        "delivery": "with-related-spec"
+      },
+      "status": "approved",
+      "next": "commit",
+      "verification": {
+        "status": "pass",
+        "last_run": "2026-11-18T22:10:56+1100",
+        "gates": {
+          "pytest": "pass",
+          "ruff check": "pass",
+          "ruff format --check": "pass",
+          "ty check": "pass",
+          "git diff --check": "pass"
+        }
+      },
+      "review": {
+        "status": "pass",
+        "last_run": "2026-11-18T22:11:45+1100",
+        "findings": 0
+      }
     }
   ],
   "python_checks": {

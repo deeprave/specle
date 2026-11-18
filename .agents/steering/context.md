@@ -36,6 +36,12 @@ Every skill that reads or writes context must follow both documents.
       "last_run": null,
       "findings": 0
     },
+    "delivery": {
+      "reference": null,
+      "head_branch": null,
+      "target_branch": null,
+      "final_event": null
+    },
     "revision_note": "short current-state summary"
   },
   "recent_specs": [],
@@ -61,7 +67,7 @@ Every skill that reads or writes context must follow both documents.
   recent concrete gate results. A spike uses `not-applicable`.
 - `review.status` is one of `not-run`, `stale`, `pass`, `findings`, `resolved`, or `not-applicable`. `findings` is the number of
   actionable review findings from that pass. `resolved` means every current finding has a recorded terminal no-action disposition or completed dispatched follow-up; preserve the finding history in `review-findings.json` and set `findings` to `0`. A spike uses `not-applicable`.
-- An `approved` target has passed local review but is not necessarily delivered. A `committed` target retains its delivery reference through the applicable versioned delivery-record contract; do not infer or add an undocumented delivery record in context.
+- An `approved` target has passed local review but is not necessarily delivered. A `committed` target retains delivery evidence in its optional `delivery` object: `reference`, `head_branch`, `target_branch`, and `final_event`. `commit` and `complete` update this evidence; do not infer a missing delivery reference from repository state.
 - `recent_specs` is a compact historical record. Older records may omit `verification` and
   `review` details when that evidence was not retained.
 - Each `queued_specs` record has `name`, `path`, `kind`, `status`, and `next`; it may also include

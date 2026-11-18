@@ -27,6 +27,8 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
     verify = (BLUEPRINTS / "skills" / "verify" / "SKILL.md").read_text()
     commit = (BLUEPRINTS / "skills" / "commit" / "SKILL.md").read_text()
     complete = (BLUEPRINTS / "skills" / "complete" / "SKILL.md").read_text()
+    bugfix = (BLUEPRINTS / "skills" / "bugfix" / "SKILL.md").read_text()
+    status = (BLUEPRINTS / "skills" / "status" / "SKILL.md").read_text()
 
     assert all(
         model in delivery
@@ -51,11 +53,26 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
     assert 'queued record with `kind: "change"`' in spec
     assert "committed` normal changes may be verified" in verify
     assert "explicit user authorisation" in commit
-    assert "versioned delivery-record contract" in commit
+    assert "selected target's existing context record" in commit
+    assert "versioned delivery-record contract" not in commit
     assert "checkout is on the recorded delivery head branch" in complete
+    assert "selected target's existing context record" in complete
+    assert "versioned delivery-record contract" not in complete
     assert "Do not stash, switch, merge, pull, fetch" in complete
     assert "stash that includes untracked files" in complete
     assert "retain the stash" in complete
+    assert '"delivery": "with-related-spec"' in bugfix
+    assert "declared related sidecars" in status
+    assert "related approved sidecars" in commit
+    assert "unlinked abbreviated work" in bugfix
+    assert (
+        "unlinked abbreviated work"
+        in (BLUEPRINTS / "skills" / "refactor" / "SKILL.md").read_text()
+    )
+    assert (
+        "separate worktree"
+        in (BLUEPRINTS / "skills" / "implement" / "SKILL.md").read_text()
+    )
 
 
 def test_root_references_match_the_delivery_workflow() -> None:
@@ -70,4 +87,17 @@ def test_root_references_match_the_delivery_workflow() -> None:
     assert "creates queued normal work" in lifecycle
     assert "src/specle/blueprints/skills/" in schema
     assert "skills/specle/index.json" in schema
-    assert "versioned JSON-contract change" in schema
+    assert "delivery evidence" in schema
+    assert "versioned JSON-contract change" not in schema
+
+
+def test_planning_skills_keep_changes_independent_by_default() -> None:
+    skills = {
+        name: (BLUEPRINTS / "skills" / name / "SKILL.md").read_text()
+        for name in ("spec", "estimate", "design", "tasks", "revise", "implement")
+    }
+
+    for content in skills.values():
+        assert "independent by default" in content
+        assert "explicit user decision" in content
+        assert "must not create a dependency" in content

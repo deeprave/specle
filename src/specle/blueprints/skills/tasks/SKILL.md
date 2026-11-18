@@ -13,6 +13,10 @@ usage: >-
 Produce a `tasks.md` of atomic, independently verifiable, test-first tasks for the current spec,
 matching the existing `tasks.md` files in `.specle/specs/`.
 
+## Change independence
+
+Changes are independent by default. A queued or future change must not create a dependency through ordering, conceptual overlap, or anticipated functionality. Record a dependency only for an obvious, already-implemented technical prerequisite or an explicit user decision, and make it visible in the affected tasks and spec artefacts. Constraints, features, expectations, and functionality from a future change must not constrain this change until that future change is implemented.
+
 ## Workflow
 
 1. Read `.specle/context.json` and `.specle/current-issue.json` to locate the active spec.

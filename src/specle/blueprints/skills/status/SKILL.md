@@ -36,6 +36,10 @@ Produce a read-only inventory of actionable specs under `.specle/specs/`. Do not
 5. After the table, state the count and identify the current spec and its recorded lifecycle status.
    If there are no pending entries, say so directly.
 
+For the active spec, also list declared related sidecars: queued records whose `relationship.spec_path`
+matches the active path. Show their relationship type, delivery mode, status, and next step. Do not infer
+sidecars from shared files, ordering, or worktree state.
+
 Also include any completed spec that is an explicit dependency of a pending spec, with `Next` shown
 as `—`. Do not count that dependency-context row as pending work.
 

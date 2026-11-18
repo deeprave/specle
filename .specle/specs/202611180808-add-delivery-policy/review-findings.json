@@ -20,6 +20,13 @@
       "kind": "local-review",
       "url": null,
       "revision": "bfe8330e8e7728050678f0a7a77f476b7ea1603c70cdad5a702e437c9dc3108e"
+    },
+    {
+      "id": "local-review-20261118T223005+1100",
+      "system": "specle",
+      "kind": "local-review",
+      "url": null,
+      "revision": "915a129caba2efc44eca8b7abb86fbd5c3e7a879ed74b55f2badf3b2f7fcf0d3"
     }
   ],
   "items": [
@@ -106,18 +113,18 @@
         "SCHEMA.md:53-60 omits the planned versioned delivery-record contract."
       ],
       "analysis": "The schema reference describes superseded inventory locations and an obsolete Markdown-only rule, and it has no place for the delivery record required by the new commit and complete workflow.",
-      "recommendation": "Update SCHEMA.md for the blueprint layout, generated index exception, and the delivery-record contract once its versioned schema is defined.",
+      "recommendation": "Update SCHEMA.md for the blueprint layout, generated-index exception, and the delivery evidence currently stored in the selected context record. Do not make the delivery workflow wait for a separate future schema change.",
       "state": "accepted",
       "duplicate_of": null,
       "decision": "accept",
-      "decision_rationale": "The layout and generated-resource documentation must match the installed distribution now; the exact delivery-record shape belongs to the versioned-contract change.",
+      "decision_rationale": "The layout and generated-resource documentation must match the installed distribution now. Delivery evidence belongs in the selected target's existing context record; a future schema change is not a prerequisite.",
       "route": "revise",
       "dispatch": {
         "state": "completed",
         "workflow": "revise",
         "execution": "none",
         "resulting_spec_path": ".specle/specs/202611180808-add-delivery-policy",
-        "reason": "SCHEMA.md now names the blueprint layout and generated-index exception, while deferring the delivery-record shape."
+        "reason": "SCHEMA.md now names the blueprint layout, generated-index exception, and current context-record delivery evidence without deferring this workflow to future schema work."
       }
     },
     {
@@ -191,6 +198,31 @@
         "execution": "none",
         "resulting_spec_path": ".specle/specs/202611180808-add-delivery-policy",
         "reason": "The revised contract and plan preserve origin delivery state during independent-spec hand-off."
+      }
+    },
+    {
+      "id": "local-review-3",
+      "source_ids": ["local-review-20261118T223005+1100"],
+      "severity": "P2",
+      "description": "Deliver coupled approved sidecars with their active change in one commit.",
+      "evidence": [
+        ".specle/context.json records the active delivery-policy change and queued prevent-assumed-dependencies bugfix as approved with next commit.",
+        "src/specle/blueprints/skills/commit/SKILL.md:18-20 selects one target and prohibits including unrelated work.",
+        "src/specle/blueprints/skills/commit/SKILL.md:26 preserves a non-active target but does not define a joint delivery transition."
+      ],
+      "analysis": "The approved bugfix was intentionally layered onto the uncommitted active change and the user requires one commit. The current one-target commit rule either leaves the bugfix approved after its code is delivered or requires an artificial second commit. Neither outcome records the real delivery unit.",
+      "recommendation": "Record the explicit origin and delivery relationship when a bugfix is raised from active work. `status` and `commit` use that declared relationship to include the related approved bugfix with its origin; do not infer membership from worktree overlap.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "vary",
+      "decision_rationale": "A bugfix raised because active work is procedurally blocked must be linked to that work at creation. The explicit sidecar relationship, rather than a general inferred delivery set, determines joint delivery.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611180808-add-delivery-policy",
+        "reason": "The delivery-policy plan now records explicit sidecar origin and delivery relationships, with no inferred worktree membership."
       }
     }
   ]

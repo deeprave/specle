@@ -18,6 +18,10 @@ Use this skill after feedback has been triaged and accepted (or varied) by the u
 path for an implementation-only defect whose requirements, design, and task plan remain valid;
 use `bugfix` for that case.
 
+## Change independence
+
+Changes are independent by default. A queued or future change must not create a dependency through ordering, conceptual overlap, or anticipated functionality. Record a dependency only for an obvious, already-implemented technical prerequisite or an explicit user decision, and make it visible in the affected spec artefacts and context. Constraints, features, expectations, and functionality from a future change must not constrain this change until that future change is implemented.
+
 ## Workflow
 
 1. Identify the target from `.specle/current-issue.json` and `.specle/context.json`. Default to the active normal spec. A queued `bugfix` or `refactor`, or a committed normal change, is valid only when the user explicitly names it; preserve the active current issue throughout that non-active revision. Do not create a new spec, switch to an unrelated one, or split accepted review feedback into a separate change.

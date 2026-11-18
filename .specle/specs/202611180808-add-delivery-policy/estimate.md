@@ -7,17 +7,17 @@
 ## Breakdown
 
 - **New files:** approximately 3–5: portable delivery steering, project delivery guidance, and `commit` and `complete` skill blueprints.
-- **Modified files:** approximately 10–14: onboarding, lifecycle, review, triage, resolve, context guidance, project README, existing workflow skills, and their active installed copies.
+- **Modified files:** approximately 10–14: onboarding, lifecycle, review, triage, resolve, context guidance, existing workflow skills, root references, and their active installed copies.
 - **Estimated tasks:** approximately 6–8 implementation slices spanning policy, onboarding, lifecycle, delivery actions, submitted-work re-entry, and behavioural coverage.
-- **Key risks:** delivery policy must remain portable while safely governing external actions; a `complete` workflow must never disturb an unrelated checkout; delivery records need the separate versioned JSON contract rather than an ad-hoc shape.
+- **Key risks:** delivery policy must remain portable while safely governing external actions; a `complete` workflow must never disturb an unrelated checkout; the delivery state needed by this change must be recorded only to the extent required by its implemented workflow, without anticipating a future schema change.
 
 ## Confidence
 
-**Medium.** The required workflow is well defined, but it crosses most existing lifecycle skills and depends on the separate JSON-contract change.
+**Medium.** The required workflow is well defined, but it crosses most existing lifecycle skills and governs external repository operations. It has no dependency on queued future work.
 
 ## Recommendation
 
-The existing design is required and sufficient for planning. Complete the versioned JSON-contract dependency before building any delivery-record behaviour; do not create a temporary record format.
+The existing design is required and sufficient for planning. Continue through the normal design, task, implementation, and quality stages. Do not introduce requirements from queued future work; any record added here must serve this change's currently implemented behaviour.
 
 ## Similar past work
 

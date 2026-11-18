@@ -16,21 +16,21 @@ Prepare or perform delivery only for an approved target, using the selected proj
 
 1. Read `.specle/context.json`, `.specle/current-issue.json`, `.agents/steering/{lifecycle,delivery,testing}.md`, and `.agents/project/{delivery,security,testing}.md`.
 2. Select the active approved target by default. A non-active target must be explicitly named, have `status: "approved"`, and must not replace the active current issue. Stop if delivery policy is missing or incomplete; direct the user to `onboard`.
-3. Read the target's tasks, review evidence, and versioned delivery record when its contract is available. Do not infer a delivery reference from a branch or pull request, and do not create an undocumented operational JSON record.
-4. Inspect only the target's scoped changes. Do not stage, commit, stash, or otherwise include unrelated work. Run project-required pre-delivery checks, including any configured secret check.
+3. Read the target's tasks, review evidence, and, where present, its `delivery` field in the selected target's existing context record. Do not infer a delivery reference from a branch or pull request.
+4. Inspect only the target's scoped changes and any related approved sidecars that explicitly declare the selected target's path with `delivery: "with-related-spec"`. Do not stage, commit, stash, or otherwise include unrelated work. Run project-required pre-delivery checks, including any configured secret check.
 5. Explain the exact planned action and obtain explicit user authorisation before any external write. If authority or policy is absent, provide exact instructions and leave the target approved.
 6. Apply the selected model:
    - **Local-only Git:** create the authorised local commit and record its evidence. When the policy defines that commit as final delivery, mark the target `complete`.
    - **Direct shared upstream:** create the authorised delivery-branch commit and push it. Record the shared-upstream evidence; mark the target `complete` only after the configured final event succeeds.
-   - **Branch and pull request:** create or update the approved branch delivery, push it, and create or update the reviewable change request. Record its delivery reference through the versioned delivery-record contract and move the target to `committed` with next `complete`.
-7. Preserve the active current issue whenever the selected target is non-active. Report the evidence recorded and the next delivery action.
+   - **Branch and pull request:** create or update the approved branch delivery, push it, and create or update the reviewable change request. Record its delivery reference, head branch, target branch, and current delivery event in the selected target's existing context record and every included related approved sidecar, then move every delivered member to `committed` with next `complete`.
+7. Preserve the active current issue whenever the selected target is non-active. Report the delivery members, evidence recorded, and next delivery action.
 
 ## Boundaries
 
 - Never make an external write without explicit user authorisation and applicable project policy.
 - Never stage unrelated files or infer a branch, destination, pull-request format, or secret-scanning policy.
 - Do not merge a pull request; `complete` owns final branch-and-pull-request delivery.
-- Do not create a temporary delivery-state format before the versioned JSON-contract work defines it.
+- Do not create a separate delivery record or depend on queued future schema work.
 
 ## Next
 

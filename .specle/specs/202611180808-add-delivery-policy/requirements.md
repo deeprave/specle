@@ -59,7 +59,8 @@ Specle currently treats local review approval as completion. That is correct onl
 3. THE skill SHALL either provide exact delivery instructions or perform authorised commit, push, and pull-request actions; it SHALL not make an external write without user authorisation and applicable project policy.
 4. FOR the branch-and-pull-request model, THE skill SHALL record the resulting delivery reference and set the target to `committed` after the branch and reviewable change request are successfully created or updated.
 5. FOR local-only and direct-to-main models, THE skill SHALL record the applicable local commit or shared-upstream delivery evidence and transition the target to `complete` when the configured final event succeeds.
-6. THE delivery record SHALL remain associated with its spec and use any applicable versioned JSON contract rather than an undocumented operational format.
+6. THE skill SHALL record the delivery evidence required by this workflow in the selected target's existing `.specle/context.json` record; it SHALL not require a separate future schema or record format.
+7. WHEN an approved queued bugfix explicitly declares that it unblocks the selected target and is delivered with it, THE skill SHALL include that bugfix in the same scoped delivery and transition both records together. It SHALL not infer this relationship from worktree overlap.
 
 ### Requirement 5: Complete externally reviewed delivery
 
@@ -87,11 +88,12 @@ Specle currently treats local review approval as completion. That is correct onl
 4. The workflow SHALL retain source identity and delivery references so unchanged external findings are not reintroduced.
 5. A named non-active committed normal change SHALL be able to resume its required build, verification, review, approval, and commit stages without replacing the active current issue.
 6. WHEN `resolve` creates an independent-spec hand-off, it SHALL create the new normal spec as a queued `defined` record and preserve the origin at `approved` or `committed` according to its delivery history; only that origin's configured delivery event may mark it `complete`.
+7. WHEN `bugfix`, `refactor`, or `implement` executes abbreviated work while another change is active, THE sidecar record SHALL declare that active origin, its relationship type, and whether it is delivered with that origin. The workflow SHALL otherwise stop and direct the user to `prepare` the work for later named execution in a separate worktree.
+8. `status` SHALL report declared related sidecars for the active change.
 
 ## Non-Functional Requirements
 
 - Delivery steering and skills remain agent-client, hosting-provider, and tracker agnostic.
-- Project delivery policy is human-maintained Markdown; operational delivery and review state is agent-managed JSON.
+- Project delivery policy is human-maintained Markdown; operational delivery and review state is agent-managed JSON in `.specle/context.json`.
 - External writes remain explicit, authorised, and scoped to the selected delivery target.
 - The change must preserve the ability to work on one active issue while submitted work awaits peer review or receives feedback.
-- Exact operational JSON shapes must conform to the versioned JSON-contract work when that contract is available; this change must not establish undocumented ad-hoc runtime records.

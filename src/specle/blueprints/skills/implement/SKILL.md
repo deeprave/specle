@@ -14,6 +14,10 @@ Take an existing specification through the missing lifecycle stages up to and in
 Reuse valid estimates, designs, and task plans; do not recreate them merely because this skill was
 invoked.
 
+## Change independence
+
+Changes are independent by default. A queued or future change must not create a dependency through ordering, conceptual overlap, or anticipated functionality. Record a dependency only for an obvious, already-implemented technical prerequisite or an explicit user decision, and make it visible in the affected spec artefacts and context. Constraints, features, expectations, and functionality from a future change must not constrain this change until that future change is implemented.
+
 ## Workflow
 
 1. Select and classify the target spec. Use the active spec by default. For an explicitly named target, resolve it against `current_spec` and `queued_specs`, then read its `kind` (defaulting a missing kind to `change`). A normal named target may become current when necessary; a queued `bugfix` or `refactor` must be explicitly named, remain non-active, and never replace another current issue. Never choose an abbreviated queued item implicitly.
@@ -23,7 +27,7 @@ invoked.
    - For a normal spec, use `design` when needed and `design.md` is absent or invalidated.
    - For a normal spec, use `tasks` when `tasks.md` is absent, incomplete as a plan, or invalidated by the requirements or design.
    - For a normal spec with an unchecked, buildable task list, use `build` until every planned task is complete.
-   - For a named queued `bugfix` or `refactor`, invoke the matching owning workflow to resume its existing abbreviated tasks. Do not run `estimate`, `design`, `tasks`, or `build` for abbreviated work.
+   - For a named queued `bugfix` or `refactor`, invoke the matching owning workflow only when it explicitly relates to the active spec. Otherwise direct the user to execute it later in a separate worktree; do not run `estimate`, `design`, `tasks`, or `build` for abbreviated work.
 4. Stop rather than inventing a decision when requirements are ambiguous, a material design choice
    needs user direction, or untriaged review feedback affects the target. Route completed review
    decisions through `resolve`; it may in turn use `revise`, `bugfix`, or `refactor` before

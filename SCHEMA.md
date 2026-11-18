@@ -58,7 +58,8 @@ Use JSON for operational state that agents must update, query, compare, or valid
 - `findings.json` for a spike's time-boxed investigation question, effort budget, findings, risks, recommendations, and optional outcome spec.
 - `review-findings.json` for source-aware review findings, triage decisions, and routes.
 - `tracker-links.json` for external work-source links and the optional delivery destination for that specification.
-- A delivery record for submitted work, once the versioned JSON-contract change defines its name and shape. Do not create an undocumented delivery record before then.
+- `context.json` for the active or queued target's lifecycle, verification, review, and applicable delivery evidence. A submitted target's `delivery` object contains its reference, head branch, target branch, and final delivery event.
+- A queued abbreviated sidecar may include `relationship` with its origin `spec_path`, relationship `type`, and delivery mode. This is required before executing it alongside an active origin.
 
 ## External work links
 
