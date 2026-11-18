@@ -253,13 +253,17 @@ def initialise_distribution(
         ) from error
 
     backups: list[tuple[Path, Path]] = []
+    created_destinations: list[Path] = []
     destination: Path | None = None
     try:
         for temporary, destination in staged:
-            _replace_staged_destination(temporary, destination, backups)
+            if _replace_staged_destination(temporary, destination, backups):
+                created_destinations.append(destination)
         destination = index_destination
-        _replace_staged_destination(index_temporary, index_destination, backups)
+        if _replace_staged_destination(index_temporary, index_destination, backups):
+            created_destinations.append(index_destination)
     except OSError as error:
+        _clean_up_temporary(created_destinations, None)
         unrestored = _restore_backups(backups)
         _clean_up_temporary([temporary for temporary, _ in staged], index_temporary)
         recovery = ""
@@ -309,16 +313,18 @@ def _replace_staged_destination(
     temporary: Path | None,
     destination: Path,
     backups: list[tuple[Path, Path]],
-) -> None:
+) -> bool:
     """Install a staged item, retaining an existing destination as a backup."""
     if temporary is None:
         raise SkillInstallationError(f"missing staged destination for {destination}")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    if destination.exists():
+    existed = destination.exists()
+    if existed:
         backup = _backup_sibling(destination)
         destination.replace(backup)
         backups.append((destination, backup))
     temporary.replace(destination)
+    return not existed
 
 
 def _restore_backups(backups: list[tuple[Path, Path]]) -> tuple[Path, ...]:

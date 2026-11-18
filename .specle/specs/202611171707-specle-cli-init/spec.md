@@ -13,7 +13,7 @@ Provide a target-oriented `init` operation that installs the shared Specle distr
 - `specle init <target-directory>` installs the complete shared skill and steering inventory into that target's `.agents/` directory.
 - The target directory is required; initialisation never assumes the current directory.
 - Initialisation implicitly builds `skills/specle/index.json` through shared index-generation code, which lists installed marked skills with their groups, descriptions, usage guidance, and resource identifiers.
-- Without `--force`, a complete destination preflight aborts before any existing distribution-managed content is replaced. With `--force`, replacements use temporary siblings, deletion of the previous destination, and rename into place.
+- Without `--force`, a complete destination preflight aborts before any existing distribution-managed content is replaced. With `--force`, replacements use temporary siblings, deletion of the previous destination, and rename into place. If replacement fails, rollback removes any managed destinations created by the failed attempt before restoring prior managed content.
 - A user-level `~/.agents/` installation coexists with project-owned guidance and runtime state.
 
 ## Constraints

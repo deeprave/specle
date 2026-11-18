@@ -6,13 +6,13 @@
     "kind": "change",
     "status": "complete",
     "progress": {
-      "tasks_completed": 11,
-      "tasks_total": 11
+      "tasks_completed": 14,
+      "tasks_total": 14
     },
     "present_task": null,
     "verification": {
       "status": "pass",
-      "last_run": "2026-11-18T13:23:06+1100",
+      "last_run": "2026-11-18T17:47:17+1100",
       "gates": {
         "pytest": "pass",
         "ruff check": "pass",
@@ -22,11 +22,11 @@
       }
     },
     "review": {
-      "status": "resolved",
-      "last_run": "2026-11-18T16:56:27+1100",
+      "status": "pass",
+      "last_run": "2026-11-18T17:48:44+1100",
       "findings": 0
     },
-    "revision_note": "The accepted replacement-failure finding has a completed bugfix follow-up; the review is resolved."
+    "revision_note": "The accepted PR #1 rollback feedback is implemented, verified, and approved by local review."
   },
   "recent_specs": [
     {

@@ -41,7 +41,7 @@ For a target `/work/example`, the managed destinations are:
     <every packaged steering Markdown file>
 ```
 
-The package source consists only of `src/specle/skills/` and `src/specle/steering/`. The portable `.agents/AGENTS.md` entry point and all project guidance are out of scope for this initialiser. This follows the distribution boundary: skills and steering are Specle-owned; `.agents/project/` and `.specle/` are never planned, preflighted as replaceable, or written.
+The package source consists only of `src/specle/blueprints/skills/` and `src/specle/blueprints/steering/`. The portable blueprint `AGENTS.md` entry point and all project guidance are out of scope for this initialiser. This follows the distribution boundary: skills and steering are Specle-owned; `.agents/project/` and `.specle/` are never planned, preflighted as replaceable, or written.
 
 The same layout applies when the supplied target is the user's home directory, yielding `~/.agents/`. No project is inferred from that user-level installation.
 
@@ -53,7 +53,7 @@ It discovers every source skill directory and every steering Markdown file. Each
 
 Without `--force`, any existing exact managed destination raises an installation error before the initialiser creates directories, temporary files, or writes target content. Unrelated skill directories and all project-owned paths are not destinations and are left untouched.
 
-With `--force`, each managed destination is staged as a temporary sibling in the same parent directory. After every temporary sibling and the future index have been created successfully, each destination is replaced in this order: skills, steering files, then the index. Replacing a destination means creating its temporary sibling first, deleting the old destination only after staging succeeds, and renaming the temporary sibling into place. The index is always replaced last, so a preparation or earlier replacement failure cannot replace a previous index with a partial inventory.
+With `--force`, each managed destination is staged as a temporary sibling in the same parent directory. After every temporary sibling and the future index have been created successfully, each destination is replaced in this order: skills, steering files, then the index. Replacing a destination means creating its temporary sibling first, deleting the old destination only after staging succeeds, and renaming the temporary sibling into place. The index is always replaced last, so a preparation or earlier replacement failure cannot replace a previous index with a partial inventory. The transaction records destinations that did not exist before installation; on a replacement failure, it removes those newly created managed destinations before restoring backed-up destinations.
 
 Temporary paths use a unique `.specle-tmp-*` name and are cleaned up on preparation failure. Existing unrelated skill directories are preserved; `--force` authorises replacement only of a colliding packaged skill directory.
 
@@ -110,5 +110,5 @@ The packaged-resource lookup expands from skills-only discovery to a distributio
 - Initialisation tests: fresh project target, user-home-like target, index resource contents, and no current-directory fallback.
 - Ownership tests: retain existing `.agents/project/`, `.specle/`, and unrelated skill directories.
 - Force tests: collision preflight makes no writes without `--force`; forced replacement changes only exact managed destinations.
-- Failure tests: staging or index-building failure leaves the prior index intact and removes temporary siblings.
+- Failure tests: staging or index-building failure leaves the prior index intact and removes temporary siblings; a replacement failure after a new managed destination was installed removes that new destination and permits a later non-force retry.
 - Run `uv run pytest`, `uv run ruff check .`, `uv run ruff format --check .`, and `uv run ty check` before verification.

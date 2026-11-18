@@ -10,4 +10,7 @@
 - [x] 8. Add failure-path tests for staging or index-generation failure, then complete temporary-sibling cleanup and index-last replacement handling in `src/specle/inventory.py`.
 - [x] 9. Replace the CLI dispatch in `src/specle/main.py` with `init <target-directory> [--force]`, run the synchronous initialiser through the AnyIO entry point, and print the installed or replaced managed destinations.
 - [x] 10. Add a packaged-distribution test and adjust `pyproject.toml` resource configuration as needed so built Specle distributions include both `skills/` and `steering/`.
-- [x] 11. Update `README.md` and `src/specle/AGENTS.md` to document explicit-target initialisation, the managed-content boundary, and the intentionally deferred commands and launcher.
+- [x] 11. Update `README.md` and `src/specle/blueprints/AGENTS.md` to document explicit-target initialisation, the managed-content boundary, and the intentionally deferred commands and launcher.
+- [x] 12. Add a failing forced-initialisation regression in `tests/test_inventory_initialisation.py` where a later replacement fails after a previously absent managed destination has been installed; assert the new destination is removed and a non-force retry succeeds.
+- [x] 13. Track destinations created during an attempted forced installation in `src/specle/inventory.py`, remove them on rollback before restoring backups, and preserve the existing backup-recovery reporting behaviour.
+- [x] 14. Run the focused rollback regression and all documented quality gates.

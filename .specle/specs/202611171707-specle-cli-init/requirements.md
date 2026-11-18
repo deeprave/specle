@@ -58,6 +58,7 @@ Specle is a suite of reusable skills that may be installed locally for a project
 2. WITHOUT `--force`, THE CLI SHALL preflight every distribution-managed destination, including skills, steering, and index, and abort before making any change if any destination already exists.
 3. WITH `--force`, THE CLI SHALL replace only distribution-managed content and SHALL preserve `.agents/project/` and `.specle/`.
 4. FOR each replacement, THE CLI SHALL create a temporary sibling, remove the existing destination only after temporary creation succeeds, then rename the temporary item into place.
+5. IF a forced replacement fails before initialisation completes, THEN the CLI SHALL remove every managed destination created by that attempt before restoring prior managed destinations.
 
 ## Non-Functional Requirements
 

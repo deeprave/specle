@@ -296,6 +296,39 @@ def test_rollback_failure_retains_and_reports_the_recovery_backup(
     assert (backups[0] / "index.json").read_text() == previous_index
 
 
+def test_replacement_failure_removes_new_managed_destinations_before_retry(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    target = tmp_path / "project"
+    target.mkdir()
+    steering_path = target / ".agents" / "steering" / "testing.md"
+    original_replace = Path.replace
+
+    def fail_steering_replacement(path: Path, destination: Path) -> Path:
+        if destination == steering_path and path.name.startswith(
+            ".specle-tmp-testing.md-"
+        ):
+            raise OSError("replacement failed")
+        return original_replace(path, destination)
+
+    monkeypatch.setattr(Path, "replace", fail_steering_replacement)
+
+    with pytest.raises(SkillInstallationError, match=r"destination.*steering/testing"):
+        initialise_distribution(source_root, target, force=True)
+
+    skills_root = target / ".agents" / "skills"
+    assert not (skills_root / "spec").exists()
+    assert not (skills_root / "specle").exists()
+    assert not (skills_root / "verify").exists()
+    assert not list((target / ".agents").rglob(".specle-tmp-*"))
+
+    monkeypatch.setattr(Path, "replace", original_replace)
+    initialise_distribution(source_root, target)
+
+    assert (skills_root / "spec" / "SKILL.md").is_file()
+
+
 def _write_distribution(root: Path) -> Path:
     _write_skill(root / "skills", "spec", "Planning")
     _write_skill(root / "skills", "specle", "Reference")
