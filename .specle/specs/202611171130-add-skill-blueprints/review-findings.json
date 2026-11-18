@@ -1,0 +1,106 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261118T093747+1100",
+      "system": "specle",
+      "kind": "local-review",
+      "url": null,
+      "revision": "uncommitted-worktree"
+    },
+    {
+      "id": "local-review-20261118T103207+1100",
+      "system": "specle",
+      "kind": "local-review",
+      "url": null,
+      "revision": "uncommitted-worktree"
+    },
+    {
+      "id": "local-review-20261118T105141+1100",
+      "system": "specle",
+      "kind": "local-review",
+      "url": null,
+      "revision": "uncommitted-worktree"
+    }
+  ],
+  "items": [
+    {
+      "id": "local-review-1",
+      "source_ids": [
+        "local-review-20261118T093747+1100"
+      ],
+      "severity": "P2",
+      "description": "Generate and refresh the index resource whenever the Specle guide is installed or updated.",
+      "evidence": [
+        "src/specle/skills/specle/SKILL.md:17-20 requires <skills-location>/specle/index.json.",
+        "src/specle/inventory.py:135-143 writes only SKILL.md files.",
+        "src/specle/main.py:27-58 exposes only install and update, neither of which creates the index."
+      ],
+      "analysis": "A newly installed Specle guide cannot perform its documented workflow because its required index is absent. Existing indexes also become stale after skill updates. The local index was produced by a one-off operation, not the supported installer path.",
+      "recommendation": "Implement atomic index generation during install and update, expose the planned index command, and test that failed operations preserve the previous index.",
+      "state": "deferred",
+      "duplicate_of": null,
+      "decision": "defer",
+      "decision_rationale": "The queued specle-cli change owns the installer and index command. It will address index creation and refresh completely without expanding this blueprint-inventory change.",
+      "route": "specle-cli",
+      "dispatch": {
+        "state": "deferred",
+        "workflow": "specle-cli",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611171707-specle-cli",
+        "reason": "The queued Specle CLI specification already defines automatic index generation and the index command; no work is dispatched in this change."
+      }
+    },
+    {
+      "id": "local-review-2",
+      "source_ids": [
+        "local-review-20261118T093747+1100"
+      ],
+      "severity": "P2",
+      "description": "Allow Resolve to reconcile review actions and complete a selected target when no action remains.",
+      "evidence": [
+        "The active change remained triaged after its only finding was deferred to the queued specle-cli change.",
+        "The former lifecycle had no route from triaged to complete when review actions were terminally no-action or completed in a recorded follow-up."
+      ],
+      "analysis": "A review can be fully decided without yielding work in its originating change, or may delegate work to a follow-up item. Keeping the origin triaged indefinitely in either case loses a valid terminal lifecycle path and prevents completion reporting.",
+      "recommendation": "Record a resolved review status and let Resolve complete a selected target only when every finding is terminally no-action or its recorded follow-up is complete. Preserve the rule that dispatch alone does not complete the origin.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "accept",
+      "decision_rationale": "User requested this lifecycle transition after deferring the index-generation finding to the queued specle-cli change, then clarified that later Resolve runs must reconcile recorded actions before completing the origin.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise-and-build",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611171130-add-skill-blueprints",
+        "reason": "The current change defines and implements Resolve reconciliation and completion when no review action remains."
+      }
+    },
+    {
+      "id": "local-review-3",
+      "source_ids": [
+        "local-review-20261118T103207+1100"
+      ],
+      "severity": "P2",
+      "description": "Do not complete an origin for an independent-spec hand-off while other accepted findings remain unresolved.",
+      "evidence": [
+        "src/specle/skills/resolve/SKILL.md:21-27 instructs Resolve to complete the active target as part of every pending `spec` route, before it evaluates other pending accepted groups.",
+        "src/specle/steering/lifecycle.md:36 permits an independent-spec hand-off as a completion condition without requiring all other findings to be settled."
+      ],
+      "analysis": "A review may contain both an independent change and another accepted repair or refactor. Completing the origin when the independent spec is created bypasses the remaining accepted work and prevents Resolve from reconciling it.",
+      "recommendation": "Treat a `spec` hand-off as terminal only after every other current finding is terminally no-action or has a completed follow-up; otherwise create or record the independent work while keeping the origin triaged.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "accept",
+      "decision_rationale": "User accepted the mixed-route lifecycle correction.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611171130-add-skill-blueprints",
+        "reason": "The current change now defers a terminal independent-spec hand-off until every other finding is settled."
+      }
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+# Tasks: add skill blueprints
+
+- [x] 1. Add `specle_group` and explicit `requires` metadata to every `src/specle/skills/*/SKILL.md`, and implement constrained frontmatter parsing with immutable metadata records in `src/specle/inventory.py`.
+- [x] 2. Implement packaged-source discovery and a cycle-checked, dependency-first resolver in `src/specle/inventory.py`.
+- [x] 3. Implement an injectable installation-plan preflight and atomic `SKILL.md` copy operation in `src/specle/inventory.py`, protecting unmarked destination skills from modification.
+- [x] 4. Implement managed-skill update planning and execution in `src/specle/inventory.py` for one named skill or every managed active skill.
+- [x] 5. Add `kind` to the source and active context schema, default legacy records to `change`, and preserve unknown non-empty kebab-case kinds in context refresh behaviour.
+- [x] 6. Update the `status` blueprint to display a **Kind** column and report stored or defaulted kinds separately from lifecycle status.
+- [x] 7. Complete the `bugfix` blueprint's non-active workflow: create ordinary timestamped spec directories, register and update matching queued records with `kind: bugfix`, and preserve the active current issue.
+- [x] 8. Add synchronous `argparse` `install` and `update` subcommands in `src/specle/main.py`, dispatching filesystem work through the AnyIO-backed async entry point; update `README.md`, `SCHEMA.md`, and relevant skill guidance for ownership, dependencies, and work kinds.
+- [x] 9. Define and install an abbreviated-work verification contract for `bugfix` and `refactor`, including queued-record updates that preserve the active current issue.
+- [x] 10. Make abbreviated bugfix and refactor work resumable, and route it through `implement` without using the normal active-spec stages.
+- [x] 11. Allow bugfix and refactor workflows to prepare queued abbreviated specs without implementation, for later resumption through `implement`.
+- [x] 12. Add a `prepare` dispatcher for non-executing abbreviated work and require an explicit queued-spec name to implement or verify it.
+- [x] 13. Retire the redundant `refresh` blueprint and remove it from the source skill inventory.
+- [x] 14. Make the status inventory use explicit queued-spec next steps instead of only generic lifecycle fallbacks.
+- [x] 15. Make review verification-gated, target-scoped, agent-agnostic, and safe for named abbreviated sidecar work.
+- [x] 16. Make normal task planning inspect relevant recent changes without inferring task completion from them.
+- [x] 17. Redesign and install tracker integration for multiple read sources, one optional publish destination, and per-spec link records; configure Specle's GitHub Issue source policy.
+- [x] 18. Make Track default to the active normal spec and require an explicit name for queued bugfix or refactor tracking.
+- [x] 19. Extend and install Revise for explicitly named abbreviated work, including review-finding routing that preserves the active issue.
+- [x] 20. Redesign and install Spike as an active, time-boxed investigation workflow with findings JSON and outcome-spec linkage.
+- [x] 21. Add review.md to the project-overlay inventory and onboarding questions, then establish Specle's project review guidance.
+- [x] 22. Move the reusable P1–P6 severity taxonomy into steering review guidance and leave project review guidance for local presentation and automation policy.
+- [x] 23. Record Specle's one-at-a-time review-finding layout and make onboarding collect that project preference.
+- [x] 24. Move default review presentation layouts into steering and make project review guidance override them only when needed.
+- [x] 25. Add and install a Triaging skill with durable review findings, source-aware deduplication, severity-based presentation, and no implementation side effects.
+- [x] 26. Rename the Address Review blueprint and workflow references to Resolve.
+- [x] 27. Redesign and install Resolve as the decision-dispatch executor for triaged findings.
+- [x] 28. Rename Demo to Summary and install completion-guarded human-facing summaries for normal, abbreviated, and spike work.
+- [x] 29. Rename the source-only About workflow guide to Specle without changing the active inventory.
+- [x] 30. Replace separate ownership and group metadata with `specle_group`, then make the Specle guide generate a grouped marked-skill listing.
+- [x] 31. Add concise descriptions and detailed usage metadata to every blueprint, update the Specle guide's presentation rules, and refresh active skills.
+- [x] 32. Install the Specle guide locally and generate its current index resource from the installed skill metadata.
+- [x] 33. Make Resolve reconcile pending and completed accepted-action dispatches, then complete the selected normal or abbreviated target only when no review action remains; record the resolved review state, preserve active-current-issue isolation for sidecars, and synchronise the revised source skill and lifecycle steering with the active inventory.
+- [x] 34. Add a root `LIFECYCLE.md` describing the implemented lifecycle, command-to-status transitions, state-transition audit, and Mermaid flows for normal, abbreviated, and spike work without including planned delivery-policy behaviour.
+- [x] 35. Make Resolve explicitly report its later reconciliation invocation after incomplete dispatched work, and render the lifecycle Mermaid flows as vertically readable diagrams.
+- [x] 36. Add the failed-verification return-to-`building` transitions to the normal and abbreviated lifecycle diagrams.
+- [x] 37. Treat an accepted independent `spec` route as a terminal hand-off of the active normal spec, so Resolve completes it before initialising the separate current spec and the lifecycle audit has no queued-normal dead end.
+- [x] 38. Defer an independent `spec` terminal hand-off until every other accepted finding is settled, so Resolve cannot complete the origin while it bypasses remaining accepted work.

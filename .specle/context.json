@@ -1,0 +1,94 @@
+{
+  "$comment": "Runtime context for the active Specle skill-blueprint specification.",
+  "current_spec": {
+    "name": "202611171130-add-skill-blueprints",
+    "path": ".specle/specs/202611171130-add-skill-blueprints",
+    "kind": "change",
+    "status": "complete",
+    "progress": {
+      "tasks_completed": 38,
+      "tasks_total": 38
+    },
+    "present_task": null,
+    "verification": {
+      "status": "pass",
+      "last_run": "2026-11-18T10:49:03+1100",
+      "gates": {
+        "pytest": "pass",
+        "ruff check": "pass",
+        "ruff format --check": "pass",
+        "ty check": "pass"
+      }
+    },
+    "review": {
+      "status": "pass",
+      "last_run": "2026-11-18T10:51:41+1100",
+      "findings": 0
+    },
+    "revision_note": "Approved after confirming independent-spec hand-offs wait for every other accepted finding to settle."
+  },
+  "recent_specs": [],
+  "queued_specs": [
+    {
+      "name": "202611171707-specle-cli",
+      "path": ".specle/specs/202611171707-specle-cli",
+      "kind": "change",
+      "status": "defined",
+      "next": "estimate"
+    },
+    {
+      "name": "202611172043-versioned-json-schemas",
+      "path": ".specle/specs/202611172043-versioned-json-schemas",
+      "kind": "change",
+      "status": "defined",
+      "next": "estimate"
+        },
+        {
+            "name": "202611180808-add-delivery-policy",
+            "path": ".specle/specs/202611180808-add-delivery-policy",
+            "kind": "change",
+            "status": "defined",
+            "next": "estimate"
+    }
+  ],
+  "python_checks": {
+    "required": [
+      "pytest",
+      "ruff check",
+      "ruff format",
+      "ty"
+    ]
+  },
+  "commit_policy": {
+    "specle": "commit"
+  },
+  "requirements_summary": {
+    "goal": "Review each skill blueprint, resolve direct dependencies, install ready skills, classify work independently of lifecycle status, and support abbreviated-work verification."
+  },
+  "skills": {
+    "active": [
+      "analyse",
+      "build",
+      "bugfix",
+      "context",
+      "design",
+      "estimate",
+      "implement",
+      "onboard",
+      "prepare",
+      "refactor",
+      "review",
+      "resolve",
+      "revise",
+      "spec",
+            "specle",
+            "summary",
+      "spike",
+      "status",
+      "tasks",
+      "track",
+      "triage",
+      "verify"
+    ]
+  }
+}

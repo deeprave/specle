@@ -1,0 +1,64 @@
+---
+name: revise
+specle_group: Planning
+requires: []
+description: >-
+  Revise specs and plans after accepted feedback.
+usage: >-
+  Use when accepted feedback changes requirements, design, or tasks; do not use it for an implementation-only defect.
+---
+
+# Revise a spec
+
+Preserve one change's history when accepted feedback exposes an error in its requirements,
+architecture, or assumptions. Revise the existing planning artifacts in place so that the next
+implementation work remains part of the same spec.
+
+Use this skill after feedback has been triaged and accepted (or varied) by the user. It is not the
+path for an implementation-only defect whose requirements, design, and task plan remain valid;
+use `bugfix` for that case.
+
+## Workflow
+
+1. Identify the target from `.specle/current-issue.json` and `.specle/context.json`. Default to the active normal spec. A queued `bugfix` or `refactor` is valid only when the user explicitly names it; preserve the active current issue throughout that sidecar revision. Do not create a new spec, switch to an unrelated one, or split accepted review feedback into a separate change.
+2. Read the feedback and its accepted disposition. For a normal target, read `requirements.md`, `spec.md`, `design.md`, and `tasks.md` when present. For an abbreviated target, read its `spec.md` and `tasks.md`.
+   Read the applicable lifecycle and authoritative `.agents/project/` documents before revising architecture or contracts.
+3. Classify each accepted finding:
+   - **Requirements impact** — the user-facing behaviour, contract, acceptance criteria, or
+     constraints are wrong or incomplete. Revise the requirements/spec.
+   - **Design impact** — the requirement remains valid but the architecture, API choice,
+     assumption, error policy, or data flow is wrong. Revise `design.md`.
+   - **Task impact** — the implementation plan no longer reaches the corrected requirements and
+     design. Revise `tasks.md`.
+   - **Abbreviated-contract impact** — for a bugfix, the defect description, expected behaviour, root cause, or fix approach is wrong or incomplete; for a refactor, the target state, behavioural invariants, baseline evidence, or approach is wrong or incomplete. Revise the abbreviated `spec.md`.
+   A finding may affect more than one artifact. Ask only when its intended contract cannot be
+   determined from the accepted disposition and repository evidence.
+4. Revise every affected artifact in place:
+   - Update the requirements/spec only when the contract needs correction; do not rewrite it for
+     an implementation-only repair.
+   - Update the design whenever an accepted finding invalidates its architecture or assumptions.
+     Keep interfaces, data flow, failure policy, and test strategy aligned with the corrected
+     contract.
+   - Reconcile tasks after requirements/design changes. Preserve completed work as history, reopen
+     tasks whose claimed outcome is invalidated, and add precise unchecked tasks for new work.
+     Remove only tasks made genuinely obsolete, noting why when that would otherwise be unclear.
+   - For an abbreviated target, revise only its `spec.md` and `tasks.md`. Preserve valid completed tasks, reopen invalidated tasks, and add precise unchecked tasks for accepted changes.
+5. Regenerate a normal target's `spec.md` if the requirements changed. Update `.specle/context.json` to record a concise revision note. For a normal target, invalidate prior verification and review, then set the lifecycle status according to the revised artifacts. When requirements, design, and tasks are all reconciled, the target is `planned` and the next skill is `build`. For an abbreviated target, update only its matching queued record to `planned` with `next: "implement"`; do not alter `current_spec` or `.specle/current-issue.json`.
+6. Report the accepted feedback, which artifacts changed, any reopened or added tasks, and the
+   resulting next step.
+
+## Important
+
+- Accepted review feedback authorises revision of the target change's planning artifacts; do not
+  ask for a second confirmation merely to update them.
+- Never create a new spec, a separate review-fix change, or replacement design solely to address
+  accepted feedback for the target change.
+- Retain the original spec directory and its Git history. Keep revision notes concise; link the
+  accepted finding or review source when that materially explains the correction.
+- Do not implement code, reply to reviewers, resolve threads, commit, or change external state
+  during revision unless the user separately asks.
+
+## Next
+
+- `build` — implement the reconciled active normal plan.
+- `implement <spec-name>` — resume the reconciled named bugfix or refactor.
