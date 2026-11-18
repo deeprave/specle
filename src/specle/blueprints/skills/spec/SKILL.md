@@ -24,7 +24,7 @@ Create a structured specification for a new piece of work, matching the conventi
      (`THE … SHALL …`, `IF … THEN … SHALL …`). These are the conformance checklist `verify` uses.
    - **Non-Functional Requirements** — dependencies, applicable project rules, and unchanged behaviour.
 5. Write `spec.md` (concise, well under 500 words) — the condensed intent for context retention after compression: problem, goal, key result keys, output, design sketch, verification.
-6. When ready to commence, set the active spec: write `.specle/current-issue.json` as a JSON record with its `spec_path` set to `.specle/specs/YYYYMMDDHHMM-<slug>`, then initialise `.specle/context.json` according to `context.md` and `lifecycle.md` (status `defined`; verification and review `not-run`).
+6. When ready to commence, set the active spec: write `.specle/current-issue.json` as a JSON record with its `spec_path` set to `.specle/specs/YYYYMMDDHHMM-<slug>`, then initialise `.specle/context.json` according to `context.md` and `lifecycle.md` (status `defined`; verification and review `not-run`). When Resolve dispatches an independent-spec hand-off while its origin must remain active for delivery, create the new normal spec as a queued record with `kind: "change"`, `status: "defined"`, and next `estimate`; do not replace `.specle/current-issue.json`.
 
 If the user identifies a completed spike as the source of this spec, update that spike's `findings.json` `outcome_spec` with this spec's `.specle/specs/...` path.
 

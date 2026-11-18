@@ -16,11 +16,11 @@ Specle initialisation distributes reusable `skills/` and `steering/` only. It do
 
 Use the local skills in the following order for feature work:
 
-`spec` → optional `estimate` → `design` → `tasks` → `build` → `verify` → `review`.
+`spec` → optional `estimate` → `design` → `tasks` → `build` → `verify` → `review` → `commit` → `complete`.
 
 Use `implement` when an existing spec should advance through its missing planning stages and build tasks in one request; it reuses completed artifacts and stops at unresolved decisions.
 
-A clean verification result is `verified`, not `complete`; a subsequent passing review normally completes a spec. After review findings, use `triage` to record decisions, then `resolve` to route accepted decisions; it uses `revise` for corrections to the current spec's requirements, design, or plan. Resolve completes its selected target only when every finding is terminally no-action or has a completed dispatched follow-up. Use `context` after major progress or context compaction, and `status` to inspect recorded lifecycle state.
+A clean verification result is `verified`, not `complete`; a subsequent passing review makes the work `approved`. The selected delivery model determines whether `commit` completes that work or creates a `committed` branch-and-pull-request delivery for `complete` to finish. After review findings, use `triage` to record decisions, then `resolve` to route accepted decisions; it uses `revise` for corrections to the current spec's requirements, design, or plan. Use `context` after major progress or context compaction, and `status` to inspect recorded lifecycle state.
 
 Alternative paths are `bugfix` for a bounded defect, `refactor` for behaviour-preserving work, and `spike` for an investigation that does not implement changes. Use `prepare` to create a non-active bugfix or refactor for named later implementation.
 

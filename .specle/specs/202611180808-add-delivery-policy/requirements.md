@@ -46,6 +46,7 @@ Specle currently treats local review approval as completion. That is correct onl
 2. THE `review` skill SHALL transition an approved target to `approved`, record the local review evidence, and identify `commit` as the next delivery stage when the selected model requires it.
 3. THE lifecycle SHALL reserve `complete` for the configured final delivery outcome, except for a spike whose findings are complete without implementation delivery.
 4. A local-only model or direct-to-main model without peer review MAY transition an approved target to `complete` through its applicable `commit` operation.
+5. WHEN a local review's findings are all terminally no-action, `resolve` SHALL restore the target to `approved` with next `commit`; it SHALL not mark the target complete without the configured delivery outcome.
 
 ### Requirement 4: Commit according to the delivery policy
 
@@ -67,9 +68,12 @@ Specle currently treats local review approval as completion. That is correct onl
 #### Acceptance Criteria
 
 1. THE project SHALL provide a `complete` skill for the branch-and-pull-request model.
-2. THE skill SHALL require a named or selected target with `status: "committed"` and confirm the configured final event, normally merge of the reviewable change request, before changing it to `complete`.
-3. IF external findings remain unresolved or the final event cannot be evidenced, THEN the skill SHALL not mark the target complete and SHALL direct the user to the applicable next action.
-4. THE skill SHALL preserve the active current issue when completing a non-active target.
+2. THE skill SHALL require a named or selected target with `status: "committed"`, an associated reviewable delivery reference, and a checkout on that delivery's head branch before it performs merge or local branch operations.
+3. IF the checkout is on another branch, including the delivery target branch, THEN the skill SHALL stop and report the current and expected branches without stashing, switching, merging, pulling, or otherwise modifying the worktree.
+4. WHEN project policy and the user authorise delivery actions, THE skill SHALL merge the reviewable change request, switch to the configured delivery target branch, and fast-forward from upstream before changing the target to `complete`.
+5. IF the checkout has tracked or untracked changes before an authorised merge-and-sync operation, THEN the skill SHALL preserve them with a recoverable stash, restore them after the target branch is synchronised, and retain the stash with a clear recovery report if restoration conflicts or fails.
+6. IF external findings remain unresolved, the final event cannot be evidenced, or a required external action is not authorised, THEN the skill SHALL not mark the target complete and SHALL direct the user to the applicable next action. Lack of merge authority SHALL not prevent confirmation of an already evidenced external merge.
+7. THE skill SHALL preserve the active current issue when completing a non-active target.
 
 ### Requirement 6: Re-enter submitted work safely
 
@@ -81,6 +85,8 @@ Specle currently treats local review approval as completion. That is correct onl
 2. New external findings SHALL move only the selected submitted target to `review-findings`; they SHALL not replace the active current issue.
 3. AFTER accepted feedback is resolved and implementation changes occur, the target SHALL return through verification, local review, `approved`, and `commit` before it may again become `committed` or `complete`.
 4. The workflow SHALL retain source identity and delivery references so unchanged external findings are not reintroduced.
+5. A named non-active committed normal change SHALL be able to resume its required build, verification, review, approval, and commit stages without replacing the active current issue.
+6. WHEN `resolve` creates an independent-spec hand-off, it SHALL create the new normal spec as a queued `defined` record and preserve the origin at `approved` or `committed` according to its delivery history; only that origin's configured delivery event may mark it `complete`.
 
 ## Non-Functional Requirements
 

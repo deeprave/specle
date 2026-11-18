@@ -17,8 +17,7 @@ in sync.
 
 1. Read `.specle/context.json` (current spec + progress), `.specle/current-issue.json` (spec folder path),
    `.agents/steering/lifecycle.md`, and the relevant authoritative `.agents/project/` documents.
-   Confirm the two current-spec
-   paths agree before continuing.
+   Confirm the two current-spec paths agree before continuing. Default to the active normal spec. A named non-active committed normal target is permitted only when explicitly requested; update only that target and preserve the active current issue.
 2. Run a lifecycle preflight before reading or changing `tasks.md`:
    - `defined` — stop and advise `estimate`, or `design`/`tasks` only for small, understood work.
    - `estimated` — stop and advise `design`.
@@ -28,7 +27,7 @@ in sync.
    - `verified` — stop and advise `review`.
    - `complete` — stop and report that no build work remains.
    - Any missing, inconsistent, or unrecognised lifecycle state — stop and advise `context`.
-   If `review-findings` has no uncompleted task, advise `address-review` so the reviewed decisions
+   If `review-findings` has no uncompleted task, advise `triage` so the reviewed decisions
    can be routed and recorded. If `planned` or `building` has no uncompleted task, advise `verify`.
 3. Read `tasks.md`; find the first uncompleted task (`- [ ]`).
 4. For each task, in order:

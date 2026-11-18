@@ -2,7 +2,28 @@
 name = "specle"
 version = "0.1.0"
 requires-python = ">=3.13"
+license = "MIT"
 dependencies = ["anyio>=4.0"]
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
+]
+
+keywords = [
+  "ai-agents",
+  "agent-skills",
+  "developer-tools",
+  "spec-driven-development",
+]
 
 [project.scripts]
 specle = "specle.main:run"
