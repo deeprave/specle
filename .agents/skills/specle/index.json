@@ -109,7 +109,7 @@
           "name": "build",
           "specle_group": "Implementation",
           "description": "Implement active Specle tasks with TDD.",
-          "usage": "Use only when the active normal spec is planned or building and has incomplete tasks; execute tasks in order and stop at verify when they are complete.",
+          "usage": "Use when the active normal spec, or an explicitly named committed normal target, is planned or building with incomplete tasks; execute tasks in order and stop at verify when they are complete.",
           "resource": "file:///Users/davidn/Code/specle/.agents/skills/build/SKILL.md"
         },
         {

@@ -1,6 +1,13 @@
 {
   "sources": [
     {
+      "id": "github-pr-2-sourcery-94398ef",
+      "system": "github",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/2",
+      "revision": "94398ef0d52349a6907e52a6fa34768bce558b46"
+    },
+    {
       "id": "local-guidance-audit-20261118T185825+1100",
       "system": "specle",
       "kind": "guidance-audit",
@@ -30,6 +37,36 @@
     }
   ],
   "items": [
+    {"id":"github-pr-2-9","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Require explicit sidecar relationship.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766888"],"analysis":"Already addressed.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Declared relationship is already required.","route":null,"dispatch":null},
+    {"id":"github-pr-2-10","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Transactionally preserve members on failed sidecar transition.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766909"],"analysis":"Atomic rollback proposal.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Deferred with recovery/worktree design.","route":null,"dispatch":null},
+    {"id":"github-pr-2-11","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Infer missing delivery references.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766925"],"analysis":"Would infer delivery state.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Delivery evidence must be explicit.","route":null,"dispatch":null},
+    {"id":"github-pr-2-12","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Version delivery context schema now.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766941"],"analysis":"Future schema work.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Independent queued schema work must not constrain this change.","route":null,"dispatch":null},
+    {"id":"github-pr-2-13","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Handle an unknown custom delivery model.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766956"],"analysis":"Custom model proposal.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Custom models remain project-defined.","route":null,"dispatch":null},
+    {"id":"github-pr-2-14","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Preserve sidecar relation through completion archive.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766973"],"analysis":"Additional archive mechanism.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Current relationship is sufficient.","route":null,"dispatch":null},
+    {"id":"github-pr-2-15","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Review delivery-state bookkeeping again.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766979"],"analysis":"Delivery evidence does not alter implementation.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"No additional implementation review is needed.","route":null,"dispatch":null},
+    {"id":"github-pr-2-16","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Implement every custom delivery model.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766997"],"analysis":"Duplicate custom-model request.","recommendation":"No change.","state":"declined","duplicate_of":"github-pr-2-13","decision":"decline","decision_rationale":"Duplicate; custom models remain project-defined.","route":null,"dispatch":null},
+    {"id":"github-pr-2-18","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Make delivery sequence model-dependent.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613767031"],"analysis":"Complete only follows branch-and-PR delivery.","recommendation":"Correct the sequence.","state":"accepted","duplicate_of":null,"decision":"accept","decision_rationale":"Accepted.","route":"revise","dispatch":null},
+    {"id":"github-pr-2-19","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P3","description":"Correct stale review-completes wording.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613767041"],"analysis":"Review approves; delivery completes.","recommendation":"Update stale guidance.","state":"accepted","duplicate_of":null,"decision":"accept","decision_rationale":"Accepted.","route":"revise","dispatch":null},
+    {"id":"github-pr-2-20","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Align build usage metadata.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613767056"],"analysis":"Usage omits named committed targets.","recommendation":"Update frontmatter usage.","state":"accepted","duplicate_of":null,"decision":"accept","decision_rationale":"Accepted.","route":"revise","dispatch":null},
+    {"id":"github-pr-2-1","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P3","description":"Require a delivery-time secret scanner.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766744"],"analysis":"Project policy uses GitGuardian and planned pre-commit coverage.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"A mandatory scanner is outside current policy.","route":null,"dispatch":null},
+    {"id":"github-pr-2-2","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Preserve ignored files during delivery.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766771"],"analysis":"Ignored files are outside managed recovery.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Ignored files remain user-managed.","route":null,"dispatch":null},
+    {"id":"github-pr-2-3","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Prevent concurrent review-state overwrite.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766793"],"analysis":"Assumes concurrent local writers.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Concurrent operations are outside scope.","route":null,"dispatch":null},
+    {"id":"github-pr-2-4","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Lock concurrent commits for one target.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766808"],"analysis":"Assumes overlapping authorised operations.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"No concurrency locking in lightweight workflow.","route":null,"dispatch":null},
+    {"id":"github-pr-2-5","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Merge concurrent delivery context updates.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766826"],"analysis":"Concurrent-writer variant.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Concurrent operations are outside scope.","route":null,"dispatch":null},
+    {"id":"github-pr-2-6","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Recover interrupted delivery retries.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766845"],"analysis":"Partial-delivery recovery.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Deferred with worktree model.","route":null,"dispatch":null},
+    {"id":"github-pr-2-7","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Recover pushed delivery before context update.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766859"],"analysis":"Partial-delivery recovery.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Deferred with worktree model.","route":null,"dispatch":null},
+    {"id":"github-pr-2-8","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Synchronise sidecars for every delivery model.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766872"],"analysis":"Current sidecar handling is sufficient.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Current model is synchronised enough.","route":null,"dispatch":null},
+    {
+      "id": "github-pr-2-17",
+      "source_ids": ["github-pr-2-sourcery-94398ef"],
+      "severity": "P4",
+      "description": "Move completed linked sidecars to recent history.",
+      "evidence": ["https://github.com/deeprave/specle/pull/2#discussion_r4613767014"],
+      "analysis": "Completed queued sidecars must not remain pending.",
+      "recommendation": "Move them to recent_specs while retaining relationship metadata.",
+      "state": "accepted", "duplicate_of": null, "decision": "vary",
+      "decision_rationale": "Use recent_specs rather than a separate recent_sidecars collection.", "route": "revise", "dispatch": null
+    },
     {
       "id": "local-guidance-audit-1",
       "source_ids": ["local-guidance-audit-20261118T185825+1100"],

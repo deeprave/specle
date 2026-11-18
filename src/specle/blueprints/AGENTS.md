@@ -16,7 +16,7 @@ Specle initialisation distributes reusable `skills/` and `steering/` only. It do
 
 Use the local skills in the following order for feature work:
 
-`spec` → optional `estimate` → `design` → `tasks` → `build` → `verify` → `review` → `commit` → `complete`.
+`spec` → optional `estimate` → `design` → `tasks` → `build` → `verify` → `review` → `commit`; use `complete` only for branch-and-pull-request delivery.
 
 Use `implement` when an existing spec should advance through its missing planning stages and build tasks in one request; it reuses completed artifacts and stops at unresolved decisions.
 

@@ -90,6 +90,7 @@ Specle currently treats local review approval as completion. That is correct onl
 6. WHEN `resolve` creates an independent-spec hand-off, it SHALL create the new normal spec as a queued `defined` record and preserve the origin at `approved` or `committed` according to its delivery history; only that origin's configured delivery event may mark it `complete`.
 7. WHEN `bugfix`, `refactor`, or `implement` executes abbreviated work while another change is active, THE sidecar record SHALL declare that active origin, its relationship type, and whether it is delivered with that origin. The workflow SHALL otherwise stop and direct the user to `prepare` the work for later named execution in a separate worktree.
 8. `status` SHALL report declared related sidecars for the active change.
+9. WHEN a linked queued sidecar completes, THE lifecycle SHALL move it to `recent_specs` while retaining its relationship metadata.
 
 ## Non-Functional Requirements
 
@@ -97,3 +98,4 @@ Specle currently treats local review approval as completion. That is correct onl
 - Project delivery policy is human-maintained Markdown; operational delivery and review state is agent-managed JSON in `.specle/context.json`.
 - External writes remain explicit, authorised, and scoped to the selected delivery target.
 - The change must preserve the ability to work on one active issue while submitted work awaits peer review or receives feedback.
+- Portable workflow guidance must make `complete` conditional on the branch-and-pull-request delivery model and accurately distinguish local review approval from final completion.

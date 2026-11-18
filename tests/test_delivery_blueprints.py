@@ -61,6 +61,13 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
     assert "Do not stash, switch, merge, pull, fetch" in complete
     assert "stash that includes untracked files" in complete
     assert "retain the stash" in complete
+    assert "recent_specs" in commit
+    assert "recent_specs" in complete
+    assert "branch-and-pull-request delivery" in (BLUEPRINTS / "AGENTS.md").read_text()
+    assert (
+        "explicitly named committed normal target"
+        in (BLUEPRINTS / "skills" / "build" / "SKILL.md").read_text()
+    )
     assert '"delivery": "with-related-spec"' in bugfix
     assert "declared related sidecars" in status
     assert "related approved sidecars" in commit

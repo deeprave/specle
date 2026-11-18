@@ -13,3 +13,6 @@
 - [x] 11. Add focused coverage for explicit sidecar relationships, status reporting, joint delivery, and exclusion of unlinked queued bugfixes.
 - [x] 12. Update abbreviated-work workflows so executing a bugfix or refactor during active work requires an explicit relationship to that active change; direct unlinked work to `prepare` and later separate-worktree execution.
 - [x] 13. Extend focused coverage for the active-worktree execution guard and independent prepared abbreviated work.
+- [x] 14. Move completed linked queued sidecars to `recent_specs`, retaining their relationship and delivery evidence.
+- [x] 15. Make portable workflow guidance model-dependent after `commit` and remove stale language that treats local review as completion.
+- [x] 16. Align `build` frontmatter usage with the supported named committed-target workflow and add focused coverage.

@@ -5,7 +5,7 @@ requires: []
 description: >-
   Implement active Specle tasks with TDD.
 usage: >-
-  Use only when the active normal spec is planned or building and has incomplete tasks; execute tasks in order and stop at verify when they are complete.
+  Use when the active normal spec, or an explicitly named committed normal target, is planned or building with incomplete tasks; execute tasks in order and stop at verify when they are complete.
 ---
 
 # Build the current spec (TDD)

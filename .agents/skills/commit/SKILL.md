@@ -25,6 +25,8 @@ Prepare or perform delivery only for an approved target, using the selected proj
    - **Branch and pull request:** create or update the approved branch delivery, push it, and create or update the reviewable change request. Record its delivery reference, head branch, target branch, and current delivery event in the selected target's existing context record and every included related approved sidecar, then move every delivered member to `committed` with next `complete`.
 7. Preserve the active current issue whenever the selected target is non-active. Report the delivery members, evidence recorded, and next delivery action.
 
+When a local-only or direct-delivery operation completes an included queued abbreviated sidecar, move that sidecar from `queued_specs` to `recent_specs` while retaining its relationship and delivery evidence.
+
 ## Boundaries
 
 - Never make an external write without explicit user authorisation and applicable project policy.

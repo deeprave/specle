@@ -22,6 +22,7 @@ Confirm that a committed branch-and-pull-request delivery reached the final even
 6. Before an authorised merge-and-sync operation, detect tracked and untracked work. Preserve it with a named, recoverable stash that includes untracked files. If creating the stash fails, stop before merging, switching, or synchronising.
 7. Merge the reviewable delivery when authorised, switch to the configured delivery target branch, and fast-forward from upstream without reset or force operations. Restore the stash afterwards. If restoration conflicts or fails, retain the stash, record a recovery note, and report concrete recovery steps without deleting work.
 8. Record final delivery evidence in the selected target's existing context record and set the selected target to `complete`. A non-active target remains non-active throughout.
+   Move every completed included queued abbreviated sidecar from `queued_specs` to `recent_specs`, retaining its relationship and delivery evidence.
 
 ## Boundaries
 
