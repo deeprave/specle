@@ -27,12 +27,17 @@ Resolve a defect with a lightweight, reproduce-first flow without displacing unr
 4. Add a matching `queued_specs` record to `.specle/context.json` with `kind: "bugfix"`,
    `status: "defined"`, and `next: "bugfix"`. Do not change `current_spec` or
    `.specle/current-issue.json`.
+   When active work exists, do not execute unlinked abbreviated work in that worktree. Require an
+   explicit relationship to the active spec before execution, or direct the user to `prepare` it
+   for later named execution in a separate worktree. A linked sidecar records its origin `spec_path`,
+   relationship `type`, and `"delivery": "with-related-spec"`.
 5. Create `tasks.md` (test-first):
    - Write a failing test that reproduces the bug.
    - Implement the fix.
    - Confirm existing tests still pass.
-6. If the user asks to prepare the bugfix without implementation, update only the matching queued record to `status: "planned"` and `next: "implement"`, then report its generated timestamped name and stop. Later `implement` and `verify` requests must name that bugfix explicitly.
-7. Otherwise, execute the tasks immediately (TDD); mark them `- [x]` as you go. Update only the matching
+6. Before implementation while active work exists, require the user to establish the explicit relationship in step 4; otherwise prepare the bugfix without implementation and direct later named execution in a separate worktree.
+7. If the user asks to prepare the bugfix without implementation, update only the matching queued record to `status: "planned"` and `next: "implement"`, then report its generated timestamped name and stop. Later `implement` and `verify` requests must name that bugfix explicitly.
+8. Otherwise, execute the linked tasks immediately (TDD); mark them `- [x]` as you go. Update only the matching
    queued record to `status: "building"` and `next: "verify"` when implementation starts.
 
 ## Critical

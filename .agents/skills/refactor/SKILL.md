@@ -23,14 +23,16 @@ Improve structure while keeping behaviour identical, with explicit invariants an
    - Baseline or characterisation evidence to establish before restructuring.
    - Refactor approach.
 4. Add a matching `queued_specs` record to `.specle/context.json` with `kind: "refactor"`, `status: "defined"`, and `next: "refactor"`. Do not change `current_spec` or `.specle/current-issue.json`.
+   When active work exists, do not execute unlinked abbreviated work in that worktree. Require an explicit relationship to the active spec before execution, or direct the user to `prepare` it for later named execution in a separate worktree. A linked sidecar records its origin `spec_path`, relationship `type`, and `"delivery": "with-related-spec"`.
 5. Create `tasks.md` with incremental steps:
    - Confirm the relevant baseline tests pass or add focused characterisation coverage.
    - Record the behaviour-preserving invariants for each affected area.
    - Make one small cohesive production-code or test-code restructure at a time.
    - Run focused checks after every cycle, then repeat until the target structure is reached.
    - Run the documented quality gates before verification.
-6. If the user asks to prepare the refactor without implementation, update only the matching queued record to `status: "planned"` and `next: "implement"`, then report its generated timestamped name and stop. Later `implement` and `verify` requests must name that refactor explicitly.
-7. Otherwise, execute the tasks immediately; mark them `- [x]` as you go. Update only the matching queued record to `status: "building"` and `next: "verify"` when implementation starts.
+6. Before implementation while active work exists, require the user to establish the explicit relationship in step 4; otherwise prepare the refactor without implementation and direct later named execution in a separate worktree.
+7. If the user asks to prepare the refactor without implementation, update only the matching queued record to `status: "planned"` and `next: "implement"`, then report its generated timestamped name and stop. Later `implement` and `verify` requests must name that refactor explicitly.
+8. Otherwise, execute the linked tasks immediately; mark them `- [x]` as you go. Update only the matching queued record to `status: "building"` and `next: "verify"` when implementation starts.
 
 ## Critical
 

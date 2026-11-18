@@ -2,7 +2,7 @@
 
 This is the lifecycle implemented by Specle today. It is a reference for the workflow skills and the state recorded in `.specle/context.json`; `.agents/steering/lifecycle.md` remains the authoritative policy.
 
-It deliberately excludes the planned delivery-policy work, including `approved`, `committed`, `commit`, and `complete` workflow extensions that have not yet been implemented.
+Local approval and final delivery are distinct. `approved` records a passing local review; the selected project delivery policy determines whether `commit` completes the work directly or creates a submitted `committed` delivery for `complete` to finalise.
 
 ## Statuses
 
@@ -15,11 +15,13 @@ It deliberately excludes the planned delivery-policy work, including `approved`,
 | `building` | Implementation is in progress or incomplete. | `build` or named abbreviated workflow |
 | `spiking` | A read-only investigation is in progress. | `spike` |
 | `verified` | Current implementation and required quality gates passed. | `review` |
+| `approved` | Local review passed; external delivery is not necessarily complete. | `commit` |
+| `committed` | A branch-and-pull-request delivery awaits its configured final event. | `complete`, or named `triage` for external feedback |
 | `review-findings` | Review has findings that need decisions. | `triage` |
 | `triaged` | Every current finding has a recorded decision and routing is ready. | `resolve` |
-| `complete` | Work reached an implemented terminal path. | None |
+| `complete` | The configured delivery outcome was confirmed, or a spike delivered its findings. | None |
 
-`review.status` is separate from the lifecycle status. It is `pass` after a review approval and `resolved` when Resolve completes its selected target because every current finding is terminally no-action or has a completed dispatched follow-up.
+`review.status` is separate from lifecycle status. It is `pass` after local approval and `resolved` when every current finding has a terminal no-action disposition or completed follow-up. Resolve returns a local no-action outcome to `approved` and a previously submitted no-action outcome to `committed`; neither outcome alone completes delivery.
 
 ## Workflow-command transitions
 
@@ -29,12 +31,14 @@ It deliberately excludes the planned delivery-policy work, including `approved`,
 | `estimate` | Marks the active target `estimated`; a named queued target changes only its own record. |
 | `design` | Marks the active normal spec `designed`. |
 | `tasks` | Marks the active normal spec `planned`. |
-| `build` | Marks the active normal spec `building` while completing its tasks. |
-| `verify` | Sets a passing target `verified`; a failed target is `building`. A named queued abbreviated target changes only its queued record. |
-| `review` | On approval, completes the active normal spec or moves an approved named abbreviated item to `recent_specs`. On findings, sets the selected target `review-findings`. |
+| `build` | Marks the active normal spec `building` while completing its tasks. A named committed normal target may be built in place without replacing the active issue. |
+| `verify` | Sets a passing target `verified`; a failed target is `building`. A named committed normal target or queued abbreviated target changes only its own record. |
+| `review` | On approval, sets the selected target `approved` with next `commit`. On findings, sets the selected target `review-findings`. |
+| `commit` | Applies the selected delivery model: local-only and direct delivery may complete; branch-and-pull-request delivery becomes `committed`. |
+| `complete` | Confirms the configured final event for committed branch-and-pull-request delivery. |
 | `triage` | Sets a fully decided target `triaged`. |
-| `resolve` | Reconciles previously dispatched accepted work, then dispatches any pending accepted follow-up. It reports `resolve <target>` as the later reconciliation step for incomplete follow-ups. An independent `spec` route is a terminal hand-off only once every other finding is settled; then Resolve completes the active normal origin before initialising the new current spec. |
-| `revise` | Reconciles accepted feedback and returns an active normal spec to the earliest viable planning state; a named abbreviated item becomes queued `planned` with `next: "implement"`. |
+| `resolve` | Reconciles previously dispatched accepted work, then dispatches any pending accepted follow-up. It reports `resolve <target>` as the later reconciliation step for incomplete follow-ups. A local no-action outcome returns to `approved`; a previously committed no-action outcome returns to `committed`. An independent-spec hand-off creates queued normal work and preserves the origin for its own delivery. |
+| `revise` | Reconciles accepted feedback and returns an active normal spec to the earliest viable planning state; a named committed normal target becomes `planned` with `next: "build"`, and a named abbreviated item becomes queued `planned` with `next: "implement"`. |
 | `prepare` | Creates a queued bugfix or refactor as `planned` with `next: "implement"`. |
 | `bugfix` / `refactor` | When executed, move only the named abbreviated item to `building`; when called through `prepare`, they create artefacts without executing them. |
 | `spike` | Moves an active spike through `defined` → `spiking` → `complete`. |
@@ -55,8 +59,10 @@ Every non-terminal state has an owning workflow command and a valid next transit
 | `building` | Further build work or `verify`. | Has an exit. |
 | `spiking` | `spike` records findings and completes the investigation. | Has an exit. |
 | `verified` | `review` either approves or creates review findings. | Has an exit. |
+| `approved` | `commit` applies the selected delivery policy. | Has an exit. |
+| `committed` | `complete` confirms delivery, or named `triage` handles external feedback. | Has an exit. |
 | `review-findings` | `triage` records decisions. | Has an exit. |
-| `triaged` | `resolve` dispatches pending actions, waits for incomplete follow-ups, completes once all findings are settled, or terminally hands off an independent normal spec once every other finding is settled. | Has an exit; independent normal work does not create a queued-normal dead end or bypass accepted work. |
+| `triaged` | `resolve` dispatches pending actions, waits for incomplete follow-ups, creates queued independent work where required, restores a local no-action result to `approved`, or restores a submitted no-action result to `committed`. | Has an exit; no-action review and hand-off do not bypass delivery. |
 | `complete` | Terminal. | Intentional terminal state. |
 
 ## Current flows
@@ -75,15 +81,21 @@ flowchart TB
   building -->|build| building
   building -->|verify passes| verified
   building -->|verify fails| building
-  verified -->|review approves| complete
+  verified -->|review approves| approved
+  approved -->|commit: local or direct final event| complete
+  approved -->|commit: branch and pull request| committed
+  committed -->|complete: final event| complete
+  committed -->|external feedback| review_findings
   verified -->|review finds issues| review_findings[review-findings]
   review_findings -->|triage| triaged
   triaged -->|resolve: revise| planned
   triaged -->|resolve: accepted follow-up is incomplete| waiting[triaged: waiting for follow-up]
-  waiting -->|resolve after all follow-ups complete| complete
-  triaged -->|resolve: all no-action dispositions| complete
-  triaged -->|resolve: all other findings settled; independent spec hand-off| handed_off[complete origin]
-  handed_off -.->|spec initialises separate current work| new_defined[defined: independent spec]
+  waiting -->|resolve after follow-up| planned
+  triaged -->|resolve: local all no-action| approved
+  triaged -->|resolve: external all no-action| committed
+  triaged -->|resolve: independent hand-off after local review| approved
+  triaged -->|resolve: independent hand-off after external feedback| committed
+  triaged -.->|creates queued normal work| queued_defined[defined: independent spec]
 ```
 
 ### Queued abbreviated work: bugfix or refactor
@@ -95,13 +107,21 @@ flowchart TB
   planned -->|named implement| building
   building -->|named verify passes| verified
   building -->|named verify fails| building
-  verified -->|named review approves| complete[complete in recent_specs]
+  verified -->|named review approves| approved
+  approved -->|named commit: local or direct final event| complete[complete]
+  approved -->|named commit: branch and pull request| committed
+  committed -->|named complete: final event| complete
+  committed -->|external feedback| review_findings
   verified -->|named review finds issues| review_findings[review-findings]
   review_findings -->|triage| triaged
   triaged -->|resolve: revise| planned
   triaged -->|resolve: accepted follow-up is incomplete| waiting[triaged: waiting for follow-up]
-  waiting -->|resolve after all follow-ups complete| complete
-  triaged -->|resolve: all no-action dispositions| complete
+  waiting -->|resolve after follow-up| planned
+  triaged -->|resolve: local all no-action| approved
+  triaged -->|resolve: external all no-action| committed
+  triaged -->|resolve: independent hand-off after local review| approved
+  triaged -->|resolve: independent hand-off after external feedback| committed
+  triaged -.->|creates queued normal work| queued_defined[defined: independent spec]
 ```
 
 ### Active spike
@@ -112,4 +132,4 @@ flowchart TB
   spiking -->|spike records findings| complete
 ```
 
-Resolve completes an active normal target in place. For a named queued bugfix or refactor, it moves only that completed record to `recent_specs`, preserving the active current issue.
+Resolve preserves the active current issue for every explicitly named non-active target. `commit` or `complete` moves a target to `complete` only after its selected delivery policy's final event.

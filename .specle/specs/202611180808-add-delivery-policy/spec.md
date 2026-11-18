@@ -14,12 +14,18 @@ Add portable delivery steering, project delivery guidance, and a lifecycle that 
 - A passing local review makes a change, bugfix, or refactor `approved`, rather than complete.
 - `commit` applies the project delivery policy, including scoped staging, required checks, authorised external writes, commit conventions, and pull-request conventions.
 - Branch-and-pull-request delivery becomes `committed`; local-only and direct-to-main delivery can become `complete` after the configured delivery event.
-- `complete` confirms the final delivery event for a committed pull request, normally merge.
+- `complete` operates only from the selected committed pull request's head branch. With authorised project policy it preserves any tracked or untracked local work in a recoverable stash, merges the pull request, switches to the configured delivery target branch, fast-forwards from upstream, restores the stash, and then marks delivery complete. A branch mismatch or stash-restoration conflict stops safe local operations and reports recovery steps without discarding work.
 - Explicitly named submitted work can re-enter triage and resolution without replacing the current active issue, then follows verification, review, approval, and delivery again.
+- When all findings from a local review are terminally no-action, Resolve restores the target to `approved` so it can enter `commit`; only a configured delivery event can make it `complete`.
+- An explicitly named committed normal change can resume its scoped build and quality stages without replacing the unrelated active issue.
+- An independent-spec hand-off creates separate queued normal work without completing its origin; the origin returns to `approved` or `committed` and follows its own delivery path.
+- Any bugfix or refactor executed while another change is active declares that active origin in its queued context record. Unlinked abbreviated work is prepared for later named execution in a separate worktree. `status` reports declared sidecars, and `commit` delivers approved linked sidecars with their declared origin in the same scoped commit.
 
 ## Constraints
 
-Keep policy human-readable and project-owned. Keep operational delivery state with the spec under a documented versioned JSON contract. Do not prescribe a Git host, issue tracker, client, branch convention, or authority for external writes.
+Keep policy human-readable and project-owned. Do not prescribe a Git host, issue tracker, client, branch convention, or authority for external writes.
+
+Record only the delivery evidence needed by this workflow in the selected target's existing context record. A queued future schema change is not a prerequisite and must not constrain this change.
 
 ## Verification
 

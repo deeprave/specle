@@ -13,6 +13,10 @@ usage: >-
 Provide an advisory complexity assessment for the current (or described) work. This does not block
 anything.
 
+## Change independence
+
+Changes are independent by default. A queued or future change must not create a dependency through ordering, conceptual overlap, or anticipated functionality. Record a dependency only for an obvious, already-implemented technical prerequisite or an explicit user decision, and make it visible in the estimate and affected spec artefacts. Constraints, features, expectations, and functionality from a future change must not constrain this change until that future change is implemented.
+
 ## Workflow
 
 1. Read `.specle/context.json` for current state.

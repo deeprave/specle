@@ -13,15 +13,15 @@ Specle separates stable, human-maintained guidance from agent-managed runtime st
     YYYYMMDDHHMM-<spec-slug>/      # One self-contained specification
 ```
 
-The Specle distribution inventory lives in `src/specle/skills/` and
-`src/specle/steering/`. Installation copies only those directories into the target project's
+The Specle distribution inventory lives in `src/specle/blueprints/skills/` and
+`src/specle/blueprints/steering/`. Installation copies those inventories into the target project's
 `.agents/` directory; it does not replace `.agents/project/`.
 
-Each skill blueprint declares a human-facing `specle_group`, concise `description`, detailed `usage`, and an inline `requires` list in its frontmatter. A non-empty `specle_group` is the single marker that identifies a Specle skill and supplies its inventory group. Specle installs dependencies before their dependent skill and updates only active skills that carry the marker; unmarked skills are protected from replacement. The `specle` guide uses the installed inventory's group, description, and usage metadata to present available skills.
+Each skill blueprint declares a human-facing `specle_group`, concise `description`, detailed `usage`, and an inline `requires` list in its frontmatter. A non-empty `specle_group` is the single marker that identifies a Specle skill and supplies its inventory group. Specle validates declared dependencies and manages only the distributed inventory; unrelated installed skills are left untouched. The `specle` guide uses the generated installed inventory's group, description, and usage metadata to present available skills.
 
 ## `.agents/`
 
-All files in `.agents/` are Markdown. They are written and maintained by people as well as consumed by agents.
+Guidance in `.agents/` is Markdown and remains human-maintained. The generated `skills/specle/index.json` resource is the deliberate machine-readable exception.
 
 - `.agents/skills/` is the core skill inventory distributed and updated by Specle.
 - `.agents/steering/` contains generic steering documents distributed and updated by Specle.
@@ -31,7 +31,7 @@ All files in `.agents/` are Markdown. They are written and maintained by people 
 
 `.specle/` is the agent-managed runtime workspace. It can use a distinct commit, permission, or ignore policy from `.agents/`.
 
-`context.json` classifies work with a `kind` separate from lifecycle status. The initial kinds are `change`, `bugfix`, `refactor`, `docs`, and `release`; unknown non-empty kebab-case kinds are preserved. Legacy records without `kind` are treated as `change`.
+`context.json` classifies work with a `kind` separate from lifecycle status. The initial kinds are `change`, `bugfix`, `refactor`, `spike`, `docs`, and `release`; unknown non-empty kebab-case kinds are preserved. Legacy records without `kind` are treated as `change`.
 
 Specifications live in `.specle/specs/`. Each specification has a self-contained directory named `YYYYMMDDHHMM-<spec-slug>`. The date-time prefix exists only to provide a stable directory ordering; it is not part of the specification's identity or meaning.
 
@@ -58,6 +58,8 @@ Use JSON for operational state that agents must update, query, compare, or valid
 - `findings.json` for a spike's time-boxed investigation question, effort budget, findings, risks, recommendations, and optional outcome spec.
 - `review-findings.json` for source-aware review findings, triage decisions, and routes.
 - `tracker-links.json` for external work-source links and the optional delivery destination for that specification.
+- `context.json` for the active or queued target's lifecycle, verification, review, and applicable delivery evidence. A submitted target's `delivery` object contains its reference, head branch, target branch, and final delivery event.
+- A queued abbreviated sidecar may include `relationship` with its origin `spec_path`, relationship `type`, and delivery mode. This is required before executing it alongside an active origin.
 
 ## External work links
 

@@ -1,0 +1,266 @@
+{
+  "sources": [
+    {
+      "id": "github-pr-2-sourcery-94398ef",
+      "system": "github",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/2",
+      "revision": "94398ef0d52349a6907e52a6fa34768bce558b46"
+    },
+    {
+      "id": "local-guidance-audit-20261118T185825+1100",
+      "system": "specle",
+      "kind": "guidance-audit",
+      "url": null,
+      "revision": "uncommitted-worktree"
+    },
+    {
+      "id": "local-review-20261118T191645+1100",
+      "system": "specle",
+      "kind": "local-review",
+      "url": null,
+      "revision": "4f4caa715127a22b4b93f1a7f5ca4ccb1ff06687ec2316c9aafdb0f558c16a20"
+    },
+    {
+      "id": "local-review-20261118T214750+1100",
+      "system": "specle",
+      "kind": "local-review",
+      "url": null,
+      "revision": "bfe8330e8e7728050678f0a7a77f476b7ea1603c70cdad5a702e437c9dc3108e"
+    },
+    {
+      "id": "local-review-20261118T223005+1100",
+      "system": "specle",
+      "kind": "local-review",
+      "url": null,
+      "revision": "915a129caba2efc44eca8b7abb86fbd5c3e7a879ed74b55f2badf3b2f7fcf0d3"
+    }
+  ],
+  "items": [
+    {"id":"github-pr-2-9","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Require explicit sidecar relationship.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766888"],"analysis":"Already addressed.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Declared relationship is already required.","route":null,"dispatch":null},
+    {"id":"github-pr-2-10","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Transactionally preserve members on failed sidecar transition.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766909"],"analysis":"Atomic rollback proposal.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Deferred with recovery/worktree design.","route":null,"dispatch":null},
+    {"id":"github-pr-2-11","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Infer missing delivery references.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766925"],"analysis":"Would infer delivery state.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Delivery evidence must be explicit.","route":null,"dispatch":null},
+    {"id":"github-pr-2-12","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Version delivery context schema now.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766941"],"analysis":"Future schema work.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Independent queued schema work must not constrain this change.","route":null,"dispatch":null},
+    {"id":"github-pr-2-13","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Handle an unknown custom delivery model.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766956"],"analysis":"Custom model proposal.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Custom models remain project-defined.","route":null,"dispatch":null},
+    {"id":"github-pr-2-14","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Preserve sidecar relation through completion archive.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766973"],"analysis":"Additional archive mechanism.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Current relationship is sufficient.","route":null,"dispatch":null},
+    {"id":"github-pr-2-15","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Review delivery-state bookkeeping again.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766979"],"analysis":"Delivery evidence does not alter implementation.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"No additional implementation review is needed.","route":null,"dispatch":null},
+    {"id":"github-pr-2-16","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Implement every custom delivery model.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766997"],"analysis":"Duplicate custom-model request.","recommendation":"No change.","state":"declined","duplicate_of":"github-pr-2-13","decision":"decline","decision_rationale":"Duplicate; custom models remain project-defined.","route":null,"dispatch":null},
+    {"id":"github-pr-2-18","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Make delivery sequence model-dependent.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613767031"],"analysis":"Complete only follows branch-and-PR delivery.","recommendation":"Correct the sequence.","state":"accepted","duplicate_of":null,"decision":"accept","decision_rationale":"Accepted.","route":"revise","dispatch":null},
+    {"id":"github-pr-2-19","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P3","description":"Correct stale review-completes wording.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613767041"],"analysis":"Review approves; delivery completes.","recommendation":"Update stale guidance.","state":"accepted","duplicate_of":null,"decision":"accept","decision_rationale":"Accepted.","route":"revise","dispatch":null},
+    {"id":"github-pr-2-20","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Align build usage metadata.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613767056"],"analysis":"Usage omits named committed targets.","recommendation":"Update frontmatter usage.","state":"accepted","duplicate_of":null,"decision":"accept","decision_rationale":"Accepted.","route":"revise","dispatch":null},
+    {"id":"github-pr-2-1","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P3","description":"Require a delivery-time secret scanner.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766744"],"analysis":"Project policy uses GitGuardian and planned pre-commit coverage.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"A mandatory scanner is outside current policy.","route":null,"dispatch":null},
+    {"id":"github-pr-2-2","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Preserve ignored files during delivery.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766771"],"analysis":"Ignored files are outside managed recovery.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Ignored files remain user-managed.","route":null,"dispatch":null},
+    {"id":"github-pr-2-3","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Prevent concurrent review-state overwrite.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766793"],"analysis":"Assumes concurrent local writers.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Concurrent operations are outside scope.","route":null,"dispatch":null},
+    {"id":"github-pr-2-4","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Lock concurrent commits for one target.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766808"],"analysis":"Assumes overlapping authorised operations.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"No concurrency locking in lightweight workflow.","route":null,"dispatch":null},
+    {"id":"github-pr-2-5","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Merge concurrent delivery context updates.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766826"],"analysis":"Concurrent-writer variant.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Concurrent operations are outside scope.","route":null,"dispatch":null},
+    {"id":"github-pr-2-6","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Recover interrupted delivery retries.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766845"],"analysis":"Partial-delivery recovery.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Deferred with worktree model.","route":null,"dispatch":null},
+    {"id":"github-pr-2-7","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Recover pushed delivery before context update.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766859"],"analysis":"Partial-delivery recovery.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Deferred with worktree model.","route":null,"dispatch":null},
+    {"id":"github-pr-2-8","source_ids":["github-pr-2-sourcery-94398ef"],"severity":"P4","description":"Synchronise sidecars for every delivery model.","evidence":["https://github.com/deeprave/specle/pull/2#discussion_r4613766872"],"analysis":"Current sidecar handling is sufficient.","recommendation":"No change.","state":"declined","duplicate_of":null,"decision":"decline","decision_rationale":"Current model is synchronised enough.","route":null,"dispatch":null},
+    {
+      "id": "github-pr-2-17",
+      "source_ids": ["github-pr-2-sourcery-94398ef"],
+      "severity": "P4",
+      "description": "Move completed linked sidecars to recent history.",
+      "evidence": ["https://github.com/deeprave/specle/pull/2#discussion_r4613767014"],
+      "analysis": "Completed queued sidecars must not remain pending.",
+      "recommendation": "Move them to recent_specs while retaining relationship metadata.",
+      "state": "accepted", "duplicate_of": null, "decision": "vary",
+      "decision_rationale": "Use recent_specs rather than a separate recent_sidecars collection.", "route": "revise", "dispatch": null
+    },
+    {
+      "id": "local-guidance-audit-1",
+      "source_ids": ["local-guidance-audit-20261118T185825+1100"],
+      "severity": "P1",
+      "description": "Give locally reviewed no-action findings a delivery path.",
+      "evidence": [
+        ".agents/steering/lifecycle.md:36 moves an approved review to review-findings when it requests changes.",
+        ".agents/steering/lifecycle.md:40 restores only a committed target after all findings are terminally no-action."
+      ],
+      "analysis": "A local review can request changes and have every finding declined, skipped, deferred, or otherwise settled. That target was never committed, so Resolve cannot restore a delivery state or send it to commit. The workflow remains triaged despite having no remaining action.",
+      "recommendation": "Define the no-action exit for a locally reviewed target: restore it to approved with next commit, while preserving committed targets as committed and directing them to complete.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "accept",
+      "decision_rationale": "This is the earlier no-action lifecycle exit adapted for delivery: locally reviewed work returns to approved, then enters commit rather than completing directly.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611180808-add-delivery-policy",
+        "reason": "Resolve now restores local no-action review to approved with next commit."
+      }
+    },
+    {
+      "id": "local-guidance-audit-2",
+      "source_ids": ["local-guidance-audit-20261118T185825+1100"],
+      "severity": "P1",
+      "description": "Allow submitted normal changes to re-enter verification without replacing current work.",
+      "evidence": [
+        ".agents/steering/lifecycle.md:40 promises that committed normal changes return through verification, review, approval, and commit.",
+        ".agents/skills/verify/SKILL.md:22 permits named non-active verification only for bugfix and refactor targets."
+      ],
+      "analysis": "A submitted normal change that receives external feedback can be triaged while another issue is active, but cannot take the documented verification step after a fix because Verify rejects named non-active normal work. This blocks the promised feedback loop.",
+      "recommendation": "Extend the named non-active workflow guards and lifecycle rules to support committed normal targets through build, verification, review, approval, and recommit without replacing the active issue.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "accept",
+      "decision_rationale": "Submitted normal changes must be repairable and redeliverable without disrupting the active issue.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611180808-add-delivery-policy",
+        "reason": "Named committed normal targets can now resume build, verification, review, approval, and commit in place."
+      }
+    },
+    {
+      "id": "local-guidance-audit-3",
+      "source_ids": ["local-guidance-audit-20261118T185825+1100"],
+      "severity": "P3",
+      "description": "Update the root lifecycle reference for the delivery workflow.",
+      "evidence": [
+        "LIFECYCLE.md:5 says approved, committed, commit, and complete are planned and unimplemented.",
+        "LIFECYCLE.md:78 shows review approval leading directly to complete."
+      ],
+      "analysis": "The root reference and diagrams contradict the active steering policy and the delivered skills. README directs readers to this document, so people following the repository documentation receive an obsolete workflow.",
+      "recommendation": "Revise LIFECYCLE.md to match the implemented delivery states, transitions, command ownership, and vertical flow diagrams.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "accept",
+      "decision_rationale": "The repository lifecycle reference and diagrams must describe the delivery workflow now implemented by this change.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611180808-add-delivery-policy",
+        "reason": "The root lifecycle reference and diagrams now describe the delivery workflow."
+      }
+    },
+    {
+      "id": "local-guidance-audit-4",
+      "source_ids": ["local-guidance-audit-20261118T185825+1100"],
+      "severity": "P3",
+      "description": "Reconcile SCHEMA.md with the installed distribution and delivery records.",
+      "evidence": [
+        "SCHEMA.md:16 names src/specle/skills and src/specle/steering instead of src/specle/blueprints/.",
+        "SCHEMA.md:24 says every .agents file is Markdown despite the generated skills/specle/index.json resource.",
+        "SCHEMA.md:53-60 omits the planned versioned delivery-record contract."
+      ],
+      "analysis": "The schema reference describes superseded inventory locations and an obsolete Markdown-only rule, and it has no place for the delivery record required by the new commit and complete workflow.",
+      "recommendation": "Update SCHEMA.md for the blueprint layout, generated-index exception, and the delivery evidence currently stored in the selected context record. Do not make the delivery workflow wait for a separate future schema change.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "accept",
+      "decision_rationale": "The layout and generated-resource documentation must match the installed distribution now. Delivery evidence belongs in the selected target's existing context record; a future schema change is not a prerequisite.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611180808-add-delivery-policy",
+        "reason": "SCHEMA.md now names the blueprint layout, generated-index exception, and current context-record delivery evidence without deferring this workflow to future schema work."
+      }
+    },
+    {
+      "id": "local-guidance-audit-5",
+      "source_ids": ["local-guidance-audit-20261118T185825+1100"],
+      "severity": "P3",
+      "description": "Correct only stale README references owned by the repository introduction.",
+      "evidence": [
+        "README.md:21 directs readers to the obsolete root LIFECYCLE.md.",
+        "README.md:7-21 does not describe local approval, delivery policy, commit, committed, or complete."
+      ],
+      "analysis": "The README should remain a concise introduction. Dedicated lifecycle, schema, and project-policy documents own workflow detail. Once those references are current, README needs only any directly stale path or link correction it owns.",
+      "recommendation": "Correct only stale README references or paths. Do not add a delivery-policy overview or duplicate the dedicated documentation.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "accept",
+      "decision_rationale": "Keep README concise; fix only inaccuracies in its own links or paths and leave policy detail to dedicated documents.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611180808-add-delivery-policy",
+        "reason": "README remained concise because its lifecycle link is valid after the root lifecycle reference was corrected."
+      }
+    },
+    {
+      "id": "local-review-1",
+      "source_ids": ["local-review-20261118T191645+1100"],
+      "severity": "P2",
+      "description": "Preserve committed state in root lifecycle no-action diagrams.",
+      "evidence": [
+        "LIFECYCLE.md:88 routes committed external feedback to review-findings.",
+        "LIFECYCLE.md:94 routes every triaged no-action result to approved.",
+        "LIFECYCLE.md:110 and LIFECYCLE.md:116 repeat the same path for abbreviated work."
+      ],
+      "analysis": "The root diagrams collapse local-review and submitted-feedback origins. A committed pull request with no actionable external findings must return to committed and then complete, but the diagram sends it to approved and would require recommitting an unchanged delivery.",
+      "recommendation": "Split the no-action transition by origin in both diagrams: local review returns to approved; external feedback on a committed delivery returns to committed.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "accept",
+      "decision_rationale": "Authoritative Resolve and steering already restore submitted no-action work to committed; the root diagrams must match that behaviour.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611180808-add-delivery-policy",
+        "reason": "The revised contract and plan now distinguish local and committed no-action origins."
+      }
+    },
+    {
+      "id": "local-review-2",
+      "source_ids": ["local-review-20261118T191645+1100"],
+      "severity": "P2",
+      "description": "Do not complete an independent-spec hand-off before delivery.",
+      "evidence": [
+        "src/specle/blueprints/skills/resolve/SKILL.md:25 directs Resolve to complete an active normal target before creating an independent spec.",
+        "src/specle/blueprints/skills/resolve/SKILL.md:27 correctly says only an evidenced configured delivery outcome may complete a target."
+      ],
+      "analysis": "The independent-spec route still contains the pre-delivery lifecycle rule. A locally approved change whose finding is routed to a new independent spec would be marked complete without its configured commit or pull-request delivery event, contradicting the delivery policy.",
+      "recommendation": "Keep the origin at approved or committed according to its delivery history after recording the independent-spec hand-off; require commit or complete for its own final delivery event.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "accept",
+      "decision_rationale": "Independent work hand-off remains valid, but the delivery extension means it must preserve the origin's approved or committed state rather than completing it.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611180808-add-delivery-policy",
+        "reason": "The revised contract and plan preserve origin delivery state during independent-spec hand-off."
+      }
+    },
+    {
+      "id": "local-review-3",
+      "source_ids": ["local-review-20261118T223005+1100"],
+      "severity": "P2",
+      "description": "Deliver coupled approved sidecars with their active change in one commit.",
+      "evidence": [
+        ".specle/context.json records the active delivery-policy change and queued prevent-assumed-dependencies bugfix as approved with next commit.",
+        "src/specle/blueprints/skills/commit/SKILL.md:18-20 selects one target and prohibits including unrelated work.",
+        "src/specle/blueprints/skills/commit/SKILL.md:26 preserves a non-active target but does not define a joint delivery transition."
+      ],
+      "analysis": "The approved bugfix was intentionally layered onto the uncommitted active change and the user requires one commit. The current one-target commit rule either leaves the bugfix approved after its code is delivered or requires an artificial second commit. Neither outcome records the real delivery unit.",
+      "recommendation": "Record the explicit origin and delivery relationship when a bugfix is raised from active work. `status` and `commit` use that declared relationship to include the related approved bugfix with its origin; do not infer membership from worktree overlap.",
+      "state": "accepted",
+      "duplicate_of": null,
+      "decision": "vary",
+      "decision_rationale": "A bugfix raised because active work is procedurally blocked must be linked to that work at creation. The explicit sidecar relationship, rather than a general inferred delivery set, determines joint delivery.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "none",
+        "resulting_spec_path": ".specle/specs/202611180808-add-delivery-policy",
+        "reason": "The delivery-policy plan now records explicit sidecar origin and delivery relationships, with no inferred worktree membership."
+      }
+    }
+  ]
+}

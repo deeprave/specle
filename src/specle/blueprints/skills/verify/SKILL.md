@@ -31,7 +31,7 @@ Use the project's documented command runner for every command.
    `.agents/steering/{context,lifecycle,testing}.md` and all applicable authoritative
    `.agents/project/` documents.
 
-Only `bugfix` and `refactor` may be verified as explicitly named non-active queued work. Never choose an abbreviated queued item implicitly; preserve the active current issue throughout such a verification.
+Only `bugfix`, `refactor`, and `committed` normal changes may be verified as explicitly named non-active work. Never choose a non-active item implicitly; preserve the active current issue throughout such a verification.
 
 ## Step 2 — Run the project quality gates
 
@@ -86,7 +86,7 @@ Produce a clear verification report:
 - **Next step** — if PASS, use `review`; if FAIL, list the specific fixes needed before
   re-verifying (use `build` to fix, then re-run `verify`).
 
-After reporting, update `.specle/context.json` according to `lifecycle.md`. For an active normal spec, a PASS records verification as `pass`, resets a stale review to `not-run`, and sets status `verified`; a FAIL records verification as `fail` and sets status `building`. For a named queued abbreviated spec, a PASS sets only its queued record to `verified` with `next: "review"`; a FAIL leaves only that record `building` with `next` set to `bugfix` or `refactor`. Verification alone never marks a spec complete.
+After reporting, update `.specle/context.json` according to `lifecycle.md`. For an active normal spec, a PASS records verification as `pass`, resets a stale review to `not-run`, and sets status `verified`; a FAIL records verification as `fail` and sets status `building`. For a named committed normal target, a PASS sets only its matching record to `verified` with `next: "review"`; a FAIL leaves only that record `building` with next `build`. For a named queued abbreviated spec, a PASS sets only its queued record to `verified` with `next: "review"`; a FAIL leaves only that record `building` with next set to `bugfix` or `refactor`. Verification alone never marks a spec complete.
 
 Keep evidence concrete (cite files, lines, and test names). Do not report PASS on a criterion whose
 only support is a checked task box or a claim in `spec.md`.
