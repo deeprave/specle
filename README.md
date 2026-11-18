@@ -1,5 +1,9 @@
 # Specle
 
+[![Tests](https://img.shields.io/github/actions/workflow/status/deeprave/specle/test.yml?branch=main&label=tests&logo=github)](https://github.com/deeprave/specle/actions/workflows/test.yml)
+[![Maintenance](https://img.shields.io/badge/maintenance-active-brightgreen.svg)](https://github.com/deeprave/specle)
+[![Python versions](https://img.shields.io/badge/python-3.13%20%7C%203.14%20%7C%203.15-blue?logo=python&logoColor=white)](https://github.com/deeprave/specle/actions/workflows/test.yml)
+
 Specle is a set of AI-agent skills for lightweight, spec-driven development. It provides a practical way to describe a focused change, work through it with an agent, and keep the resulting work clear and reviewable—without adding unnecessary process.
 
 ## What’s included
