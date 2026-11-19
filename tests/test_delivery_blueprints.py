@@ -82,8 +82,8 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
 
 
 def test_root_references_match_the_delivery_workflow() -> None:
-    lifecycle = (Path(__file__).parents[1] / "LIFECYCLE.md").read_text()
-    schema = (Path(__file__).parents[1] / "SCHEMA.md").read_text()
+    lifecycle = (Path(__file__).parents[1] / "docs" / "LIFECYCLE.md").read_text()
+    schema = (Path(__file__).parents[1] / "docs" / "LAYOUT.md").read_text()
 
     assert "`approved`" in lifecycle
     assert "`committed`" in lifecycle

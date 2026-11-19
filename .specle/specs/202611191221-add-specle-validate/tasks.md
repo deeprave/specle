@@ -1,0 +1,28 @@
+# Tasks: add `specle validate`
+
+- [x] 1. Define typed lifecycle declaration metadata and extend the StrictYAML frontmatter schema in `src/specle/inventory.py`.
+  - [x] 1.1 Add focused parser tests for valid declarations, invalid fields, unknown statuses, and continued separation from `requires`.
+  - [x] 1.2 Implement the constrained declaration types and path-specific metadata diagnostics.
+- [x] 2. Declare the existing lifecycle contract on package-owned skills and make it agent-visible.
+  - [x] 2.1 Add a source/active inventory conformance test for lifecycle-owning skills and their declarations.
+  - [x] 2.2 Add lifecycle metadata and frontmatter consultation instructions to source blueprints, synchronise managed active skills, and regenerate the index.
+  - [x] 2.3 Move durable lifecycle and layout references under `docs/`, add `docs/FRONTMATTER.md`, and update document links.
+- [x] 3. Build the declarative lifecycle graph validator.
+  - [x] 3.1 Add graph fixtures covering normal, abbreviated, spike, delivery, and review-resolution flows plus unreachable, ownerless, contradictory, and dead-end failures.
+  - [x] 3.2 Implement graph construction, terminal reachability, transition-owner, and consistency diagnostics in a validation module.
+- [x] 4. Validate an installed target's Specle skill inventory.
+  - [x] 4.1 Add tests for missing, malformed, duplicate, and unrelated installed skills plus invalid direct dependencies and unavailable lifecycle commands.
+  - [x] 4.2 Implement marker-filtered installed-skill discovery and inventory/declaration validation.
+- [x] 5. Validate the target's current runtime records without introducing versioning.
+  - [x] 5.1 Add tests for malformed or missing JSON, current-issue/context disagreement, absent spec folders, invalid status/kind/next values, and missing state evidence.
+  - [x] 5.2 Implement read-only current-issue and context validation that preserves unknown future fields.
+- [x] 6. Expose `specle validate <target-directory>` through the CLI.
+  - [x] 6.1 Add parser and behaviour tests for explicit target requirement, successful validation, failures, diagnostics, and no target mutation.
+  - [x] 6.2 Wire the command through the existing synchronous argparse and asynchronous AnyIO boundary with stable exit behaviour.
+- [x] 7. Add opt-in verbose validation reporting.
+  - [x] 7.1 Add CLI coverage for default and verbose successful output without target mutation.
+  - [x] 7.2 Report managed-skill, lifecycle, index, and runtime validation summaries when `--verbose` is selected.
+- [x] 8. Address accepted PR #6 validation findings.
+  - [x] 8.1 Normalise lifecycle states before semantic validation and validate compatible record handoffs.
+  - [x] 8.2 Validate applicable committed delivery evidence, managed-skill classification, generated index integrity, and safe JSON-read failures.
+  - [x] 8.3 Reuse buffered parsed inputs for validation and verbose reporting, and collect terminal states before graph-edge checks.

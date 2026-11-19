@@ -8,6 +8,9 @@ description: >-
   Prepare non-active bugfixes or refactors for later work.
 usage: >-
   Use to create an explicitly named queued repair or behaviour-preserving restructure without implementation changes.
+lifecycle:
+  creates:
+    - planned
 ---
 
 # Prepare abbreviated side work
@@ -15,6 +18,8 @@ usage: >-
 Create a named, implementation-ready bugfix or refactor without executing its tasks or changing the active current issue.
 
 ## Workflow
+
+Before creating or recording lifecycle state, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/current-issue.json`, `.specle/context.json`, the relevant steering, and applicable authoritative `.agents/project/` documents.
 2. Determine the work kind. Use `bugfix` for a bounded defect whose intended behaviour is known. Use `refactor` for a behaviour-preserving structural change. Ask the user if that distinction is unclear.

@@ -5,6 +5,13 @@ description: >-
   Estimate Specle work complexity and planning depth.
 usage: >-
   Use before implementation to size an active spec and decide whether design is warranted; it is advisory and performs no implementation.
+lifecycle:
+  accepts:
+    - defined
+  transitions:
+    - from: defined
+      to: estimated
+      next: design
 ---
 
 # Estimate complexity
@@ -17,6 +24,8 @@ anything.
 Changes are independent by default. A queued or future change must not create a dependency through ordering, conceptual overlap, or anticipated functionality. Record a dependency only for an obvious, already-implemented technical prerequisite or an explicit user decision, and make it visible in the estimate and affected spec artefacts. Constraints, features, expectations, and functionality from a future change must not constrain this change until that future change is implemented.
 
 ## Workflow
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/context.json` for current state. Default to the active normal spec. A named queued normal spec is valid for advisory estimation only; it must remain queued and unactivated.
 2. Read `requirements.md` (or `spec.md`) thoroughly.

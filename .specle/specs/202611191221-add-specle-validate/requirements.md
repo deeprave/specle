@@ -23,6 +23,8 @@ Specle skills describe lifecycle transitions in human-readable Markdown, while `
 2. THE command SHALL not infer a target from the current working directory.
 3. THE command SHALL perform no write, installation, replacement, staging, commit, or external operation.
 4. THE command SHALL exit successfully only when all applicable checks pass, and SHALL exit non-zero with actionable diagnostics otherwise.
+5. THE command SHALL support an optional `--verbose` flag that reports the completed validation areas and useful counts without exposing an internal trace.
+6. THE command SHALL validate lifecycle handoffs against normalised lifecycle selectors, validate applicable committed-delivery evidence, report unreadable JSON safely, and verify that the generated index matches the installed managed inventory.
 
 ### Requirement 2: Declare lifecycle transitions in skills
 
@@ -81,10 +83,23 @@ Specle skills describe lifecycle transitions in human-readable Markdown, while `
 2. THE change SHALL not depend on `versioned-json-schemas` or impose its anticipated record format.
 3. A later schema-versioning change MAY extend the validator with version and migration checks without changing the command's read-only target semantics or the skill-derived transition graph.
 
+### Requirement 7: Publish coherent reference documents
+
+**User Story:** As a maintainer, I want durable project references organised by subject, so that lifecycle policy, repository layout, and skill frontmatter contracts are easy to find without being conflated with generated schemas.
+
+#### Acceptance Criteria
+
+1. THE project SHALL keep its durable reference documents under `docs/`.
+2. THE existing project-layout reference SHALL be renamed to `docs/LAYOUT.md`, and the existing lifecycle reference SHALL be moved to `docs/LIFECYCLE.md`.
+3. THE project SHALL add `docs/FRONTMATTER.md` documenting the supported package-owned skill frontmatter keys, their constrained vocabulary, and the compact and nested lifecycle transition forms.
+4. References to the relocated documents SHALL be updated without expanding the README beyond the concise introduction it already provides.
+
 ## Non-Functional Requirements
 
 - Validation must be deterministic, fast, and testable without an AI service or network access.
 - Diagnostics must name the failing file, record, status, or command and suggest the recovery workflow when known.
+- Default successful output must remain concise; `--verbose` output must identify each completed validation area and the relevant managed-skill, lifecycle, index, and runtime-record counts when available.
+- Managed-skill discovery SHALL classify a buffered frontmatter block before strict parsing, and validation SHALL reuse each parsed input rather than rereading it for reporting.
 - Skill transition metadata is a production interface for agents and validation; it must be concise, explicit, and visible alongside the human workflow instructions.
 - A lifecycle declaration is not merely validator input: the owning skill must make its availability and authority explicit to the agent in its body instructions.
 - The implementation SHALL use the StrictYAML parser and schema established by `adopt-strictyaml-frontmatter`; it SHALL not use PyYAML, `yaml.load`, or an unsafe loader for any frontmatter input.

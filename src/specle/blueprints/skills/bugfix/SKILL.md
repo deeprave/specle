@@ -5,6 +5,24 @@ description: >-
   Fix bounded defects with abbreviated test-first work.
 usage: >-
   Use for a clear, bounded defect that needs a reproduction and regression test; use spec when the work introduces new behaviour or broader scope.
+lifecycle:
+  accepts:
+    - defined
+    - planned
+    - building
+  creates:
+    - defined
+    - planned
+  transitions:
+    - from:
+        status: planned
+        kind: bugfix
+        scope: queued
+      to:
+        status: building
+        kind: bugfix
+        scope: queued
+      next: verify
 ---
 
 # Bugfix (abbreviated TDD)
@@ -12,6 +30,8 @@ usage: >-
 Resolve a defect with a lightweight, reproduce-first flow without displacing unrelated active work.
 
 ## Workflow
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/current-issue.json` and `.specle/context.json`. Preserve the recorded active
    current spec; this workflow must not replace it.

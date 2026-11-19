@@ -5,6 +5,13 @@ description: >-
   Design a normal spec's technical implementation.
 usage: >-
   Use after normal requirements exist, especially for M/L/XL or uncertain work, and before task planning.
+lifecycle:
+  accepts:
+    - estimated
+  transitions:
+    - from: estimated
+      to: designed
+      next: tasks
 ---
 
 # Create a technical design
@@ -17,6 +24,8 @@ files already in `.specle/specs/`.
 Changes are independent by default. A queued or future change must not create a dependency through ordering, conceptual overlap, or anticipated functionality. Record a dependency only for an obvious, already-implemented technical prerequisite or an explicit user decision, and make it visible in the affected design and spec artefacts. Constraints, features, expectations, and functionality from a future change must not constrain this change until that future change is implemented.
 
 ## Workflow
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/context.json` and `.specle/current-issue.json` to locate the active spec. A named queued normal spec is also valid for explicit planning; it must remain queued and unactivated.
 2. Read `requirements.md` and `spec.md` from that folder.

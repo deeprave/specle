@@ -5,9 +5,22 @@ description: >-
   Revise specs and plans after accepted feedback.
 usage: >-
   Use when accepted feedback changes requirements, design, or tasks; do not use it for an implementation-only defect.
+lifecycle:
+  accepts:
+    - triaged
+    - committed
+  transitions:
+    - from: triaged
+      to: planned
+      next: build
+    - from: committed
+      to: planned
+      next: build
 ---
 
 # Revise a spec
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 Preserve one change's history when accepted feedback exposes an error in its requirements,
 architecture, or assumptions. Revise the existing planning artifacts in place so that the next

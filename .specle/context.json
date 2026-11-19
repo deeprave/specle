@@ -1,42 +1,64 @@
 {
-  "$comment": "Runtime context for the active Specle StrictYAML-frontmatter feature specification.",
+  "$comment": "Runtime context for the active Specle validate feature specification.",
   "current_spec": {
-    "name": "202611191253-adopt-strictyaml-frontmatter",
-    "path": ".specle/specs/202611191253-adopt-strictyaml-frontmatter",
+    "name": "202611191221-add-specle-validate",
+    "path": ".specle/specs/202611191221-add-specle-validate",
     "kind": "change",
-    "status": "complete",
-    "next": null,
+    "status": "approved",
+    "next": "commit",
     "progress": {
-      "tasks_completed": 4,
-      "tasks_total": 4
+      "tasks_completed": 8,
+      "tasks_total": 8
     },
     "present_task": null,
     "verification": {
       "status": "pass",
-      "last_run": "2026-11-19T21:00:00+1100",
       "gates": {
-        "pytest": "pass (40 tests)",
+        "pytest": "pass (55 tests)",
         "ruff check": "pass",
         "ruff format --check": "pass",
         "ty check": "pass",
+        "specle validate .": "pass",
+        "specle validate . --verbose": "pass",
+        "git diff --check": "pass"
+      }
+      "gates": {
+        "pytest": "pass (55 tests)",
+        "ruff check": "pass",
+        "ruff format --check": "pass",
+        "ty check": "pass",
+        "specle validate .": "pass",
+        "specle validate . --verbose": "pass",
         "git diff --check": "pass"
       }
     },
     "review": {
       "status": "pass",
-      "last_run": "2026-11-19T21:00:00+1100",
       "findings": 0
     },
+    "revision_note": "Accepted and varied PR #6 corrections passed verification and local review; deferred queue findings remain with restructure-spec-state.",
     "delivery": {
-      "reference": "https://github.com/deeprave/specle/pull/5",
-      "head_branch": "feature/adopt-strictyaml-frontmatter",
+      "reference": "https://github.com/deeprave/specle/pull/6",
+      "head_branch": "feature/add-specle-validate",
       "target_branch": "main",
-      "final_event": "merged 2026-11-19T11:51:06Z",
-      "merge_commit": "fe898648f7e9e854113e997c061d0e11859c81ca"
-    },
-    "revision_note": "PR #5 merged and local main synchronised; three accepted findings are resolved and one test-only suggestion remains deferred."
+      "final_event": null,
+      "commit": "08036c3"
+    }
   },
   "recent_specs": [
+    {
+      "name": "202611191253-adopt-strictyaml-frontmatter",
+      "path": ".specle/specs/202611191253-adopt-strictyaml-frontmatter",
+      "kind": "change",
+      "status": "complete",
+      "delivery": {
+        "reference": "https://github.com/deeprave/specle/pull/5",
+        "head_branch": "feature/adopt-strictyaml-frontmatter",
+        "target_branch": "main",
+        "final_event": "merged 2026-11-19T11:51:06Z",
+        "merge_commit": "fe898648f7e9e854113e997c061d0e11859c81ca"
+      }
+    },
     {
       "name": "202611191353-add-decision-gated-progression",
       "path": ".specle/specs/202611191353-add-decision-gated-progression",
@@ -246,17 +268,6 @@
       "kind": "change",
       "status": "defined",
       "next": "activate"
-    },
-    {
-      "name": "202611191221-add-specle-validate",
-      "path": ".specle/specs/202611191221-add-specle-validate",
-      "kind": "change",
-      "status": "defined",
-      "next": "activate",
-      "depends_on": [
-        "202611191253-adopt-strictyaml-frontmatter"
-      ],
-      "revision_note": "Lifecycle declarations extend the StrictYAML schema-backed parser, remain separate from direct `requires` dependencies, and are explicitly consulted by their owning skills."
     }
   ],
   "python_checks": {

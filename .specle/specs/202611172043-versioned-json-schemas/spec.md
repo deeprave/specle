@@ -10,11 +10,11 @@ Define named, versioned contracts for agent-managed JSON so every reader can ide
 
 ## Scope
 
-Start with current-issue state, runtime context, spike findings, tracker links, and the generated Specle skill index. Document ownership, location, canonical fields, compatibility, and external-data boundaries. Make new instances identify their contract and version through one consistent mechanism.
+Start with current-issue state, runtime context, spike findings, tracker links, and the generated Specle skill index. Document ownership, location, canonical fields, compatibility, and external-data boundaries. Make new instances identify their contract and version through one consistent mechanism. Package the resulting JSON Schema resources with a resource-safe registry and loader that supports stable identifiers and internal references.
 
 ## Constraints
 
-Keep human explanation in Markdown and operational records in JSON. Do not tie the contracts to a specific agent client, external tracker, or JSON-schema library. This change establishes the first supported versions; it updates the repository's existing experimental records atomically rather than supporting unversioned records at runtime.
+Keep human explanation in Markdown and operational records in JSON. Do not tie the contracts to a specific agent client or external tracker. This change establishes the first supported versions; it updates the repository's existing experimental records atomically rather than supporting unversioned records at runtime.
 
 ## Verification
 

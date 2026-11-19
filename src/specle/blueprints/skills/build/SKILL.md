@@ -5,6 +5,21 @@ description: >-
   Implement active Specle tasks with TDD.
 usage: >-
   Use when the active normal spec, or an explicitly named committed normal target, is planned or building with incomplete tasks; execute tasks in order and stop at verify when they are complete.
+lifecycle:
+  accepts:
+    - planned
+    - building
+    - review-findings
+  transitions:
+    - from: planned
+      to: building
+      next: build
+    - from: building
+      to: building
+      next: verify
+    - from: review-findings
+      to: building
+      next: verify
 ---
 
 # Build the current spec (TDD)
@@ -13,6 +28,8 @@ Work through the active spec's tasks one at a time, test-first, keeping the spec
 in sync.
 
 ## Workflow
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/context.json` (current spec + progress), `.specle/current-issue.json` (spec folder path),
    `.agents/steering/lifecycle.md`, and the relevant authoritative `.agents/project/` documents.

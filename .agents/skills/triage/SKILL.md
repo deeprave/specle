@@ -5,6 +5,13 @@ description: >-
   Consolidate review findings into prioritised decisions.
 usage: >-
   Use after local review or with supplied external feedback to deduplicate findings and record decisions without implementing fixes.
+lifecycle:
+  accepts:
+    - review-findings
+  transitions:
+    - from: review-findings
+      to: triaged
+      next: resolve
 ---
 
 # Triage review findings
@@ -12,6 +19,8 @@ usage: >-
 Consolidate review feedback for one work item, decide what should happen to each finding, and leave implementation to `resolve` or the selected downstream workflow.
 
 ## Workflow
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/context.json`, `.specle/current-issue.json`, `.agents/steering/review.md`, `.agents/steering/lifecycle.md`, and `.agents/project/review.md`.
 2. Select the target. Default to the active normal spec. A non-active target must be explicitly named. A `committed` normal change may be selected for external feedback without replacing the active current issue; bugfixes and refactors also remain explicit. A spike does not enter triage.

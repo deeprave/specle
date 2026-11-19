@@ -5,6 +5,20 @@ description: >-
   Investigate a question within a time-box, without implementation.
 usage: >-
   Use before committing to a solution when a bounded investigation is needed; produce findings and recommendations, not production changes.
+lifecycle:
+  accepts:
+    - defined
+    - spiking
+  creates:
+    - defined
+  transitions:
+    - from: defined
+      to: spiking
+      next: spike
+    - from: spiking
+      to: complete
+  terminal:
+    - complete
 ---
 
 # Spike an investigation (don't implement)
@@ -12,6 +26,8 @@ usage: >-
 Research a question for decision-making as active work. **Do not implement anything.**
 
 ## Workflow
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/current-issue.json`, `.specle/context.json`, and the relevant steering and project guidance. Do not replace an unfinished active work item unless the user intends to do so; retain it in `queued_specs` when switching the current issue.
 2. Establish the investigation question, hypothesis, scope, and an S/M/L/XL effort budget. The budget bounds research effort; it is not a delivery estimate or due date.

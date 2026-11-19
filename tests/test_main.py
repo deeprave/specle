@@ -17,6 +17,19 @@ def test_parser_requires_an_explicit_init_target() -> None:
         build_parser().parse_args(["init"])
 
 
+def test_parser_accepts_an_explicit_validate_target() -> None:
+    args = build_parser().parse_args(["validate", "/work/example", "--verbose"])
+
+    assert args.command == "validate"
+    assert args.target_directory == "/work/example"
+    assert args.verbose is True
+
+
+def test_parser_requires_an_explicit_validate_target() -> None:
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(["validate"])
+
+
 @pytest.mark.parametrize("command", ["install", "update"])
 def test_parser_rejects_retired_commands(command: str) -> None:
     with pytest.raises(SystemExit):
@@ -36,3 +49,16 @@ def test_init_uses_the_explicit_target(
 
     assert (target / ".agents" / "skills" / "spec" / "SKILL.md").is_file()
     assert not (current_directory / ".agents").exists()
+
+
+def test_validate_reports_an_invalid_target_without_writing(
+    tmp_path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+
+    with pytest.raises(SystemExit, match="1"):
+        anyio.run(main, ["validate", str(target)])
+
+    assert "installed skill inventory is unavailable" in capsys.readouterr().out
+    assert not (target / ".agents").exists()
