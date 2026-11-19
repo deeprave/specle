@@ -4,8 +4,8 @@
     "name": "202611191221-add-specle-validate",
     "path": ".specle/specs/202611191221-add-specle-validate",
     "kind": "change",
-    "status": "approved",
-    "next": "commit",
+    "status": "committed",
+    "next": "complete",
     "progress": {
       "tasks_completed": 8,
       "tasks_total": 8
@@ -36,13 +36,13 @@
       "status": "pass",
       "findings": 0
     },
-    "revision_note": "Accepted and varied PR #6 corrections passed verification and local review; deferred queue findings remain with restructure-spec-state.",
+    "revision_note": "Updated PR #6 delivery with accepted review corrections; awaiting merge. Deferred queue findings remain with restructure-spec-state.",
     "delivery": {
       "reference": "https://github.com/deeprave/specle/pull/6",
       "head_branch": "feature/add-specle-validate",
       "target_branch": "main",
       "final_event": null,
-      "commit": "08036c3"
+      "commit": "542b7bc"
     }
   },
   "recent_specs": [
