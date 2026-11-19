@@ -4,8 +4,8 @@
     "name": "202611180808-add-delivery-policy",
     "path": ".specle/specs/202611180808-add-delivery-policy",
     "kind": "change",
-    "status": "approved",
-    "next": "commit",
+    "status": "complete",
+    "next": null,
     "progress": {
       "tasks_completed": 16,
       "tasks_total": 16
@@ -31,8 +31,8 @@
       "reference": "https://github.com/deeprave/specle/pull/2",
       "head_branch": "feature/add-delivery-policy",
       "target_branch": "main",
-      "commit": "94398ef",
-      "final_event": null
+      "commit": "8707485",
+      "final_event": "merged 2026-11-18T23:00:00+1100"
     },
     "revision_note": "Resolved accepted PR feedback through lifecycle, portable-guidance, and build-metadata revisions; retained existing delivery evidence."
   },
