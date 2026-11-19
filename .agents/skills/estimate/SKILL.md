@@ -19,7 +19,7 @@ Changes are independent by default. A queued or future change must not create a 
 
 ## Workflow
 
-1. Read `.specle/context.json` for current state.
+1. Read `.specle/context.json` for current state. Default to the active normal spec. A named queued normal spec is valid for advisory estimation only; it must remain queued and unactivated.
 2. Read `requirements.md` (or `spec.md`) thoroughly.
 3. Read the relevant authoritative `.agents/project/` documents and the codebase to understand the
    current state, project constraints, and blast radius.
@@ -33,10 +33,7 @@ Write `estimate.md` in the spec folder with:
 - **T-shirt size**: S / M / L / XL
 - **Breakdown**: new files (~N), modified files (~N), estimated tasks (~N), key risks.
 - **Confidence**: High / Medium / Low
-- **Recommendation**:
-  - S: skip design, go straight to `tasks`.
-  - M: consider `design`.
-  - L/XL: `design` recommended; consider splitting into smaller specs.
+- **Recommendation**: describe the planning risks and any reason to split the work. Active normal work always continues through design before tasks.
 - **Similar past work**: reference relevant memory/specs.
 
 If estimating the active spec, update its lifecycle status to `estimated`. A named queued-spec
@@ -44,7 +41,6 @@ estimate records only that spec's artifact; it does not change `.specle/current-
 
 ## Next
 
-After recording a successful estimate, read `.agents/project/automation.md`. In `decision-gated` mode, invoke the applicable unambiguous next planning skill with the selected spec name; otherwise report it and wait.
+After recording a successful estimate for the active spec, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `design <spec-name>`; otherwise report it and wait. For a named queued spec, stop and report `activate <spec-name>` regardless of progression policy.
 
-- `design` — for M+ work.
-- `tasks` — for small work, go straight to tasks.
+- `design` — required before tasks for active normal work.
