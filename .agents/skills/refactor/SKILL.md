@@ -5,6 +5,24 @@ description: >-
   Restructure code without changing observable behaviour.
 usage: >-
   Use for structural cleanup protected by documented invariants and tests; use spec when new behaviour is needed.
+lifecycle:
+  accepts:
+    - defined
+    - planned
+    - building
+  creates:
+    - defined
+    - planned
+  transitions:
+    - from:
+        status: planned
+        kind: refactor
+        scope: queued
+      to:
+        status: building
+        kind: refactor
+        scope: queued
+      next: verify
 ---
 
 # Refactor (no behaviour change)
@@ -12,6 +30,8 @@ usage: >-
 Improve structure while keeping behaviour identical, with explicit invariants and tests as the guardrail, without displacing unrelated active work.
 
 ## Workflow
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/current-issue.json` and `.specle/context.json`. Preserve the recorded active current spec; this workflow must not replace it.
 2. Read the relevant authoritative `.agents/project/` documents and the codebase area being refactored.

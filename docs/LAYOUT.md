@@ -1,4 +1,4 @@
-# Specle project schema
+# Specle project layout
 
 Specle separates stable, human-maintained guidance from agent-managed runtime state.
 
@@ -17,16 +17,7 @@ The Specle distribution inventory lives in `src/specle/blueprints/skills/` and
 `src/specle/blueprints/steering/`. Installation copies those inventories into the target project's
 `.agents/` directory; it does not replace `.agents/project/`.
 
-Each skill blueprint declares a human-facing `specle_group`, concise `description`, detailed `usage`, and optional direct `requires` dependencies in its frontmatter. A non-empty `specle_group` is the single marker that identifies a Specle skill and supplies its inventory group. Specle validates declared dependencies and manages only the distributed inventory; unrelated installed skills are left untouched. The `specle` guide uses the generated installed inventory's group, description, and usage metadata to present available skills.
-
-Use a block sequence when a skill has dependencies:
-
-```yaml
-requires:
-  - verify
-```
-
-Omit `requires` when the skill has no direct dependencies.
+Each skill blueprint declares a human-facing `specle_group`, concise `description`, detailed `usage`, and optional direct `requires` dependencies in its frontmatter. A non-empty `specle_group` is the single marker that identifies a Specle skill and supplies its inventory group. Specle validates declared dependencies and manages only the distributed inventory; unrelated installed skills are left untouched. The `specle` guide uses the generated installed inventory's group, description, and usage metadata to present available skills. See [FRONTMATTER.md](FRONTMATTER.md) for the complete metadata contract.
 
 ## `.agents/`
 

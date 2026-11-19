@@ -18,7 +18,7 @@ Specle keeps specifications small and purposeful. A spec should give people and 
 
 The project is intended to support development workflows where documentation and agent instructions are first-class, rather than an afterthought.
 
-See [LIFECYCLE.md](LIFECYCLE.md) for the lifecycle implemented today, including its workflow transitions and audit.
+See [the lifecycle reference](docs/LIFECYCLE.md) for the lifecycle implemented today, including its workflow transitions and audit.
 
 ## Initialise an installation
 

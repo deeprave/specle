@@ -16,11 +16,13 @@ Add `specle validate <target-directory>` to derive lifecycle validation from ins
 - Derive and audit the transition graph from installed Specle skills for reachable terminal outcomes, valid edges, and command availability.
 - Validate target `.specle` JSON, current-issue alignment, spec paths, lifecycle status, and allowed next workflows.
 - Return non-zero on validation failures without modifying the target.
+- Keep normal success output concise while `--verbose` reports the validation areas and useful audit counts.
 - Keep schema-versioning work independent; validate the current established JSON shapes without adding a schema version or migration contract.
+- Organise durable project references under `docs/`, including a dedicated frontmatter contract reference.
 
 ## Constraints
 
-The target directory is required; validation must never infer the current working directory. Human Markdown remains explanatory, while declared skill metadata is the deterministic validation interface. The command is read-only and agent-client agnostic. This change depends on `adopt-strictyaml-frontmatter` for the parser and existing metadata schema; it alone adds lifecycle declarations to that schema.
+The target directory is required; validation must never infer the current working directory. Human Markdown remains explanatory, while declared skill metadata is the deterministic validation interface. The command is read-only and agent-client agnostic. This change depends on `adopt-strictyaml-frontmatter` for the parser and existing metadata schema; it alone adds lifecycle declarations to that schema. It does not depend on the future schema registry or versioned JSON contracts.
 
 ## Verification
 

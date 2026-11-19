@@ -7,6 +7,17 @@ description: >-
   Deliver approved Specle work according to project policy.
 usage: >-
   Use after local review approves a change, bugfix, or refactor to prepare or perform its configured commit, push, and pull-request delivery actions.
+lifecycle:
+  accepts:
+    - approved
+  transitions:
+    - from: approved
+      to: committed
+      next: complete
+    - from: approved
+      to: complete
+  terminal:
+    - complete
 ---
 
 # Commit approved work
@@ -14,6 +25,8 @@ usage: >-
 Prepare or perform delivery only for an approved target, using the selected project delivery policy. This skill distinguishes local approval from final external delivery.
 
 ## Workflow
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/context.json`, `.specle/current-issue.json`, `.agents/steering/{lifecycle,delivery,testing}.md`, and `.agents/project/{delivery,security,testing}.md`.
 2. Select the active approved target by default. A non-active target must be explicitly named, have `status: "approved"`, and must not replace the active current issue. Stop if delivery policy is missing or incomplete; direct the user to `onboard`.

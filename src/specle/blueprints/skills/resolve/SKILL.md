@@ -12,9 +12,24 @@ description: >-
   Dispatch accepted review decisions to follow-up workflows.
 usage: >-
   Use only after triage has recorded decisions for all current findings; route accepted work without implementing it directly.
+lifecycle:
+  accepts:
+    - triaged
+  transitions:
+    - from: triaged
+      to: planned
+      next: build
+    - from: triaged
+      to: approved
+      next: commit
+    - from: triaged
+      to: committed
+      next: complete
 ---
 
 # Resolve triaged review findings
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 Dispatch recorded review decisions without revisiting the triage or silently implementing work outside the selected workflows.
 

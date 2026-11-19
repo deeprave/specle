@@ -10,6 +10,19 @@ description: >-
   Explicitly commence a queued normal specification.
 usage: >-
   Use with a named queued normal spec to make it current and begin its planning lifecycle.
+lifecycle:
+  accepts:
+    - defined
+  transitions:
+    - from:
+        status: defined
+        kind: change
+        scope: queued
+      to:
+        status: defined
+        kind: change
+        scope: active
+      next: estimate
 ---
 
 # Activate a normal spec
@@ -17,6 +30,8 @@ usage: >-
 Make an explicitly named queued normal spec the current work item. Activation is the boundary between planning a spec and commencing it.
 
 ## Workflow
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/context.json`, `.specle/current-issue.json` when present, and `.agents/steering/lifecycle.md`.
 2. Require an explicit spec name. Locate its queued record and require `kind: "change"` and `status: "defined"`. Do not activate a bugfix, refactor, spike, completed spec, or an unrecorded directory.

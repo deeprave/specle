@@ -5,6 +5,13 @@ description: >-
   Generate task plans from normal specs and designs.
 usage: >-
   Use after normal requirements and any necessary design exist to create or reconcile an ordered TDD task plan; do not infer completed work from a diff.
+lifecycle:
+  accepts:
+    - designed
+  transitions:
+    - from: designed
+      to: planned
+      next: build
 ---
 
 # Generate implementation tasks
@@ -17,6 +24,8 @@ matching the existing `tasks.md` files in `.specle/specs/`.
 Changes are independent by default. A queued or future change must not create a dependency through ordering, conceptual overlap, or anticipated functionality. Record a dependency only for an obvious, already-implemented technical prerequisite or an explicit user decision, and make it visible in the affected tasks and spec artefacts. Constraints, features, expectations, and functionality from a future change must not constrain this change until that future change is implemented.
 
 ## Workflow
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/context.json` and `.specle/current-issue.json` to locate the active spec. A named queued normal spec is also valid for explicit planning; it must remain queued and unactivated.
 2. Require and read `requirements.md`, `spec.md`, and `design.md` (for architecture and dependency ordering). Stop if the target has no design.

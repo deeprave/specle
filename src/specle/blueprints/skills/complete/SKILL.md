@@ -9,6 +9,14 @@ description: >-
   Confirm final delivery of a committed Specle change.
 usage: >-
   Use for a committed branch-and-pull-request delivery after external review is settled, to confirm or perform the policy-authorised final delivery event.
+lifecycle:
+  accepts:
+    - committed
+  transitions:
+    - from: committed
+      to: complete
+  terminal:
+    - complete
 ---
 
 # Complete committed delivery
@@ -16,6 +24,8 @@ usage: >-
 Confirm that a committed branch-and-pull-request delivery reached the final event configured by the project. It may merge and synchronise only when both project policy and the user explicitly authorise that work.
 
 ## Workflow
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/context.json`, `.specle/current-issue.json`, `.agents/steering/{lifecycle,delivery}.md`, `.agents/project/delivery.md`, and the `delivery` evidence in the selected target's existing context record.
 2. Select the active committed target by default. A non-active committed target must be explicitly named and never replaces the active current issue. Require a branch-and-pull-request model, a delivery reference, a delivery head branch, and a delivery target branch. Stop if any is absent.

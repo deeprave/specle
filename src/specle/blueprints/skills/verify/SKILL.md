@@ -5,6 +5,13 @@ description: >-
   Verify implementations against specs and quality gates.
 usage: >-
   Use after implementation tasks are complete and before review; check every requirement and documented gate against current code and tests.
+lifecycle:
+  accepts:
+    - building
+  transitions:
+    - from: building
+      to: verified
+      next: review
 ---
 
 # Verify implementation against spec
@@ -19,6 +26,8 @@ against the working tree every time.
 Use the project's documented command runner for every command.
 
 ## Step 1 — Establish what to verify
+
+Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/context.json` (current and queued records) and `.specle/current-issue.json` (the active spec path). Unless the user names an abbreviated queued spec, verify the active spec. If the selected target has `kind: "spike"`, stop: spikes complete from recorded findings and do not enter verification.
 2. Locate the target spec and read its documents in full:

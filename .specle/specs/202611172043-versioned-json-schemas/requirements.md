@@ -53,15 +53,26 @@ Specle uses JSON for agent-managed state and for information crossing skill and 
 2. THE contract SHALL preserve external system, item kind, identifier, and canonical URL without inventing replacement identifiers.
 3. Contract documentation SHALL distinguish Specle-owned fields from data owned by an external system.
 
+### Requirement 5: Distribute a schema registry
+
+**User Story:** As a package consumer, I want Specle's published schemas available through a package-owned registry, so that validation can load them consistently from a source checkout, an installed wheel, or `uvx`.
+
+#### Acceptance Criteria
+
+1. THE project SHALL package its machine-readable JSON Schema resources with the `specle` distribution.
+2. EACH published schema SHALL have a stable package-controlled identifier, and shared schema fragments SHALL resolve through documented internal `$ref` values.
+3. THE package SHALL expose a public resource-safe schema loader and registry interface without assuming a source-tree filesystem path.
+4. THE interface SHALL provide actionable errors for an unknown schema or an unavailable schema resource.
+5. Tests SHALL load packaged schemas and resolve at least one internal shared-schema reference.
+
 ## Non-Functional Requirements
 
 - Contract documentation remains readable in Markdown, while contract instances remain JSON.
-- The design must remain independent of a particular agent client, tracker, or JSON-schema library.
+- The design must remain independent of a particular agent client or tracker.
 - Contract checks and migrations must not modify unrelated project-owned Markdown guidance.
 - The implementation may update this repository's existing experimental JSON records atomically, but it need not support them as a runtime input format.
 
 ## Deferred decisions
 
 - The exact identifier syntax and version representation.
-- Whether machine-readable JSON Schema documents, custom validation, or both are used.
 - CLI commands for validation or migration.

@@ -12,10 +12,33 @@ from importlib.resources.abc import Traversable
 from pathlib import Path
 from typing import NotRequired, TypedDict
 
-from strictyaml import Map, Optional, Seq, Str, load
+from strictyaml import Enum, Map, Optional, Seq, Str, load
 from strictyaml.exceptions import StrictYAMLError
 
 _SKILL_NAME = re.compile(r"[a-z][a-z0-9-]*")
+_LIFECYCLE_STATUSES = (
+    "defined",
+    "estimated",
+    "designed",
+    "planned",
+    "spiking",
+    "building",
+    "verified",
+    "approved",
+    "committed",
+    "review-findings",
+    "triaged",
+    "complete",
+)
+_LIFECYCLE_KINDS = ("change", "bugfix", "refactor", "spike")
+_LIFECYCLE_SCOPES = ("active", "queued", "committed")
+_LIFECYCLE_STATE_SCHEMA = Str() | Map(
+    {
+        "status": Enum(_LIFECYCLE_STATUSES),
+        Optional("kind"): Enum(_LIFECYCLE_KINDS),
+        Optional("scope"): Enum(_LIFECYCLE_SCOPES),
+    }
+)
 _SKILL_FRONTMATTER_SCHEMA = Map(
     {
         "name": Str(),
@@ -23,6 +46,22 @@ _SKILL_FRONTMATTER_SCHEMA = Map(
         "description": Str(),
         "usage": Str(),
         Optional("requires"): Seq(Str()),
+        Optional("lifecycle"): Map(
+            {
+                Optional("accepts"): Seq(Enum(_LIFECYCLE_STATUSES)),
+                Optional("creates"): Seq(Enum(_LIFECYCLE_STATUSES)),
+                Optional("transitions"): Seq(
+                    Map(
+                        {
+                            "from": _LIFECYCLE_STATE_SCHEMA,
+                            "to": _LIFECYCLE_STATE_SCHEMA,
+                            Optional("next"): Str(),
+                        }
+                    )
+                ),
+                Optional("terminal"): Seq(Enum(_LIFECYCLE_STATUSES)),
+            }
+        ),
     }
 )
 _GROUP_ORDER = (
@@ -57,6 +96,35 @@ class SkillMetadata:
     usage: str
     requires: tuple[str, ...]
     path: Path
+    lifecycle: LifecycleDeclaration | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class LifecycleTransition:
+    """One declared lifecycle edge owned by a skill."""
+
+    source: LifecycleState
+    target: LifecycleState
+    next_skill: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class LifecycleState:
+    """A lifecycle status with optional kind and scope constraints."""
+
+    status: str
+    kind: str | None = None
+    scope: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class LifecycleDeclaration:
+    """The constrained lifecycle metadata a skill exposes to agents and validation."""
+
+    accepts: tuple[str, ...]
+    creates: tuple[str, ...]
+    transitions: tuple[LifecycleTransition, ...]
+    terminal: tuple[str, ...]
 
 
 class SkillIndexEntry(TypedDict):
@@ -90,6 +158,7 @@ class SkillFrontmatter(TypedDict):
     description: str
     usage: str
     requires: NotRequired[list[str]]
+    lifecycle: NotRequired[dict[str, object]]
 
 
 def packaged_skills_root() -> Traversable:
@@ -118,7 +187,12 @@ def packaged_steering_root() -> Traversable:
 
 def read_skill_metadata(path: Path) -> SkillMetadata:
     """Read schema-validated Specle metadata from a skill frontmatter block."""
-    values = _read_skill_frontmatter(path)
+    return _read_skill_metadata(path, path.read_text())
+
+
+def _read_skill_metadata(path: Path, contents: str) -> SkillMetadata:
+    """Parse one buffered skill file into validated metadata."""
+    values = _read_skill_frontmatter(path, contents)
 
     name = values["name"]
     specle_group = values["specle_group"]
@@ -133,6 +207,7 @@ def read_skill_metadata(path: Path) -> SkillMetadata:
         description=description,
         usage=usage,
         requires=_parse_requires(values.get("requires", []), path),
+        lifecycle=_parse_lifecycle(values.get("lifecycle"), path),
         path=path,
     )
 
@@ -152,6 +227,52 @@ def discover_skills(source_root: Path) -> tuple[SkillMetadata, ...]:
     if not skills:
         raise SkillMetadataError(f"the skill inventory is empty at {source_root}")
     return tuple(skills)
+
+
+def discover_installed_specle_skills(
+    target_directory: Path,
+) -> tuple[SkillMetadata, ...]:
+    """Discover marked Specle skills in an installed target inventory.
+
+    Unmarked client or user skills are intentionally outside Specle's managed
+    inventory and are ignored. Marked skills must conform to the full package
+    frontmatter contract.
+    """
+    skills_root = target_directory.expanduser().resolve() / ".agents" / "skills"
+    if not skills_root.is_dir():
+        raise SkillMetadataError(
+            f"the installed skill inventory is unavailable at {skills_root}"
+        )
+
+    skills: list[SkillMetadata] = []
+    names: set[str] = set()
+    for directory in sorted(skills_root.iterdir()):
+        skill_file = directory / "SKILL.md"
+        if not directory.is_dir() or not skill_file.is_file():
+            continue
+        try:
+            contents = skill_file.read_text()
+        except OSError as error:
+            raise SkillMetadataError(f"unable to read {skill_file}") from error
+        if not _has_specle_group_text(contents):
+            continue
+        metadata = _read_skill_metadata(skill_file, contents)
+        if metadata.name != directory.name:
+            raise SkillMetadataError(f"{skill_file} does not match its directory name")
+        if metadata.name in names:
+            raise SkillMetadataError(
+                f"{skill_file} duplicates installed skill {metadata.name!r}"
+            )
+        names.add(metadata.name)
+        skills.append(metadata)
+
+    if not skills:
+        raise SkillMetadataError(
+            f"the installed skill inventory is empty at {skills_root}"
+        )
+    discovered = tuple(skills)
+    _validate_skill_dependencies(discovered)
+    return discovered
 
 
 def discover_steering(source_root: Path) -> tuple[Path, ...]:
@@ -299,6 +420,66 @@ def _parse_requires(value: list[str], path: Path) -> tuple[str, ...]:
     return tuple(value)
 
 
+def _parse_lifecycle(value: object, path: Path) -> LifecycleDeclaration | None:
+    """Convert schema-validated lifecycle metadata into typed declarations."""
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise SkillMetadataError(f"{path} has an invalid lifecycle value")
+
+    def statuses(name: str) -> tuple[str, ...]:
+        entries = value.get(name, [])
+        if not isinstance(entries, list) or not all(
+            isinstance(entry, str) for entry in entries
+        ):
+            raise SkillMetadataError(f"{path} has an invalid lifecycle {name}")
+        return tuple(entries)
+
+    transitions_value = value.get("transitions", [])
+    if not isinstance(transitions_value, list):
+        raise SkillMetadataError(f"{path} has invalid lifecycle transitions")
+    transitions: list[LifecycleTransition] = []
+    for entry in transitions_value:
+        if not isinstance(entry, dict):
+            raise SkillMetadataError(f"{path} has invalid lifecycle transitions")
+        source = _parse_lifecycle_state(entry.get("from"), path)
+        target = _parse_lifecycle_state(entry.get("to"), path)
+        next_skill = entry.get("next")
+        if next_skill is not None and not isinstance(next_skill, str):
+            raise SkillMetadataError(f"{path} has invalid lifecycle transitions")
+        transitions.append(LifecycleTransition(source, target, next_skill))
+    return LifecycleDeclaration(
+        accepts=statuses("accepts"),
+        creates=statuses("creates"),
+        transitions=tuple(transitions),
+        terminal=statuses("terminal"),
+    )
+
+
+def _parse_lifecycle_state(value: object, path: Path) -> LifecycleState:
+    """Normalise compact and nested lifecycle state declarations."""
+    if isinstance(value, str):
+        state = LifecycleState(value)
+    elif not isinstance(value, dict):
+        raise SkillMetadataError(f"{path} has invalid lifecycle transitions")
+    else:
+        status = value.get("status")
+        kind = value.get("kind")
+        scope = value.get("scope")
+        if not isinstance(status, str) or any(
+            item is not None and not isinstance(item, str) for item in (kind, scope)
+        ):
+            raise SkillMetadataError(f"{path} has invalid lifecycle transitions")
+        state = LifecycleState(status, kind, scope)
+    if state.status not in _LIFECYCLE_STATUSES:
+        raise SkillMetadataError(f"{path} has an unsupported lifecycle status")
+    if state.kind is not None and state.kind not in _LIFECYCLE_KINDS:
+        raise SkillMetadataError(f"{path} has an unsupported lifecycle kind")
+    if state.scope is not None and state.scope not in _LIFECYCLE_SCOPES:
+        raise SkillMetadataError(f"{path} has an unsupported lifecycle scope")
+    return state
+
+
 def _validate_skill_dependencies(skills: tuple[SkillMetadata, ...]) -> None:
     """Ensure every declared direct dependency is present in the distribution."""
     names = {skill.name for skill in skills}
@@ -356,10 +537,23 @@ def _discover_obsolete_managed_skills(
 def _has_specle_group(path: Path) -> bool:
     """Return whether a skill frontmatter block declares the Specle marker."""
     try:
-        frontmatter = _frontmatter_text(path)
-    except SkillMetadataError:
+        lines = path.read_text().splitlines()
+    except OSError:
         return False
-    return any(line.startswith("specle_group:") for line in frontmatter.splitlines())
+    return _has_specle_group_text("\n".join(lines))
+
+
+def _has_specle_group_text(contents: str) -> bool:
+    """Classify a buffered skill file by its lightweight Specle marker."""
+    lines = contents.splitlines()
+    if not lines or lines[0] != "---":
+        return False
+    for line in lines[1:]:
+        if line == "---":
+            break
+        if line.startswith("specle_group:"):
+            return True
+    return False
 
 
 def _backup_existing_destination(
@@ -403,10 +597,10 @@ def _clean_up_temporary(staged: list[Path], index_temporary: Path | None) -> Non
             continue
 
 
-def _read_skill_frontmatter(path: Path) -> SkillFrontmatter:
+def _read_skill_frontmatter(path: Path, contents: str) -> SkillFrontmatter:
     """Load constrained, schema-validated metadata from one package-owned skill."""
     try:
-        values = load(_frontmatter_text(path), _SKILL_FRONTMATTER_SCHEMA).data
+        values = load(_frontmatter_text(path, contents), _SKILL_FRONTMATTER_SCHEMA).data
     except StrictYAMLError as error:
         detail = getattr(error, "problem", str(error).splitlines()[0])
         raise SkillMetadataError(f"{path} has invalid frontmatter: {detail}") from error
@@ -416,6 +610,7 @@ def _read_skill_frontmatter(path: Path) -> SkillFrontmatter:
     description = values.get("description")
     usage = values.get("usage")
     requires = values.get("requires")
+    lifecycle = values.get("lifecycle")
     if not all(
         isinstance(value, str) and value.strip()
         for value in (name, specle_group, description, usage)
@@ -426,6 +621,8 @@ def _read_skill_frontmatter(path: Path) -> SkillFrontmatter:
         or not all(isinstance(requirement, str) for requirement in requires)
     ):
         raise SkillMetadataError(f"{path} has an invalid requires value")
+    if lifecycle is not None and not isinstance(lifecycle, dict):
+        raise SkillMetadataError(f"{path} has an invalid lifecycle value")
     frontmatter: SkillFrontmatter = {
         "name": name,
         "specle_group": specle_group,
@@ -434,12 +631,14 @@ def _read_skill_frontmatter(path: Path) -> SkillFrontmatter:
     }
     if requires is not None:
         frontmatter["requires"] = requires
+    if lifecycle is not None:
+        frontmatter["lifecycle"] = lifecycle
     return frontmatter
 
 
-def _frontmatter_text(path: Path) -> str:
+def _frontmatter_text(path: Path, contents: str | None = None) -> str:
     """Return delimited frontmatter text or raise a path-specific metadata error."""
-    lines = path.read_text().splitlines()
+    lines = (path.read_text() if contents is None else contents).splitlines()
     if not lines or lines[0] != "---":
         raise SkillMetadataError(f"{path} has no frontmatter")
 
