@@ -25,6 +25,7 @@ Consolidate review feedback for one work item, decide what should happen to each
    - **Automatic:** record automatic decisions only where project policy permits; present any decision or open question using the one-at-a-time format.
 7. Record decisions in `review-findings.json`. Accepted findings must have a proposed route; declined, skipped, deferred, and duplicate findings retain their rationale and source history. Do not implement anything.
 8. When every current finding has a decision, set the target to `triaged`. For a non-active target, update only its matching record with `status: "triaged"` and `next: "resolve"`; preserve the active current issue. For an active normal target, set its status to `triaged` with next `resolve`.
+9. Present a complete decision-and-route summary: every current finding's severity, decision, recorded rationale, and proposed route. Stop and wait for explicit `resolve` or a user-requested decision revision, including in decision-gated progression mode.
 
 ## Boundaries
 

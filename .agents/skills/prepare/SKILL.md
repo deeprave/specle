@@ -17,8 +17,8 @@ Create a named, implementation-ready bugfix or refactor without executing its ta
 1. Read `.specle/current-issue.json`, `.specle/context.json`, the relevant steering, and applicable authoritative `.agents/project/` documents.
 2. Determine the work kind. Use `bugfix` for a bounded defect whose intended behaviour is known. Use `refactor` for a behaviour-preserving structural change. Ask the user if that distinction is unclear.
 3. Invoke the selected owning workflow in prepare mode. It must create the timestamped spec directory, write the abbreviated `spec.md` and `tasks.md`, and register the matching queued record without executing any task.
-4. Confirm the queued record has the generated name and path, the selected `kind`, `status: "planned"`, and `next: "implement"`. Preserve `current_spec` and `.specle/current-issue.json`.
-5. Report the exact generated spec name. Later invocation must name that item explicitly: `implement <spec-name>` resumes its tasks, and `verify <spec-name>` verifies it after those tasks are complete.
+4. Confirm the queued record has the generated name and path, the selected `kind`, `status: "planned"`, and next `bugfix` or `refactor`. Preserve `current_spec` and `.specle/current-issue.json`.
+5. Report the exact generated spec name. Later invocation must name that item's owning `bugfix` or `refactor` skill; `verify <spec-name>` verifies it after those tasks are complete.
 
 ## Critical
 
@@ -28,4 +28,4 @@ Create a named, implementation-ready bugfix or refactor without executing its ta
 
 ## Next
 
-- `implement <spec-name>` — resume the prepared bugfix or refactor.
+- `bugfix <spec-name>` or `refactor <spec-name>` — resume prepared abbreviated work.

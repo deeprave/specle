@@ -5,16 +5,18 @@ from specle.inventory import discover_skills, discover_steering
 BLUEPRINTS = Path(__file__).parents[1] / "src" / "specle" / "blueprints"
 
 
-def test_distribution_includes_delivery_policy_and_integration_skills() -> None:
+def test_distribution_includes_delivery_and_automation_policy() -> None:
     steering = discover_steering(BLUEPRINTS / "steering")
     skills = discover_skills(BLUEPRINTS / "skills")
 
     assert "delivery.md" in [path.name for path in steering]
+    assert "automation.md" in [path.name for path in steering]
     assert {
         (skill.name, skill.specle_group)
         for skill in skills
         if skill.name in {"commit", "complete"}
     } == {("commit", "Integration"), ("complete", "Integration")}
+    assert "implement" not in {skill.name for skill in skills}
 
 
 def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
@@ -23,7 +25,6 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
     lifecycle = (BLUEPRINTS / "steering" / "lifecycle.md").read_text()
     triage = (BLUEPRINTS / "skills" / "triage" / "SKILL.md").read_text()
     resolve = (BLUEPRINTS / "skills" / "resolve" / "SKILL.md").read_text()
-    spec = (BLUEPRINTS / "skills" / "spec" / "SKILL.md").read_text()
     verify = (BLUEPRINTS / "skills" / "verify" / "SKILL.md").read_text()
     commit = (BLUEPRINTS / "skills" / "commit" / "SKILL.md").read_text()
     complete = (BLUEPRINTS / "skills" / "complete" / "SKILL.md").read_text()
@@ -50,7 +51,9 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
     assert "previously committed target to `committed`" in resolve
     assert "queued `defined` work" in resolve
     assert "Do not complete the origin" in resolve
-    assert 'queued record with `kind: "change"`' in spec
+    assert {"activate", "spec"} <= {
+        skill.name for skill in discover_skills(BLUEPRINTS / "skills")
+    }
     assert "committed` normal changes may be verified" in verify
     assert "explicit user authorisation" in commit
     assert "selected target's existing context record" in commit
@@ -76,10 +79,6 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
         "unlinked abbreviated work"
         in (BLUEPRINTS / "skills" / "refactor" / "SKILL.md").read_text()
     )
-    assert (
-        "separate worktree"
-        in (BLUEPRINTS / "skills" / "implement" / "SKILL.md").read_text()
-    )
 
 
 def test_root_references_match_the_delivery_workflow() -> None:
@@ -101,7 +100,7 @@ def test_root_references_match_the_delivery_workflow() -> None:
 def test_planning_skills_keep_changes_independent_by_default() -> None:
     skills = {
         name: (BLUEPRINTS / "skills" / name / "SKILL.md").read_text()
-        for name in ("spec", "estimate", "design", "tasks", "revise", "implement")
+        for name in ("spec", "estimate", "design", "tasks", "revise")
     }
 
     for content in skills.values():

@@ -38,5 +38,7 @@ Tasks must be atomic and independently verifiable — one behavior per cycle.
 
 ## Next
 
+After recording a complete plan, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `build <spec-name>`; otherwise report it and wait.
+
 - `build` — start executing the tasks with TDD.
 - `verify` — confirm the tasks cover every acceptance criterion.

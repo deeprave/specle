@@ -31,7 +31,7 @@ Improve structure while keeping behaviour identical, with explicit invariants an
    - Run focused checks after every cycle, then repeat until the target structure is reached.
    - Run the documented quality gates before verification.
 6. Before implementation while active work exists, require the user to establish the explicit relationship in step 4; otherwise prepare the refactor without implementation and direct later named execution in a separate worktree.
-7. If the user asks to prepare the refactor without implementation, update only the matching queued record to `status: "planned"` and `next: "implement"`, then report its generated timestamped name and stop. Later `implement` and `verify` requests must name that refactor explicitly.
+7. If the user asks to prepare the refactor without implementation, update only the matching queued record to `status: "planned"` and `next: "refactor"`, then report its generated timestamped name and stop. Later `refactor` and `verify` requests must name that refactor explicitly.
 8. Otherwise, execute the linked tasks immediately; mark them `- [x]` as you go. Update only the matching queued record to `status: "building"` and `next: "verify"` when implementation starts.
 
 ## Critical
@@ -42,5 +42,7 @@ Improve structure while keeping behaviour identical, with explicit invariants an
 
 ## Next
 
-- `implement` — resume a prepared named refactor.
+- `refactor <spec-name>` — resume a prepared named refactor.
 - `verify` — verify the named refactor against its abbreviated contract and update its queued record without activating it.
+
+After successful execution, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `verify <spec-name>`; otherwise report it and wait.

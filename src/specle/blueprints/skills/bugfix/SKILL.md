@@ -36,7 +36,7 @@ Resolve a defect with a lightweight, reproduce-first flow without displacing unr
    - Implement the fix.
    - Confirm existing tests still pass.
 6. Before implementation while active work exists, require the user to establish the explicit relationship in step 4; otherwise prepare the bugfix without implementation and direct later named execution in a separate worktree.
-7. If the user asks to prepare the bugfix without implementation, update only the matching queued record to `status: "planned"` and `next: "implement"`, then report its generated timestamped name and stop. Later `implement` and `verify` requests must name that bugfix explicitly.
+7. If the user asks to prepare the bugfix without implementation, update only the matching queued record to `status: "planned"` and `next: "bugfix"`, then report its generated timestamped name and stop. Later `bugfix` and `verify` requests must name that bugfix explicitly.
 8. Otherwise, execute the linked tasks immediately (TDD); mark them `- [x]` as you go. Update only the matching
    queued record to `status: "building"` and `next: "verify"` when implementation starts.
 
@@ -49,5 +49,7 @@ Resolve a defect with a lightweight, reproduce-first flow without displacing unr
 
 ## Next
 
-- `implement` — resume a prepared named bugfix.
+- `bugfix <spec-name>` — resume a prepared named bugfix.
 - `verify` — verify the named bugfix against this abbreviated contract and update its queued record without activating it.
+
+After successful execution, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `verify <spec-name>`; otherwise report it and wait.

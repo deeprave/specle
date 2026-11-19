@@ -11,3 +11,4 @@ This directory records the project-specific guidance for Specle. These documents
 - [api-standards.md](api-standards.md) records external API policy.
 - [review.md](review.md) records review triage presentation, severity, and automation policy.
 - [delivery.md](delivery.md) records the selected delivery model and project delivery conventions.
+- [automation.md](automation.md) records the selected workflow progression policy.
