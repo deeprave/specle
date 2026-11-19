@@ -28,10 +28,10 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 | Workflow command | Status transition |
 | --- | --- |
 | `spec` | Creates a queued normal spec as `defined`; it does not select or commence it. |
-| `activate` | Promotes a named queued normal spec to current, then immediately starts its named `estimate` stage. |
-| `estimate` | Marks the active target `estimated`; a named queued target changes only its own record. |
-| `design` | Marks the active normal spec `designed`. |
-| `tasks` | Marks the active normal spec `planned`. |
+| `activate` | Promotes a named queued normal spec to current, then fills the required estimate → design → tasks preparation chain before build. |
+| `estimate` | Marks the active target `estimated`; active normal work continues to design, while a named queued target writes only its advisory estimate and remains queued. |
+| `design` | Marks the active normal spec `designed`; a named queued target writes only its design and remains queued. |
+| `tasks` | Requires a design. Marks the active normal spec `planned`; a named queued target writes only its task plan and remains queued. |
 | `build` | Marks the active normal spec `building` while completing its tasks. A named committed normal target may be built in place without replacing the active issue. |
 | `verify` | Sets a passing target `verified`; a failed target is `building`. A named committed normal target or queued abbreviated target changes only its own record. |
 | `review` | On approval, sets the selected target `approved` with next `commit`. On findings, sets the selected target `review-findings`. |

@@ -1,7 +1,7 @@
 ---
 name: activate
 specle_group: Planning
-requires: [estimate]
+requires: [estimate, design, tasks, build]
 description: >-
   Explicitly commence a queued normal specification.
 usage: >-
@@ -18,7 +18,13 @@ Make an explicitly named queued normal spec the current work item. Activation is
 2. Require an explicit spec name. Locate its queued record and require `kind: "change"` and `status: "defined"`. Do not activate a bugfix, refactor, spike, completed spec, or an unrecorded directory.
 3. If another unfinished current spec exists, stop and ask the user to resolve or explicitly replace that active selection; never displace it implicitly.
 4. Move the named queued record to `current_spec`, write its path to `.specle/current-issue.json`, and retain `status: "defined"`, verification `not-run`, and review `not-run`.
-5. Immediately invoke `estimate <spec-name>`. Activation deliberately commences the selected spec and does this regardless of manual or decision-gated progression policy.
+5. Validate the preparation chain in order, then immediately invoke the first missing stage with the selected spec name:
+   - no `estimate.md` — `estimate`;
+   - no `design.md` — `design`;
+   - no `tasks.md` — `tasks`;
+   - all three artifacts exist — `build`.
+   A task plan without a design is not build-ready: invoke design first, then reconcile tasks after design. Do not skip a preparation stage based on T-shirt size.
+   Activation deliberately commences the selected spec and invokes this stage regardless of manual or decision-gated progression policy.
 
 ## Boundaries
 
@@ -28,4 +34,4 @@ Make an explicitly named queued normal spec the current work item. Activation is
 
 ## Next
 
-- `estimate <spec-name>` — invoked by activation to begin planning.
+- The next planning or build stage is invoked by activation.

@@ -4,8 +4,7 @@
     "name": "202611191353-add-decision-gated-progression",
     "path": ".specle/specs/202611191353-add-decision-gated-progression",
     "kind": "change",
-    "status": "committed",
-    "next": "complete",
+    "status": "complete",
     "progress": {
       "tasks_completed": 11,
       "tasks_total": 11
@@ -32,8 +31,9 @@
       "reference": "https://github.com/deeprave/specle/pull/3",
       "head_branch": "feature/add-decision-gated-progression",
       "target_branch": "main",
-      "commit": "3ba9763",
-      "final_event": "pull request created 2026-11-19"
+      "commit": "9f79db2",
+      "merge_commit": "1945170b1d538b8ac731d3d81d7451c76ec666d2",
+      "final_event": "merged 2026-11-19T07:06:06Z"
     },
     "revision_note": "Resolved PR #3 findings: add explicit activation, target-preserving continuation, managed-skill pruning, and task/context reconciliation."
   },
@@ -170,11 +170,46 @@
   ],
   "queued_specs": [
     {
+      "name": "202611191937-fix-next-estimate",
+      "path": ".specle/specs/202611191937-fix-next-estimate",
+      "kind": "bugfix",
+      "status": "committed",
+      "next": "complete",
+      "progress": {
+        "tasks_completed": 2,
+        "tasks_total": 2
+      },
+      "verification": {
+        "status": "pass",
+        "last_run": "2026-11-19T20:05:00+1100",
+        "gates": {
+          "pytest": "pass (31 tests)",
+          "ruff check": "pass",
+          "ruff format --check": "pass",
+          "ty check": "pass",
+          "git diff --check": "pass",
+          "queued activation-boundary audit": "pass"
+        }
+      },
+      "review": {
+        "status": "pass",
+        "last_run": "2026-11-19T20:06:00+1100",
+        "findings": 0
+      },
+      "delivery": {
+        "reference": "https://github.com/deeprave/specle/pull/4",
+        "head_branch": "bugfix/fix-next-estimate",
+        "target_branch": "main",
+        "commit": "2c56f22",
+        "final_event": "pull request created 2026-11-19"
+      }
+    },
+    {
       "name": "202611191142-enable-automerge",
       "path": ".specle/specs/202611191142-enable-automerge",
       "kind": "change",
       "status": "defined",
-      "next": "estimate",
+      "next": "activate",
       "revision_note": "Added Dependabot configuration as the explicit auto-merge workflow prerequisite."
     },
     {
@@ -182,28 +217,28 @@
       "path": ".specle/specs/202611172043-versioned-json-schemas",
       "kind": "change",
       "status": "defined",
-      "next": "estimate"
+      "next": "activate"
     },
     {
       "name": "202611191211-document-validation",
       "path": ".specle/specs/202611191211-document-validation",
       "kind": "change",
       "status": "defined",
-      "next": "estimate"
+      "next": "activate"
     },
     {
       "name": "202611191253-adopt-strictyaml-frontmatter",
       "path": ".specle/specs/202611191253-adopt-strictyaml-frontmatter",
       "kind": "change",
       "status": "defined",
-      "next": "estimate"
+      "next": "activate"
     },
     {
       "name": "202611191221-add-specle-validate",
       "path": ".specle/specs/202611191221-add-specle-validate",
       "kind": "change",
       "status": "defined",
-      "next": "estimate",
+      "next": "activate",
       "depends_on": [
         "202611191253-adopt-strictyaml-frontmatter"
       ],
@@ -226,6 +261,7 @@
   },
   "skills": {
     "active": [
+      "activate",
       "analyse",
       "build",
       "bugfix",

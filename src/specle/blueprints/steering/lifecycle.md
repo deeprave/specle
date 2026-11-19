@@ -25,11 +25,11 @@ an instance of this state; skills apply these transitions and must not replace t
 | Skill | Required transition |
 | --- | --- |
 | `spec` | Create a queued normal spec as `defined`; it never selects a current issue or commences planning. |
-| `activate` | Promote a named queued normal `defined` spec to current, retaining its state, then immediately invoke its named `estimate` stage regardless of progression policy. |
+| `activate` | Promote a named queued normal `defined` spec to current, retaining its state, then immediately invoke the first missing stage in the required estimate → design → tasks preparation chain; invoke build only after all three artifacts exist, regardless of progression policy. |
 | `spike` | Initialize an active `kind: "spike"` work item as `defined`, then set it to `spiking` while conducting read-only research. On completion, record findings and optional outcome spec, set verification and review to `not-applicable`, and mark it `complete`. |
-| `estimate` | Mark the active target `estimated`; estimating a named queued spec does not change the active spec. |
-| `design` | Mark the active spec `designed`. |
-| `tasks` | Mark the active spec `planned`, set top-level task progress to `0/N`, and retain verification/review state unless the task plan revised implementation scope. |
+| `estimate` | Mark the active target `estimated`; active normal work continues to design before tasks, while a named queued normal estimate writes only its artifact and retains next `activate`. |
+| `design` | Mark the active spec `designed`; a named queued normal design writes only its artifact and retains next `activate`. |
+| `tasks` | Require a design. Mark the active spec `planned`, set top-level task progress to `0/N`, and retain verification/review state unless the task plan revised implementation scope; named queued normal tasks retain next `activate`. |
 | `build` | Before or with the first implementation change, mark the active spec `building`, set verification and review to `stale` if they previously held evidence, and update progress after every completed task. A named committed normal target may likewise be built in place without replacing the active issue. |
 | `prepare` | Invoke `bugfix` or `refactor` without implementation, then set only its matching queued record to `planned` with next `bugfix` or `refactor`. |
 | `bugfix` / `refactor` | When invoked by `prepare`, create the abbreviated artefacts without execution. Otherwise, execute the abbreviated tasks and set only that record to `building` with next `verify`. |
