@@ -14,6 +14,8 @@ Replace the custom parser with StrictYAML and a schema for the existing package-
 - Define the current fields (`name`, `specle_group`, `description`, `usage`, and `requires`) with their expected types and requiredness.
 - Migrate all blueprint skills and their active `.agents/skills/` counterparts to the schema-compatible block style. Dependent skills use block-list `requires`; independent skills omit it.
 - Preserve existing inventory, dependency validation, and generated index behaviour.
+- Detect the `specle_group` marker in an obsolete installed skill's frontmatter without parsing unrelated legacy values, so forced upgrades can still remove it.
+- Align the existing schema reference with the accepted dependency representation.
 - Produce actionable metadata errors without tracebacks.
 
 ## Boundaries

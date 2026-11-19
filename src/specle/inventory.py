@@ -356,10 +356,10 @@ def _discover_obsolete_managed_skills(
 def _has_specle_group(path: Path) -> bool:
     """Return whether a skill frontmatter block declares the Specle marker."""
     try:
-        values = load(_frontmatter_text(path)).data
-    except (SkillMetadataError, StrictYAMLError):
+        frontmatter = _frontmatter_text(path)
+    except SkillMetadataError:
         return False
-    return isinstance(values, dict) and bool(values.get("specle_group"))
+    return any(line.startswith("specle_group:") for line in frontmatter.splitlines())
 
 
 def _backup_existing_destination(

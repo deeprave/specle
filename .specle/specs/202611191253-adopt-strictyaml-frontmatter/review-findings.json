@@ -7,7 +7,94 @@
       "url": null,
       "revision": "working-tree",
       "outcome": "approve"
+    },
+    {
+      "id": "github-pr-5-sourcery-20261119",
+      "system": "github",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/5",
+      "revision": "7507307ca141bd4efe7c5e6996733a10bbe500a0",
+      "author": "sourcery-ai"
+    },
+    {
+      "id": "local-review-20261119T213000+1100",
+      "system": "specle",
+      "kind": "local-review",
+      "url": null,
+      "revision": "working-tree-after-pr-feedback",
+      "outcome": "approve"
     }
   ],
-  "items": []
+  "items": [
+    {
+      "id": "github-pr-5-sourcery-1",
+      "source_ids": ["github-pr-5-sourcery-20261119"],
+      "severity": "P2",
+      "description": "Forced upgrades can leave obsolete managed skills that still use legacy flow-style requires metadata.",
+      "evidence": "src/specle/inventory.py:356-362",
+      "analysis": "StrictYAML rejects the legacy flow-style dependency list before the marker check can observe specle_group. Existing installations from before this migration may therefore retain obsolete package-managed skills after init --force.",
+      "recommendation": "Accept. Make the marker-only legacy detection tolerant of old frontmatter without weakening schema validation for package-owned metadata.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Marker detection only determines whether an obsolete directory is Specle-managed. Read the frontmatter lines and recognise a line beginning specle_group: without parsing or validating unrelated legacy metadata.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_spec_path": ".specle/specs/202611191253-adopt-strictyaml-frontmatter"
+      }
+    },
+    {
+      "id": "github-pr-5-sourcery-2",
+      "source_ids": ["github-pr-5-sourcery-20261119"],
+      "severity": "P3",
+      "description": "SCHEMA.md documents a flow-style requires list that the new parser rejects.",
+      "evidence": "SCHEMA.md and src/specle/inventory.py:19-27",
+      "analysis": "The schema contract is now block-list dependencies or an omitted key. Documentation that still presents a flow list would lead maintainers to create invalid managed frontmatter.",
+      "recommendation": "Accept. Update the existing schema documentation to match the supported representation, without adding unrelated workflow detail.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "The documented metadata format must match the schema. Keep the correction limited to the existing representation guidance.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_spec_path": ".specle/specs/202611191253-adopt-strictyaml-frontmatter"
+      }
+    },
+    {
+      "id": "github-pr-5-sourcery-3",
+      "source_ids": ["github-pr-5-sourcery-20261119"],
+      "severity": "P3",
+      "description": "The metadata-parity test does not detect all inventory mismatches.",
+      "evidence": "tests/test_inventory_metadata.py:44-62",
+      "analysis": "The test compares only source directory names and omits the active declared name. It should compare the managed active inventory itself while continuing to ignore project-local unmarked skills such as changelog.",
+      "recommendation": "Accept. Strengthen parity coverage around the Specle marker and complete metadata identity.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Parity must compare every managed active skill and its declared metadata identity, while continuing to leave unmarked project-local skills outside the package inventory.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_spec_path": ".specle/specs/202611191253-adopt-strictyaml-frontmatter"
+      }
+    },
+    {
+      "id": "github-pr-5-sourcery-4",
+      "source_ids": ["github-pr-5-sourcery-20261119"],
+      "severity": "P4",
+      "description": "The obsolete-skill pruning test checks only for removal of SKILL.md.",
+      "evidence": "tests/test_inventory_initialisation.py:169-181",
+      "analysis": "The installer removes directories, so the test should assert that the whole obsolete directory and an additional contained resource are gone.",
+      "recommendation": "Accept. Make the fixture contain an additional file and assert directory removal.",
+      "state": "decided",
+      "decision": "defer",
+      "rationale": "The installer already removes the directory. The existing test covers marker recognition and removal; broader fixture detail is not worthwhile now and can be reconsidered during a future installer update.",
+      "route": null
+    }
+  ]
 }

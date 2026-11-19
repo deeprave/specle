@@ -32,7 +32,7 @@ Specle's package-owned skills use YAML frontmatter as their machine-readable int
 #### Acceptance Criteria
 
 1. EACH blueprint skill SHALL conform to the StrictYAML frontmatter schema.
-2. EACH active local `.agents/skills/` Specle skill SHALL match its blueprint metadata and conform to the same schema.
+2. THE complete set of active local `.agents/skills/` skills marked with `specle_group` SHALL match the blueprint inventory by directory and declared metadata, while unmarked project-local skills remain outside that comparison.
 3. A skill with dependencies SHALL express `requires` as a block sequence. A skill with no dependencies SHALL omit `requires`; the parser SHALL treat it as an empty dependency set.
 4. THE migration SHALL preserve every current skill name, group, description, usage, and direct dependency.
 5. THE migration SHALL not change the body instructions, lifecycle policy, or non-Specle skills.
@@ -47,6 +47,16 @@ Specle's package-owned skills use YAML frontmatter as their machine-readable int
 2. THE installer SHALL continue to reject a package-owned skill whose declared name differs from its directory name.
 3. THE Specle marker and grouping behaviour used to discover package-owned skills SHALL remain unchanged.
 4. THE implementation SHALL not add lifecycle transition declarations or a `validate` CLI command.
+5. During forced installation, obsolete managed skills SHALL be identified from their frontmatter marker even when other legacy frontmatter is not valid StrictYAML.
+
+### Requirement 4: Document supported dependency syntax
+
+**User Story:** As a skill author, I want the schema reference to show supported dependency syntax, so that I do not create metadata rejected by the parser.
+
+#### Acceptance Criteria
+
+1. `SCHEMA.md` SHALL show a block sequence for a non-empty `requires` value.
+2. `SCHEMA.md` SHALL state that independent skills omit `requires`.
 
 ## Non-Functional Requirements
 

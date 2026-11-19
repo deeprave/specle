@@ -166,7 +166,7 @@ def test_force_prunes_obsolete_managed_skills_but_preserves_unmanaged_skills(
     assert external.read_text() == "# External skill\n"
 
 
-def test_force_prunes_an_obsolete_skill_recognised_only_by_its_marker(
+def test_force_prunes_an_obsolete_skill_with_legacy_flow_style_metadata(
     tmp_path: Path,
 ) -> None:
     source_root = _write_distribution(tmp_path / "source")
@@ -174,7 +174,7 @@ def test_force_prunes_an_obsolete_skill_recognised_only_by_its_marker(
     target.mkdir()
     obsolete = target / ".agents" / "skills" / "retired" / "SKILL.md"
     obsolete.parent.mkdir(parents=True)
-    obsolete.write_text("---\nspecle_group: Planning\n---\n")
+    obsolete.write_text("---\nspecle_group: Planning\nrequires: [verify]\n---\n")
 
     initialise_distribution(source_root, target, force=True)
 

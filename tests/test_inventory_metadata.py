@@ -1,7 +1,9 @@
+from collections.abc import Iterable
 from pathlib import Path
 
 import pytest
 
+from specle import inventory
 from specle.inventory import SkillMetadataError, discover_skills, read_skill_metadata
 
 
@@ -46,20 +48,14 @@ def test_active_managed_skill_metadata_matches_its_blueprint() -> None:
     source_root = project_root / "src" / "specle" / "blueprints" / "skills"
     active_root = project_root / ".agents" / "skills"
 
-    source = {
-        skill.name: (skill.specle_group, skill.description, skill.usage, skill.requires)
-        for skill in (
-            read_skill_metadata(path) for path in source_root.glob("*/SKILL.md")
-        )
-    }
-    active = {
-        name: read_skill_metadata(active_root / name / "SKILL.md") for name in source
-    }
+    source = _metadata_by_directory(source_root.glob("*/SKILL.md"))
+    active = _metadata_by_directory(
+        path
+        for path in active_root.glob("*/SKILL.md")
+        if inventory._has_specle_group(path)
+    )
 
-    assert {
-        name: (skill.specle_group, skill.description, skill.usage, skill.requires)
-        for name, skill in active.items()
-    } == source
+    assert active == source
 
 
 def test_rejects_missing_description_or_usage(tmp_path: Path) -> None:
@@ -199,3 +195,18 @@ requires:
 
     with pytest.raises(SkillMetadataError, match="invalid required skill name"):
         read_skill_metadata(skill)
+
+
+def _metadata_by_directory(
+    paths: Iterable[Path],
+) -> dict[str, tuple[str, str, str, str, tuple[str, ...]]]:
+    return {
+        skill.path.parent.name: (
+            skill.name,
+            skill.specle_group,
+            skill.description,
+            skill.usage,
+            skill.requires,
+        )
+        for skill in (read_skill_metadata(path) for path in paths)
+    }

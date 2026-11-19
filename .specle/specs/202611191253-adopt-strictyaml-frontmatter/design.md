@@ -24,6 +24,8 @@ SKILL.md
 
 The schema and conversion helper stay in `inventory.py` because only that module consumes the package-owned metadata. StrictYAML parsing exceptions and value-validation failures are caught at this boundary and re-raised as `SkillMetadataError` containing the source `SKILL.md` path and a concise reason.
 
+Marker detection for stale installed directories is intentionally separate. It reads only the delimited frontmatter lines and recognises a top-level `specle_group:` line; it does not parse or validate the rest of that legacy file. This preserves forced-upgrade pruning without weakening the StrictYAML schema used for package-owned metadata.
+
 ## Metadata schema
 
 The schema accepts only these keys:
@@ -58,5 +60,7 @@ For independent skills, omit `requires` entirely. The active and source inventor
 - Update valid metadata fixtures to use block-list dependencies and test that omitted `requires` becomes an empty tuple.
 - Cover malformed YAML, an unknown key, a wrong value shape, and an invalid dependency name, asserting path-bearing `SkillMetadataError` output.
 - Retain directory-name and direct-dependency validation coverage.
-- Add source/active metadata parity coverage if it does not already establish complete metadata equivalence.
+- Compare the complete source and marked-active inventories, including directory and declared names, while ignoring unmarked project-local skills.
+- Cover marker detection for legacy flow-style frontmatter and forced obsolete-skill pruning.
+- Keep `SCHEMA.md` aligned with the block-list and omitted-key convention.
 - Run `uv run pytest`, `uv run ruff check .`, `uv run ruff format --check .`, and `uv run ty check`.
