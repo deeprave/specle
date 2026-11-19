@@ -1,7 +1,6 @@
 ---
 name: build
 specle_group: Implementation
-requires: []
 description: >-
   Implement active Specle tasks with TDD.
 usage: >-

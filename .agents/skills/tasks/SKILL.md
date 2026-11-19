@@ -1,7 +1,6 @@
 ---
 name: tasks
 specle_group: Planning
-requires: []
 description: >-
   Generate task plans from normal specs and designs.
 usage: >-

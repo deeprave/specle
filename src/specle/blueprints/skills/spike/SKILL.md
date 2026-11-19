@@ -1,7 +1,6 @@
 ---
 name: spike
 specle_group: Discovery
-requires: []
 description: >-
   Investigate a question within a time-box, without implementation.
 usage: >-

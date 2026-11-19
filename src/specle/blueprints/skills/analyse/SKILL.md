@@ -1,7 +1,6 @@
 ---
 name: analyse
 specle_group: Discovery
-requires: []
 description: >-
   Analyse codebases for guidance drift, technical debt, and risk.
 usage: >-

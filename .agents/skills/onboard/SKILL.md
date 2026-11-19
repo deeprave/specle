@@ -1,7 +1,6 @@
 ---
 name: onboard
 specle_group: Setup
-requires: []
 description: >-
   Establish or refresh a repository's project guidance overlay.
 usage: >-

@@ -1,7 +1,6 @@
 ---
 name: bugfix
 specle_group: Alternatives
-requires: []
 description: >-
   Fix bounded defects with abbreviated test-first work.
 usage: >-

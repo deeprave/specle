@@ -1,7 +1,13 @@
 ---
 name: resolve
 specle_group: Quality
-requires: [triage, revise, prepare, bugfix, refactor, spec]
+requires:
+  - triage
+  - revise
+  - prepare
+  - bugfix
+  - refactor
+  - spec
 description: >-
   Dispatch accepted review decisions to follow-up workflows.
 usage: >-

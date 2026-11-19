@@ -1,7 +1,6 @@
 ---
 name: triage
 specle_group: Quality
-requires: []
 description: >-
   Consolidate review findings into prioritised decisions.
 usage: >-

@@ -1,7 +1,6 @@
 ---
 name: estimate
 specle_group: Planning
-requires: []
 description: >-
   Estimate Specle work complexity and planning depth.
 usage: >-
