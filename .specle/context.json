@@ -4,8 +4,8 @@
     "name": "202611191221-add-specle-validate",
     "path": ".specle/specs/202611191221-add-specle-validate",
     "kind": "change",
-    "status": "committed",
-    "next": "complete",
+    "status": "complete",
+    "next": null,
     "progress": {
       "tasks_completed": 8,
       "tasks_total": 8
@@ -22,27 +22,19 @@
         "specle validate . --verbose": "pass",
         "git diff --check": "pass"
       }
-      "gates": {
-        "pytest": "pass (55 tests)",
-        "ruff check": "pass",
-        "ruff format --check": "pass",
-        "ty check": "pass",
-        "specle validate .": "pass",
-        "specle validate . --verbose": "pass",
-        "git diff --check": "pass"
-      }
     },
     "review": {
-      "status": "pass",
+      "status": "resolved",
       "findings": 0
     },
-    "revision_note": "Updated PR #6 delivery with accepted review corrections; awaiting merge. Deferred queue findings remain with restructure-spec-state.",
+    "revision_note": "PR #6 merged; local main synchronised. Deferred queue findings remain with restructure-spec-state.",
     "delivery": {
       "reference": "https://github.com/deeprave/specle/pull/6",
       "head_branch": "feature/add-specle-validate",
       "target_branch": "main",
-      "final_event": null,
-      "commit": "542b7bc"
+      "commit": "542b7bc",
+      "merge_commit": "cb9857e001286b7b137caf049601bde6d838307d",
+      "final_event": "merged 2026-11-19T22:44:40Z"
     }
   },
   "recent_specs": [
