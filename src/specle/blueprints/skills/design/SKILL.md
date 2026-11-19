@@ -37,5 +37,7 @@ Keep the design faithful to every requirement — `verify` later checks design c
 
 ## Next
 
+After recording a successful design, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `tasks` unless a material design decision remains; otherwise report it and wait.
+
 - `tasks` — generate the implementation tasks from this design.
 - `verify` — confirm the design covers all requirements before building.

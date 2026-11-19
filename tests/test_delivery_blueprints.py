@@ -5,16 +5,18 @@ from specle.inventory import discover_skills, discover_steering
 BLUEPRINTS = Path(__file__).parents[1] / "src" / "specle" / "blueprints"
 
 
-def test_distribution_includes_delivery_policy_and_integration_skills() -> None:
+def test_distribution_includes_delivery_and_automation_policy() -> None:
     steering = discover_steering(BLUEPRINTS / "steering")
     skills = discover_skills(BLUEPRINTS / "skills")
 
     assert "delivery.md" in [path.name for path in steering]
+    assert "automation.md" in [path.name for path in steering]
     assert {
         (skill.name, skill.specle_group)
         for skill in skills
         if skill.name in {"commit", "complete"}
     } == {("commit", "Integration"), ("complete", "Integration")}
+    assert "implement" not in {skill.name for skill in skills}
 
 
 def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
@@ -76,10 +78,6 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
         "unlinked abbreviated work"
         in (BLUEPRINTS / "skills" / "refactor" / "SKILL.md").read_text()
     )
-    assert (
-        "separate worktree"
-        in (BLUEPRINTS / "skills" / "implement" / "SKILL.md").read_text()
-    )
 
 
 def test_root_references_match_the_delivery_workflow() -> None:
@@ -101,7 +99,7 @@ def test_root_references_match_the_delivery_workflow() -> None:
 def test_planning_skills_keep_changes_independent_by_default() -> None:
     skills = {
         name: (BLUEPRINTS / "skills" / name / "SKILL.md").read_text()
-        for name in ("spec", "estimate", "design", "tasks", "revise", "implement")
+        for name in ("spec", "estimate", "design", "tasks", "revise")
     }
 
     for content in skills.values():

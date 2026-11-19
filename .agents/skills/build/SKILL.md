@@ -47,5 +47,7 @@ in sync.
 
 ## Next
 
+After all tasks complete, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `verify`; otherwise report it and wait.
+
 - When all tasks are complete: use `verify` to confirm the implementation against the spec.
 - Use `review` for a quality pass on the diff.

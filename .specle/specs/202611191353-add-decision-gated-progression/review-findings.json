@@ -1,0 +1,34 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261119",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree"
+    },
+    {
+      "id": "local-review-20261119-recheck",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-after-revision",
+      "outcome": "approve"
+    }
+  ],
+  "findings": [
+    {
+      "id": "local-review-20261119-1",
+      "source_ids": [
+        "local-review-20261119"
+      ],
+      "severity": "P3",
+      "description": "Policy tests assert literal production Markdown phrases rather than observable inventory or workflow behaviour.",
+      "evidence": "tests/test_delivery_blueprints.py",
+      "analysis": "These assertions can pass for contradictory guidance and fail during harmless wording edits. They do not validate decision-gated lifecycle behaviour.",
+      "recommendation": "Remove literal prose assertions. Retain actual inventory/index coverage and defer behavioural lifecycle validation to the separate deterministic validator change.",
+      "state": "resolved",
+      "decision": "accept",
+      "rationale": "Literal documentation assertions are not reliable behavioural validation and conflict with the project's testing approach.",
+      "route": "revise"
+    }
+  ]
+}

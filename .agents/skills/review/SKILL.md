@@ -32,5 +32,7 @@ After reporting, record raw findings in `.specle/specs/<target>/review-findings.
 
 ## Next
 
+After an `APPROVE`, stop for commit authorisation. After `REQUEST_CHANGES`, read `.agents/project/automation.md`; in `decision-gated` mode invoke `triage`, which collects user decisions and stops at its final summary.
+
 - `triage` — decide how to handle review findings before addressing them.
 - `commit` — deliver an approved change according to the project policy.

@@ -1,42 +1,114 @@
 {
-  "$comment": "Runtime context for the active Specle delivery-policy specification.",
+  "$comment": "Runtime context for the active Specle decision-gated-progression feature specification.",
   "current_spec": {
-    "name": "202611180808-add-delivery-policy",
-    "path": ".specle/specs/202611180808-add-delivery-policy",
+    "name": "202611191353-add-decision-gated-progression",
+    "path": ".specle/specs/202611191353-add-decision-gated-progression",
     "kind": "change",
-    "status": "complete",
-    "next": null,
+    "status": "committed",
+    "next": "complete",
     "progress": {
-      "tasks_completed": 16,
-      "tasks_total": 16
+      "tasks_completed": 9,
+      "tasks_total": 9
     },
     "present_task": null,
     "verification": {
       "status": "pass",
-      "last_run": "2026-11-18T22:27:37+1100",
+      "last_run": "2026-11-19T14:15:00+1100",
       "gates": {
-        "pytest": "pass",
+        "pytest": "pass (30 tests)",
         "ruff check": "pass",
         "ruff format --check": "pass",
         "ty check": "pass",
+        "stale implement workflow audit": "pass",
         "git diff --check": "pass"
       }
     },
     "review": {
       "status": "pass",
-      "last_run": "2026-11-18T23:00:00+1100",
+      "last_run": "2026-11-19T14:16:00+1100",
       "findings": 0
     },
     "delivery": {
-      "reference": "https://github.com/deeprave/specle/pull/2",
-      "head_branch": "feature/add-delivery-policy",
+      "reference": "https://github.com/deeprave/specle/pull/3",
+      "head_branch": "feature/add-decision-gated-progression",
       "target_branch": "main",
-      "commit": "8707485",
-      "final_event": "merged 2026-11-18T23:00:00+1100"
+      "final_event": "pull request created 2026-11-19"
     },
-    "revision_note": "Resolved accepted PR feedback through lifecycle, portable-guidance, and build-metadata revisions; retained existing delivery evidence."
+    "revision_note": "Locally approved and delivered for peer review in PR #3."
   },
   "recent_specs": [
+    {
+      "name": "202611182207-prevent-assumed-dependencies",
+      "path": ".specle/specs/202611182207-prevent-assumed-dependencies",
+      "kind": "bugfix",
+      "relationship": {
+        "spec_path": ".specle/specs/202611180808-add-delivery-policy",
+        "type": "unblocks",
+        "delivery": "with-related-spec"
+      },
+      "status": "complete",
+      "progress": {
+        "tasks_completed": 3,
+        "tasks_total": 3
+      },
+      "verification": {
+        "status": "pass",
+        "last_run": "2026-11-18T22:10:56+1100",
+        "gates": {
+          "pytest": "pass",
+          "ruff check": "pass",
+          "ruff format --check": "pass",
+          "ty check": "pass",
+          "git diff --check": "pass"
+        }
+      },
+      "review": {
+        "status": "pass",
+        "last_run": "2026-11-18T22:11:45+1100",
+        "findings": 0
+      },
+      "delivery": {
+        "reference": "https://github.com/deeprave/specle/pull/2",
+        "head_branch": "feature/add-delivery-policy",
+        "target_branch": "main",
+        "commit": "94398ef",
+        "merge_commit": "887e742d5b293bc5163cf76cb9a087c6af3efb4b",
+        "final_event": "merged 2026-11-18T12:56:37Z"
+      }
+    },
+    {
+      "name": "202611180808-add-delivery-policy",
+      "path": ".specle/specs/202611180808-add-delivery-policy",
+      "kind": "change",
+      "status": "complete",
+      "progress": {
+        "tasks_completed": 16,
+        "tasks_total": 16
+      },
+      "verification": {
+        "status": "pass",
+        "last_run": "2026-11-18T22:27:37+1100",
+        "gates": {
+          "pytest": "pass",
+          "ruff check": "pass",
+          "ruff format --check": "pass",
+          "ty check": "pass",
+          "git diff --check": "pass"
+        }
+      },
+      "review": {
+        "status": "pass",
+        "last_run": "2026-11-18T23:00:00+1100",
+        "findings": 0
+      },
+      "delivery": {
+        "reference": "https://github.com/deeprave/specle/pull/2",
+        "head_branch": "feature/add-delivery-policy",
+        "target_branch": "main",
+        "commit": "8707485",
+        "final_event": "merged 2026-11-18T23:00:00+1100"
+      }
+    },
     {
       "name": "202611171707-specle-cli-init",
       "path": ".specle/specs/202611171707-specle-cli-init",
@@ -97,6 +169,14 @@
   ],
   "queued_specs": [
     {
+      "name": "202611191142-enable-automerge",
+      "path": ".specle/specs/202611191142-enable-automerge",
+      "kind": "change",
+      "status": "defined",
+      "next": "estimate",
+      "revision_note": "Added Dependabot configuration as the explicit auto-merge workflow prerequisite."
+    },
+    {
       "name": "202611172043-versioned-json-schemas",
       "path": ".specle/specs/202611172043-versioned-json-schemas",
       "kind": "change",
@@ -104,39 +184,29 @@
       "next": "estimate"
     },
     {
-      "name": "202611182207-prevent-assumed-dependencies",
-      "path": ".specle/specs/202611182207-prevent-assumed-dependencies",
-      "kind": "bugfix",
-      "relationship": {
-        "spec_path": ".specle/specs/202611180808-add-delivery-policy",
-        "type": "unblocks",
-        "delivery": "with-related-spec"
-      },
-      "status": "committed",
-      "next": "complete",
-      "verification": {
-        "status": "pass",
-        "last_run": "2026-11-18T22:10:56+1100",
-        "gates": {
-          "pytest": "pass",
-          "ruff check": "pass",
-          "ruff format --check": "pass",
-          "ty check": "pass",
-          "git diff --check": "pass"
-        }
-      },
-      "review": {
-        "status": "pass",
-        "last_run": "2026-11-18T22:11:45+1100",
-        "findings": 0
-      },
-      "delivery": {
-        "reference": "https://github.com/deeprave/specle/pull/2",
-        "head_branch": "feature/add-delivery-policy",
-        "target_branch": "main",
-        "commit": "94398ef",
-        "final_event": null
-      }
+      "name": "202611191211-document-validation",
+      "path": ".specle/specs/202611191211-document-validation",
+      "kind": "change",
+      "status": "defined",
+      "next": "estimate"
+    },
+    {
+      "name": "202611191253-adopt-strictyaml-frontmatter",
+      "path": ".specle/specs/202611191253-adopt-strictyaml-frontmatter",
+      "kind": "change",
+      "status": "defined",
+      "next": "estimate"
+    },
+    {
+      "name": "202611191221-add-specle-validate",
+      "path": ".specle/specs/202611191221-add-specle-validate",
+      "kind": "change",
+      "status": "defined",
+      "next": "estimate",
+      "depends_on": [
+        "202611191253-adopt-strictyaml-frontmatter"
+      ],
+      "revision_note": "Lifecycle declarations extend the StrictYAML schema-backed parser, remain separate from direct `requires` dependencies, and are explicitly consulted by their owning skills."
     }
   ],
   "python_checks": {

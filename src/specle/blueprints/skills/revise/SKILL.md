@@ -47,7 +47,7 @@ Changes are independent by default. A queued or future change must not create a 
      tasks whose claimed outcome is invalidated, and add precise unchecked tasks for new work.
      Remove only tasks made genuinely obsolete, noting why when that would otherwise be unclear.
    - For an abbreviated target, revise only its `spec.md` and `tasks.md`. Preserve valid completed tasks, reopen invalidated tasks, and add precise unchecked tasks for accepted changes.
-5. Regenerate a normal target's `spec.md` if the requirements changed. Update `.specle/context.json` to record a concise revision note. For an active normal target, invalidate prior verification and review, then set the lifecycle status according to the revised artifacts. When requirements, design, and tasks are all reconciled, the target is `planned` and the next skill is `build`. For a named committed normal target, update only its matching record to `planned` with next `build`, retain its delivery reference, and preserve the active current issue. For an abbreviated target, update only its matching queued record to `planned` with `next: "implement"`; do not alter `current_spec` or `.specle/current-issue.json`.
+5. Regenerate a normal target's `spec.md` if the requirements changed. Update `.specle/context.json` to record a concise revision note. For an active normal target, invalidate prior verification and review, then set the lifecycle status according to the revised artifacts. When requirements, design, and tasks are all reconciled, the target is `planned` and the next skill is `build`. For a named committed normal target, update only its matching record to `planned` with next `build`, retain its delivery reference, and preserve the active current issue. For an abbreviated target, update only its matching queued record to `planned` with its owning `bugfix` or `refactor` next step; do not alter `current_spec` or `.specle/current-issue.json`.
 6. Report the accepted feedback, which artifacts changed, any reopened or added tasks, and the
    resulting next step.
 
@@ -65,4 +65,4 @@ Changes are independent by default. A queued or future change must not create a 
 ## Next
 
 - `build` — implement the reconciled active normal plan.
-- `implement <spec-name>` — resume the reconciled named bugfix or refactor.
+- `bugfix <spec-name>` or `refactor <spec-name>` — resume reconciled abbreviated work.

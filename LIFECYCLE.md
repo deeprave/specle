@@ -11,7 +11,7 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 | `defined` | A work artefact exists but work has not begun. | `estimate`, `design`, `tasks`, or `spike` |
 | `estimated` | Complexity has been assessed. | `design` or `tasks` |
 | `designed` | Technical design exists. | `tasks` |
-| `planned` | Tasks exist and implementation has not begun. | `build` or named `implement` |
+| `planned` | Tasks exist and implementation has not begun. | `build`, or named `bugfix` / `refactor` for abbreviated work |
 | `building` | Implementation is in progress or incomplete. | `build` or named abbreviated workflow |
 | `spiking` | A read-only investigation is in progress. | `spike` |
 | `verified` | Current implementation and required quality gates passed. | `review` |
@@ -38,11 +38,10 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 | `complete` | Confirms the configured final event for committed branch-and-pull-request delivery. |
 | `triage` | Sets a fully decided target `triaged`. |
 | `resolve` | Reconciles previously dispatched accepted work, then dispatches any pending accepted follow-up. It reports `resolve <target>` as the later reconciliation step for incomplete follow-ups. A local no-action outcome returns to `approved`; a previously committed no-action outcome returns to `committed`. An independent-spec hand-off creates queued normal work and preserves the origin for its own delivery. |
-| `revise` | Reconciles accepted feedback and returns an active normal spec to the earliest viable planning state; a named committed normal target becomes `planned` with `next: "build"`, and a named abbreviated item becomes queued `planned` with `next: "implement"`. |
-| `prepare` | Creates a queued bugfix or refactor as `planned` with `next: "implement"`. |
+| `revise` | Reconciles accepted feedback and returns an active normal spec to the earliest viable planning state; a named committed normal target becomes `planned` with `next: "build"`, and a named abbreviated item becomes queued `planned` with its owning next skill. |
+| `prepare` | Creates a queued bugfix or refactor as `planned` with its owning next skill. |
 | `bugfix` / `refactor` | When executed, move only the named abbreviated item to `building`; when called through `prepare`, they create artefacts without executing them. |
 | `spike` | Moves an active spike through `defined` → `spiking` → `complete`. |
-| `implement` | Orchestrates the missing normal stages or a named abbreviated workflow; the delegated skill owns each status transition. |
 
 `analyse`, `context`, `specle`, `status`, `summary`, and `track` do not themselves transition lifecycle status. `summary` requires a completed target but does not alter it.
 
@@ -55,7 +54,7 @@ Every non-terminal state has an owning workflow command and a valid next transit
 | `defined` | `estimate`, `design`, `tasks`, or `spike` establishes the next stage. | Has an exit. |
 | `estimated` | `design` or, for sufficiently small understood work, `tasks`. | Has an exit. |
 | `designed` | `tasks`. | Has an exit. |
-| `planned` | `build` for active normal work or named `implement` for queued abbreviated work. | Has an exit. |
+| `planned` | `build` for active normal work or named `bugfix` / `refactor` for queued abbreviated work. | Has an exit. |
 | `building` | Further build work or `verify`. | Has an exit. |
 | `spiking` | `spike` records findings and completes the investigation. | Has an exit. |
 | `verified` | `review` either approves or creates review findings. | Has an exit. |
@@ -104,7 +103,7 @@ flowchart TB
 flowchart TB
   requested -->|prepare| planned
   requested -->|bugfix or refactor executes| building
-  planned -->|named implement| building
+  planned -->|named bugfix or refactor| building
   building -->|named verify passes| verified
   building -->|named verify fails| building
   verified -->|named review approves| approved

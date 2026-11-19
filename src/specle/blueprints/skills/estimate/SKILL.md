@@ -44,5 +44,7 @@ estimate records only that spec's artifact; it does not change `.specle/current-
 
 ## Next
 
+After recording a successful estimate, read `.agents/project/automation.md`. In `decision-gated` mode, invoke the applicable unambiguous next planning skill; otherwise report it and wait.
+
 - `design` — for M+ work.
 - `tasks` — for small work, go straight to tasks.
