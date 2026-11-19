@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add a portable automation policy without adding an orchestration skill or runtime service. Lifecycle-owning skills remain responsible for their own validation, state updates, and direct-invocation guards. After a successful outcome, they consult project automation guidance to decide whether to invoke the recorded next local skill or stop.
+Add a portable automation policy without adding an orchestration service. Lifecycle-owning skills remain responsible for their own validation, state updates, and direct-invocation guards. After a successful outcome, they consult project automation guidance to decide whether to invoke the recorded next local skill or stop. Every automatic handoff carries the selected spec name; active-spec defaults apply only to direct unnamed invocations.
 
 ## Architecture
 
@@ -25,9 +25,15 @@ A failed verification stops with evidence. A successful review stops at `approve
 
 Prepared abbreviated work no longer uses `implement`: `prepare` records `next` as its owning `bugfix` or `refactor` skill, which continues named queued work without replacing the active normal issue.
 
+## Specification activation
+
+`spec` is planning-only. It writes a new normal specification and registers a queued `defined` change, but never sets `.specle/current-issue.json` and never invokes planning or implementation. `activate <spec-name>` is the explicit commencement boundary: it promotes the named queued normal change to current while retaining `defined`, then immediately invokes its next planning skill. This deliberate action progresses regardless of manual or decision-gated project policy.
+
 ## Inventory migration
 
 Remove `implement` from the blueprint and active inventories. Update direct references in steering, `AGENTS.md`, `prepare`, `bugfix`, and `refactor`; regenerate the installed `specle/index.json`. Keep blueprint and active files synchronised.
+
+For `init --force`, enumerate existing target skill directories after staging the incoming inventory. A directory with a `SKILL.md` whose frontmatter contains `specle_group` is managed. If its name is absent from the incoming inventory, move it to a recoverable backup alongside replaced destinations. Preserve unmarked directories. On success, remove backups; on failure, restore every backup.
 
 ## Error handling
 

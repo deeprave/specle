@@ -8,7 +8,7 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 
 | Status | Meaning | Usual next workflow command |
 | --- | --- | --- |
-| `defined` | A work artefact exists but work has not begun. | `estimate`, `design`, `tasks`, or `spike` |
+| `defined` | A work artefact exists but work has not begun. | `activate <spec-name>` for a queued normal change; its named abbreviated owner or `spike` otherwise. |
 | `estimated` | Complexity has been assessed. | `design` or `tasks` |
 | `designed` | Technical design exists. | `tasks` |
 | `planned` | Tasks exist and implementation has not begun. | `build`, or named `bugfix` / `refactor` for abbreviated work |
@@ -27,7 +27,8 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 
 | Workflow command | Status transition |
 | --- | --- |
-| `spec` | Creates an active normal spec as `defined`. |
+| `spec` | Creates a queued normal spec as `defined`; it does not select or commence it. |
+| `activate` | Promotes a named queued normal spec to current, then immediately starts its named `estimate` stage. |
 | `estimate` | Marks the active target `estimated`; a named queued target changes only its own record. |
 | `design` | Marks the active normal spec `designed`. |
 | `tasks` | Marks the active normal spec `planned`. |
@@ -51,7 +52,7 @@ Every non-terminal state has an owning workflow command and a valid next transit
 
 | State | Valid exit or terminal outcome | Audit result |
 | --- | --- | --- |
-| `defined` | `estimate`, `design`, `tasks`, or `spike` establishes the next stage. | Has an exit. |
+| `defined` | `activate <spec-name>` commences a queued normal change; the named abbreviated owner or `spike` establishes the other paths. | Has an exit. |
 | `estimated` | `design` or, for sufficiently small understood work, `tasks`. | Has an exit. |
 | `designed` | `tasks`. | Has an exit. |
 | `planned` | `build` for active normal work or named `bugfix` / `refactor` for queued abbreviated work. | Has an exit. |
@@ -70,9 +71,8 @@ Every non-terminal state has an owning workflow command and a valid next transit
 
 ```mermaid
 flowchart TB
+  queued_defined[queued defined] -->|activate| defined
   defined -->|estimate| estimated
-  defined -->|design| designed
-  defined -->|tasks for small, understood work| planned
   estimated -->|design| designed
   estimated -->|tasks| planned
   designed -->|tasks| planned

@@ -91,4 +91,4 @@ After reporting, update `.specle/context.json` according to `lifecycle.md`. For 
 Keep evidence concrete (cite files, lines, and test names). Do not report PASS on a criterion whose
 only support is a checked task box or a claim in `spec.md`.
 
-On PASS, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `review`; on FAIL, stop with the required remediation.
+On PASS, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `review <spec-name>`; on FAIL, stop with the required remediation.

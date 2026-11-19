@@ -221,7 +221,13 @@ def initialise_distribution(
         *(destination for _, destination in steering_destinations),
         index_destination,
     ]
-    collisions = [destination for destination in destinations if destination.exists()]
+    obsolete_skills = _discover_obsolete_managed_skills(
+        skills_root, {skill.name for skill in skills}
+    )
+    collisions = [
+        *(destination for destination in destinations if destination.exists()),
+        *obsolete_skills,
+    ]
     if collisions and not force:
         raise SkillInstallationError(
             "distribution-managed destination already exists: "
@@ -256,6 +262,8 @@ def initialise_distribution(
     created_destinations: list[Path] = []
     destination: Path | None = None
     try:
+        for destination in obsolete_skills:
+            _backup_existing_destination(destination, backups)
         for temporary, destination in staged:
             if _replace_staged_destination(temporary, destination, backups):
                 created_destinations.append(destination)
@@ -320,11 +328,48 @@ def _replace_staged_destination(
     destination.parent.mkdir(parents=True, exist_ok=True)
     existed = destination.exists()
     if existed:
-        backup = _backup_sibling(destination)
-        destination.replace(backup)
-        backups.append((destination, backup))
+        _backup_existing_destination(destination, backups)
     temporary.replace(destination)
     return not existed
+
+
+def _discover_obsolete_managed_skills(
+    skills_root: Path, incoming_names: set[str]
+) -> tuple[Path, ...]:
+    """Return installed Specle skill directories absent from an incoming inventory."""
+    if not skills_root.is_dir():
+        return ()
+
+    obsolete: list[Path] = []
+    for directory in sorted(skills_root.iterdir()):
+        if not directory.is_dir() or directory.name in incoming_names:
+            continue
+        skill_file = directory / "SKILL.md"
+        if skill_file.is_file() and _has_specle_group(skill_file):
+            obsolete.append(directory)
+    return tuple(obsolete)
+
+
+def _has_specle_group(path: Path) -> bool:
+    """Return whether a skill frontmatter block declares the Specle marker."""
+    lines = path.read_text().splitlines()
+    if not lines or lines[0] != "---":
+        return False
+    try:
+        end = lines.index("---", 1)
+    except ValueError:
+        return False
+    return bool(_read_frontmatter_values(lines[1:end], path).get("specle_group"))
+
+
+def _backup_existing_destination(
+    destination: Path,
+    backups: list[tuple[Path, Path]],
+) -> None:
+    """Move an existing destination to a same-parent recovery backup."""
+    backup = _backup_sibling(destination)
+    destination.replace(backup)
+    backups.append((destination, backup))
 
 
 def _restore_backups(backups: list[tuple[Path, Path]]) -> tuple[Path, ...]:

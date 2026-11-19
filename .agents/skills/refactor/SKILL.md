@@ -44,3 +44,5 @@ Improve structure while keeping behaviour identical, with explicit invariants an
 
 - `refactor <spec-name>` — resume a prepared named refactor.
 - `verify` — verify the named refactor against its abbreviated contract and update its queued record without activating it.
+
+After successful execution, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `verify <spec-name>`; otherwise report it and wait.

@@ -22,7 +22,7 @@ Specle lifecycle skills are individually useful, but successful local stages oft
 1. THE reusable steering inventory SHALL define `manual` and `decision-gated` progression modes in an automation policy document.
 2. IF project automation guidance is missing or does not establish a mode, THEN agents SHALL use manual mode.
 3. IN manual mode, a completed lifecycle skill SHALL report its next step and wait for user direction.
-4. IN decision-gated mode, an agent SHALL invoke the unambiguous next local lifecycle skill after a successful transition, preserving every selected skill's full instructions and state update.
+4. IN decision-gated mode, an agent SHALL invoke the unambiguous next local lifecycle skill after a successful transition, preserving every selected skill's full instructions, state update, and explicitly selected target.
 5. THE policy SHALL not permit an agent to skip estimate, design, tasks, build, verify, review, triage, resolve, commit, or complete merely because continuation is enabled.
 6. THE policy SHALL not authorise external writes; delivery authority remains governed exclusively by project delivery policy and explicit user authorisation.
 
@@ -74,6 +74,28 @@ Specle lifecycle skills are individually useful, but successful local stages oft
 3. FOR planned queued abbreviated work, lifecycle guidance and `prepare` SHALL set the next owning skill to `bugfix` or `refactor`, rather than `implement`.
 4. `bugfix` and `refactor` SHALL retain the ability to execute a named planned abbreviated target without replacing an unrelated active issue.
 5. THE migration SHALL not change normal-spec, review, verification, delivery, or external-write semantics beyond the selected continuation policy.
+
+### Requirement 6: Separate specification from activation
+
+**User Story:** As a developer exploring several ideas, I want to create specifications without commencing any of them, so that planning never accidentally begins implementation work.
+
+#### Acceptance Criteria
+
+1. `spec` SHALL create a queued normal change with status `defined`; it SHALL create requirements and a brief only, and SHALL NOT select that change as the current issue or invoke a planning skill.
+2. `activate <spec-name>` SHALL explicitly select a queued normal change as the current issue without changing its recorded lifecycle status.
+3. AFTER activation, `activate` SHALL invoke the selected spec's next planning skill immediately, regardless of the project's progression mode.
+4. Lifecycle guidance and generated inventory metadata SHALL describe `activate` as the explicit boundary between specification and execution.
+
+### Requirement 7: Synchronise obsolete managed skills on forced installation
+
+**User Story:** As an installer user, I want a forced installation to remove retired Specle skills without deleting unrelated local skills.
+
+#### Acceptance Criteria
+
+1. DURING `specle init --force`, the installer SHALL identify existing skill directories containing `specle_group` frontmatter that are absent from the incoming inventory.
+2. THE installer SHALL remove only those obsolete managed skill directories; unmarked skill directories SHALL remain untouched.
+3. THE installer SHALL stage the incoming distribution before replacing or removing managed destinations, retain recovery backups until installation succeeds, and restore prior destinations if installation fails.
+4. WITHOUT `--force`, an obsolete managed destination SHALL be reported as an installation collision.
 
 ## Non-Functional Requirements
 

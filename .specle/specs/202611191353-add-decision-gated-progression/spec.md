@@ -12,14 +12,15 @@ Add an opt-in, project-owned decision-gated progression policy. In that mode, an
 
 - Define portable `manual` and `decision-gated` progression modes in steering; missing policy remains manual.
 - Add project `automation.md`, selected through onboarding and mapped in the project README.
-- In decision-gated mode, automatically progress through successful estimate, design, tasks, build, verify, and review stages without skipping their instructions or state updates.
+- In decision-gated mode, automatically progress through successful estimate, design, tasks, build, verify, and review stages without skipping their instructions or state updates, always carrying the selected target.
 - Stop for material ambiguity, verification failure, review/triage decisions, external delivery authorisation, or another established human decision boundary.
 - Start triage automatically after review findings, but after every item has a decision, persist and present the complete decision-and-route list, set `triaged`, and wait for explicit `resolve`.
-- Remove the redundant `implement` skill and route planned abbreviated work directly to its owning `bugfix` or `refactor` skill.
+- Keep `spec` planning-only: it queues normal changes without activating them. Add `activate <spec>` as the explicit commencement boundary; it selects the named change and immediately starts its next planning stage.
+- Remove the redundant `implement` skill, route planned abbreviated work directly to its owning `bugfix` or `refactor` skill, and remove retired `specle_group`-marked skills during a forced inventory installation.
 
 ## Boundaries
 
-This policy controls continuation after a skill completes; it does not weaken verification, review, triage, delivery safeguards, or a skill's direct-invocation preconditions. It does not automatically commit, push, open a pull request, merge, or perform any other external write.
+This policy controls continuation after a skill completes; it does not weaken verification, review, triage, delivery safeguards, or a skill's direct-invocation preconditions. Creating a spec never commences it; only explicit activation does. It does not automatically commit, push, open a pull request, merge, or perform any other external write.
 
 ## Verification
 

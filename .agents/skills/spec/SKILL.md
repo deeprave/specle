@@ -5,7 +5,7 @@ requires: []
 description: >-
   Create normal feature specifications under `.specle/specs/`.
 usage: >-
-  Use to start a normal unit of work and capture functional and non-functional requirements; do not replace unfinished active work without user intent.
+  Use to plan a normal unit of work and capture functional and non-functional requirements without commencing it.
 ---
 
 # Write a feature spec
@@ -28,14 +28,12 @@ Changes are independent by default. A queued or future change must not create a 
      (`THE … SHALL …`, `IF … THEN … SHALL …`). These are the conformance checklist `verify` uses.
    - **Non-Functional Requirements** — dependencies, applicable project rules, and unchanged behaviour.
 5. Write `spec.md` (concise, well under 500 words) — the condensed intent for context retention after compression: problem, goal, key result keys, output, design sketch, verification.
-6. When ready to commence, set the active spec: write `.specle/current-issue.json` as a JSON record with its `spec_path` set to `.specle/specs/YYYYMMDDHHMM-<slug>`, then initialise `.specle/context.json` according to `context.md` and `lifecycle.md` (status `defined`; verification and review `not-run`). When Resolve dispatches an independent-spec hand-off while its origin must remain active for delivery, create the new normal spec as a queued record with `kind: "change"`, `status: "defined"`, and next `estimate`; do not replace `.specle/current-issue.json`.
+6. Add a queued `.specle/context.json` record with `kind: "change"`, `status: "defined"`, and next `activate`. Do not write `.specle/current-issue.json`, select a current issue, invoke planning, or commence implementation.
 
 If the user identifies a completed spike as the source of this spec, update that spike's `findings.json` `outcome_spec` with this spec's `.specle/specs/...` path.
 
-Do not replace an unfinished active spec in `current-issue.json` unless the user intends it.
+Do not replace an unfinished active spec in `current-issue.json`.
 
 ## Next
 
-- `design` — add a technical design (recommended for L/XL work).
-- `tasks` — generate the implementation task list.
-- `verify` — sanity-check the spec's acceptance criteria before building.
+- `activate <spec-name>` — explicitly commence the queued normal spec.

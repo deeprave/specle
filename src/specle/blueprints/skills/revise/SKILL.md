@@ -50,6 +50,7 @@ Changes are independent by default. A queued or future change must not create a 
 5. Regenerate a normal target's `spec.md` if the requirements changed. Update `.specle/context.json` to record a concise revision note. For an active normal target, invalidate prior verification and review, then set the lifecycle status according to the revised artifacts. When requirements, design, and tasks are all reconciled, the target is `planned` and the next skill is `build`. For a named committed normal target, update only its matching record to `planned` with next `build`, retain its delivery reference, and preserve the active current issue. For an abbreviated target, update only its matching queued record to `planned` with its owning `bugfix` or `refactor` next step; do not alter `current_spec` or `.specle/current-issue.json`.
 6. Report the accepted feedback, which artifacts changed, any reopened or added tasks, and the
    resulting next step.
+7. After a successful revision, read `.agents/project/automation.md`. In `decision-gated` mode, invoke the recorded next local skill with the selected target name; otherwise report it and wait.
 
 ## Important
 

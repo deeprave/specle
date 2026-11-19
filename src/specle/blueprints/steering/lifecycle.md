@@ -7,7 +7,7 @@ an instance of this state; skills apply these transitions and must not replace t
 
 | Status | Meaning | Next |
 | --- | --- | --- |
-| `defined` | Required work artifact exists but work has not started. | `spike` for a spike; otherwise `estimate` or `design`/`tasks` for small, understood work. |
+| `defined` | Required work artifact exists but work has not started. | `spike` for a spike; `activate <spec-name>` for a queued normal change; otherwise its named abbreviated owner. |
 | `estimated` | Complexity has been assessed. | `design` for M/L/XL; otherwise `tasks`. |
 | `designed` | Technical design exists. | `tasks`. |
 | `planned` | `tasks.md` exists but implementation has not started. | `build` for an active normal spec; the next `bugfix` or `refactor` for a queued abbreviated spec. |
@@ -24,7 +24,8 @@ an instance of this state; skills apply these transitions and must not replace t
 
 | Skill | Required transition |
 | --- | --- |
-| `spec` | Initialize a new active spec as `defined`, with verification and review both `not-run`. |
+| `spec` | Create a queued normal spec as `defined`; it never selects a current issue or commences planning. |
+| `activate` | Promote a named queued normal `defined` spec to current, retaining its state, then immediately invoke its named `estimate` stage regardless of progression policy. |
 | `spike` | Initialize an active `kind: "spike"` work item as `defined`, then set it to `spiking` while conducting read-only research. On completion, record findings and optional outcome spec, set verification and review to `not-applicable`, and mark it `complete`. |
 | `estimate` | Mark the active target `estimated`; estimating a named queued spec does not change the active spec. |
 | `design` | Mark the active spec `designed`. |

@@ -51,3 +51,5 @@ Resolve a defect with a lightweight, reproduce-first flow without displacing unr
 
 - `bugfix <spec-name>` — resume a prepared named bugfix.
 - `verify` — verify the named bugfix against this abbreviated contract and update its queued record without activating it.
+
+After successful execution, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `verify <spec-name>`; otherwise report it and wait.

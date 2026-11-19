@@ -1,4 +1,5 @@
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -140,6 +141,29 @@ def test_force_replaces_only_exact_managed_destinations(tmp_path: Path) -> None:
     assert old_specle_resource.read_text() == '{"version": "new"}\n'
     assert external_skill.read_text() == "# External skill\n"
     assert project_document.read_text() == "# Project guidance\n"
+
+
+def test_force_prunes_obsolete_managed_skills_but_preserves_unmanaged_skills(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    _write_skill(source_root / "skills", "retired", "Planning")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    retired = target / ".agents" / "skills" / "retired"
+    external = target / ".agents" / "skills" / "external" / "SKILL.md"
+    external.parent.mkdir(parents=True)
+    external.write_text("# External skill\n")
+    shutil.rmtree(source_root / "skills" / "retired")
+
+    with pytest.raises(SkillInstallationError, match="retired"):
+        initialise_distribution(source_root, target)
+
+    initialise_distribution(source_root, target, force=True)
+
+    assert not retired.exists()
+    assert external.read_text() == "# External skill\n"
 
 
 def test_staging_failure_preserves_existing_content_and_cleans_up(

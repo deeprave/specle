@@ -25,7 +25,6 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
     lifecycle = (BLUEPRINTS / "steering" / "lifecycle.md").read_text()
     triage = (BLUEPRINTS / "skills" / "triage" / "SKILL.md").read_text()
     resolve = (BLUEPRINTS / "skills" / "resolve" / "SKILL.md").read_text()
-    spec = (BLUEPRINTS / "skills" / "spec" / "SKILL.md").read_text()
     verify = (BLUEPRINTS / "skills" / "verify" / "SKILL.md").read_text()
     commit = (BLUEPRINTS / "skills" / "commit" / "SKILL.md").read_text()
     complete = (BLUEPRINTS / "skills" / "complete" / "SKILL.md").read_text()
@@ -52,7 +51,9 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
     assert "previously committed target to `committed`" in resolve
     assert "queued `defined` work" in resolve
     assert "Do not complete the origin" in resolve
-    assert 'queued record with `kind: "change"`' in spec
+    assert {"activate", "spec"} <= {
+        skill.name for skill in discover_skills(BLUEPRINTS / "skills")
+    }
     assert "committed` normal changes may be verified" in verify
     assert "explicit user authorisation" in commit
     assert "selected target's existing context record" in commit

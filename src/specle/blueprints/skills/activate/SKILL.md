@@ -1,0 +1,31 @@
+---
+name: activate
+specle_group: Planning
+requires: [estimate]
+description: >-
+  Explicitly commence a queued normal specification.
+usage: >-
+  Use with a named queued normal spec to make it current and begin its planning lifecycle.
+---
+
+# Activate a normal spec
+
+Make an explicitly named queued normal spec the current work item. Activation is the boundary between planning a spec and commencing it.
+
+## Workflow
+
+1. Read `.specle/context.json`, `.specle/current-issue.json` when present, and `.agents/steering/lifecycle.md`.
+2. Require an explicit spec name. Locate its queued record and require `kind: "change"` and `status: "defined"`. Do not activate a bugfix, refactor, spike, completed spec, or an unrecorded directory.
+3. If another unfinished current spec exists, stop and ask the user to resolve or explicitly replace that active selection; never displace it implicitly.
+4. Move the named queued record to `current_spec`, write its path to `.specle/current-issue.json`, and retain `status: "defined"`, verification `not-run`, and review `not-run`.
+5. Immediately invoke `estimate <spec-name>`. Activation deliberately commences the selected spec and does this regardless of manual or decision-gated progression policy.
+
+## Boundaries
+
+- `spec` creates planning artifacts only; it never activates or progresses a normal change.
+- Do not implement, commit, or make external writes.
+- Preserve all unrelated queued records.
+
+## Next
+
+- `estimate <spec-name>` — invoked by activation to begin planning.

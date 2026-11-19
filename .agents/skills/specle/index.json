@@ -66,6 +66,13 @@
       "name": "Planning",
       "skills": [
         {
+          "name": "activate",
+          "specle_group": "Planning",
+          "description": "Explicitly commence a queued normal specification.",
+          "usage": "Use with a named queued normal spec to make it current and begin its planning lifecycle.",
+          "resource": "file:///Users/davidn/Code/specle/.agents/skills/activate/SKILL.md"
+        },
+        {
           "name": "design",
           "specle_group": "Planning",
           "description": "Design a normal spec's technical implementation.",
@@ -90,7 +97,7 @@
           "name": "spec",
           "specle_group": "Planning",
           "description": "Create normal feature specifications under `.specle/specs/`.",
-          "usage": "Use to start a normal unit of work and capture functional and non-functional requirements; do not replace unfinished active work without user intent.",
+          "usage": "Use to plan a normal unit of work and capture functional and non-functional requirements without commencing it.",
           "resource": "file:///Users/davidn/Code/specle/.agents/skills/spec/SKILL.md"
         },
         {

@@ -35,7 +35,7 @@ Dispatch recorded review decisions without revisiting the triage or silently imp
 
 ## Next
 
-After explicit invocation and successful dispatch, read `.agents/project/automation.md`. In `decision-gated` mode, continue only through the selected downstream local workflow; never bypass a downstream preflight or delivery boundary.
+After explicit invocation and successful dispatch, read `.agents/project/automation.md`. In `decision-gated` mode, continue through the selected downstream local workflow with its explicit target name; never bypass a downstream preflight or delivery boundary.
 
 - If a dispatched follow-up remains incomplete, follow its reported next step, then invoke `resolve <target>` to reconcile it.
 - When Resolve completes the selected target, no lifecycle step remains.
