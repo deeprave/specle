@@ -1,43 +1,91 @@
 {
-  "$comment": "Runtime context for the active Specle decision-gated-progression feature specification.",
+  "$comment": "Runtime context for the active Specle StrictYAML-frontmatter feature specification.",
   "current_spec": {
-    "name": "202611191353-add-decision-gated-progression",
-    "path": ".specle/specs/202611191353-add-decision-gated-progression",
+    "name": "202611191253-adopt-strictyaml-frontmatter",
+    "path": ".specle/specs/202611191253-adopt-strictyaml-frontmatter",
     "kind": "change",
     "status": "complete",
+    "next": null,
     "progress": {
-      "tasks_completed": 11,
-      "tasks_total": 11
+      "tasks_completed": 4,
+      "tasks_total": 4
     },
     "present_task": null,
     "verification": {
       "status": "pass",
-      "last_run": "2026-11-19T17:30:00+1100",
+      "last_run": "2026-11-19T21:00:00+1100",
       "gates": {
-        "pytest": "pass (31 tests)",
+        "pytest": "pass (40 tests)",
         "ruff check": "pass",
         "ruff format --check": "pass",
         "ty check": "pass",
-        "stale implement workflow audit": "pass",
         "git diff --check": "pass"
       }
     },
     "review": {
       "status": "pass",
-      "last_run": "2026-11-19T17:32:00+1100",
+      "last_run": "2026-11-19T21:00:00+1100",
       "findings": 0
     },
     "delivery": {
-      "reference": "https://github.com/deeprave/specle/pull/3",
-      "head_branch": "feature/add-decision-gated-progression",
+      "reference": "https://github.com/deeprave/specle/pull/5",
+      "head_branch": "feature/adopt-strictyaml-frontmatter",
       "target_branch": "main",
-      "commit": "9f79db2",
-      "merge_commit": "1945170b1d538b8ac731d3d81d7451c76ec666d2",
-      "final_event": "merged 2026-11-19T07:06:06Z"
+      "final_event": "merged 2026-11-19T11:51:06Z",
+      "merge_commit": "fe898648f7e9e854113e997c061d0e11859c81ca"
     },
-    "revision_note": "Resolved PR #3 findings: add explicit activation, target-preserving continuation, managed-skill pruning, and task/context reconciliation."
+    "revision_note": "PR #5 merged and local main synchronised; three accepted findings are resolved and one test-only suggestion remains deferred."
   },
   "recent_specs": [
+    {
+      "name": "202611191353-add-decision-gated-progression",
+      "path": ".specle/specs/202611191353-add-decision-gated-progression",
+      "kind": "change",
+      "status": "complete",
+      "delivery": {
+        "reference": "https://github.com/deeprave/specle/pull/3",
+        "head_branch": "feature/add-decision-gated-progression",
+        "target_branch": "main",
+        "commit": "9f79db2",
+        "merge_commit": "1945170b1d538b8ac731d3d81d7451c76ec666d2",
+        "final_event": "merged 2026-11-19T07:06:06Z"
+      }
+    },
+    {
+      "name": "202611191937-fix-next-estimate",
+      "path": ".specle/specs/202611191937-fix-next-estimate",
+      "kind": "bugfix",
+      "status": "complete",
+      "progress": {
+        "tasks_completed": 2,
+        "tasks_total": 2
+      },
+      "verification": {
+        "status": "pass",
+        "last_run": "2026-11-19T20:05:00+1100",
+        "gates": {
+          "pytest": "pass (31 tests)",
+          "ruff check": "pass",
+          "ruff format --check": "pass",
+          "ty check": "pass",
+          "git diff --check": "pass",
+          "queued activation-boundary audit": "pass"
+        }
+      },
+      "review": {
+        "status": "pass",
+        "last_run": "2026-11-19T20:06:00+1100",
+        "findings": 0
+      },
+      "delivery": {
+        "reference": "https://github.com/deeprave/specle/pull/4",
+        "head_branch": "bugfix/fix-next-estimate",
+        "target_branch": "main",
+        "commit": "6096f30",
+        "merge_commit": "fdfe179",
+        "final_event": "merged 2026-11-19"
+      }
+    },
     {
       "name": "202611182207-prevent-assumed-dependencies",
       "path": ".specle/specs/202611182207-prevent-assumed-dependencies",
@@ -170,39 +218,12 @@
   ],
   "queued_specs": [
     {
-      "name": "202611191937-fix-next-estimate",
-      "path": ".specle/specs/202611191937-fix-next-estimate",
-      "kind": "bugfix",
-      "status": "committed",
-      "next": "complete",
-      "progress": {
-        "tasks_completed": 2,
-        "tasks_total": 2
-      },
-      "verification": {
-        "status": "pass",
-        "last_run": "2026-11-19T20:05:00+1100",
-        "gates": {
-          "pytest": "pass (31 tests)",
-          "ruff check": "pass",
-          "ruff format --check": "pass",
-          "ty check": "pass",
-          "git diff --check": "pass",
-          "queued activation-boundary audit": "pass"
-        }
-      },
-      "review": {
-        "status": "pass",
-        "last_run": "2026-11-19T20:06:00+1100",
-        "findings": 0
-      },
-      "delivery": {
-        "reference": "https://github.com/deeprave/specle/pull/4",
-        "head_branch": "bugfix/fix-next-estimate",
-        "target_branch": "main",
-        "commit": "2c56f22",
-        "final_event": "pull request created 2026-11-19"
-      }
+      "name": "202611192027-restructure-spec-state",
+      "path": ".specle/specs/202611192027-restructure-spec-state",
+      "kind": "change",
+      "status": "defined",
+      "next": "activate",
+      "revision_note": "Proposal only: resolve the recorded persistence and worktree questions before activation."
     },
     {
       "name": "202611191142-enable-automerge",
@@ -222,13 +243,6 @@
     {
       "name": "202611191211-document-validation",
       "path": ".specle/specs/202611191211-document-validation",
-      "kind": "change",
-      "status": "defined",
-      "next": "activate"
-    },
-    {
-      "name": "202611191253-adopt-strictyaml-frontmatter",
-      "path": ".specle/specs/202611191253-adopt-strictyaml-frontmatter",
       "kind": "change",
       "status": "defined",
       "next": "activate"
