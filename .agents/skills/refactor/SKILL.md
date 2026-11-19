@@ -1,7 +1,6 @@
 ---
 name: refactor
 specle_group: Alternatives
-requires: []
 description: >-
   Restructure code without changing observable behaviour.
 usage: >-

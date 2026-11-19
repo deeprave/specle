@@ -1,0 +1,13 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261119T210000+1100",
+      "system": "specle",
+      "kind": "local-review",
+      "url": null,
+      "revision": "working-tree",
+      "outcome": "approve"
+    }
+  ],
+  "items": []
+}

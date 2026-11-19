@@ -1,7 +1,9 @@
 ---
 name: prepare
 specle_group: Alternatives
-requires: [bugfix, refactor]
+requires:
+  - bugfix
+  - refactor
 description: >-
   Prepare non-active bugfixes or refactors for later work.
 usage: >-

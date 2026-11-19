@@ -1,7 +1,6 @@
 ---
 name: status
 specle_group: Coordination
-requires: []
 description: >-
   List pending and active Specle work with next stages.
 usage: >-

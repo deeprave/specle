@@ -1,7 +1,6 @@
 ---
 name: spec
 specle_group: Planning
-requires: []
 description: >-
   Create normal feature specifications under `.specle/specs/`.
 usage: >-

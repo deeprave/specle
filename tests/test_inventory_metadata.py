@@ -14,7 +14,9 @@ name: sample
 description: A test skill.
 usage: Use this test skill for metadata coverage.
 specle_group: Planning
-requires: [onboard, spec]
+requires:
+  - onboard
+  - spec
 ---
 
 # Sample
@@ -39,6 +41,27 @@ def test_every_packaged_skill_declares_a_specle_group() -> None:
     assert all(skill.specle_group for skill in metadata)
 
 
+def test_active_managed_skill_metadata_matches_its_blueprint() -> None:
+    project_root = Path(__file__).parents[1]
+    source_root = project_root / "src" / "specle" / "blueprints" / "skills"
+    active_root = project_root / ".agents" / "skills"
+
+    source = {
+        skill.name: (skill.specle_group, skill.description, skill.usage, skill.requires)
+        for skill in (
+            read_skill_metadata(path) for path in source_root.glob("*/SKILL.md")
+        )
+    }
+    active = {
+        name: read_skill_metadata(active_root / name / "SKILL.md") for name in source
+    }
+
+    assert {
+        name: (skill.specle_group, skill.description, skill.usage, skill.requires)
+        for name, skill in active.items()
+    } == source
+
+
 def test_rejects_missing_description_or_usage(tmp_path: Path) -> None:
     skill = tmp_path / "sample" / "SKILL.md"
     skill.parent.mkdir()
@@ -46,7 +69,6 @@ def test_rejects_missing_description_or_usage(tmp_path: Path) -> None:
         """---
 name: sample
 specle_group: Planning
-requires: []
 ---
 """
     )
@@ -66,7 +88,6 @@ name: valid
 description: Valid skill.
 usage: Use for discovery tests.
 specle_group: Planning
-requires: []
 ---
 """
     )
@@ -78,10 +99,103 @@ name: different
 description: Invalid skill.
 usage: Use for discovery tests.
 specle_group: Planning
-requires: []
 ---
 """
     )
 
     with pytest.raises(SkillMetadataError, match="does not match"):
         discover_skills(tmp_path)
+
+
+@pytest.mark.parametrize(
+    ("frontmatter", "message"),
+    [
+        ("unknown: value", "unexpected key"),
+        ("name: [sample]", "disallowed"),
+        ("requires: sample", "invalid frontmatter"),
+    ],
+)
+def test_rejects_invalid_schema_frontmatter(
+    tmp_path: Path, frontmatter: str, message: str
+) -> None:
+    skill = tmp_path / "sample" / "SKILL.md"
+    skill.parent.mkdir()
+    skill.write_text(
+        f"""---
+name: sample
+description: A test skill.
+usage: Use this test skill for metadata coverage.
+specle_group: Planning
+{frontmatter}
+---
+"""
+    )
+
+    with pytest.raises(SkillMetadataError, match=message) as error:
+        read_skill_metadata(skill)
+
+    assert str(skill) in str(error.value)
+
+
+def test_omitted_requires_has_no_dependencies(tmp_path: Path) -> None:
+    skill = tmp_path / "sample" / "SKILL.md"
+    skill.parent.mkdir()
+    skill.write_text(
+        """---
+name: sample
+description: A test skill.
+usage: Use this test skill for metadata coverage.
+specle_group: Planning
+---
+"""
+    )
+
+    assert read_skill_metadata(skill).requires == ()
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("name", "Sample", "invalid skill name"),
+        ("description", "''", "empty required metadata value"),
+    ],
+)
+def test_rejects_invalid_required_metadata_values(
+    tmp_path: Path, field: str, value: str, message: str
+) -> None:
+    skill = tmp_path / "sample" / "SKILL.md"
+    skill.parent.mkdir()
+    fields = {
+        "name": "sample",
+        "description": "A test skill.",
+        "usage": "Use this test skill for metadata coverage.",
+        "specle_group": "Planning",
+    }
+    fields[field] = value
+    skill.write_text(
+        "---\n"
+        + "\n".join(f"{key}: {item}" for key, item in fields.items())
+        + "\n---\n"
+    )
+
+    with pytest.raises(SkillMetadataError, match=message):
+        read_skill_metadata(skill)
+
+
+def test_rejects_an_invalid_required_skill_name(tmp_path: Path) -> None:
+    skill = tmp_path / "sample" / "SKILL.md"
+    skill.parent.mkdir()
+    skill.write_text(
+        """---
+name: sample
+description: A test skill.
+usage: Use this test skill for metadata coverage.
+specle_group: Planning
+requires:
+  - Invalid
+---
+"""
+    )
+
+    with pytest.raises(SkillMetadataError, match="invalid required skill name"):
+        read_skill_metadata(skill)

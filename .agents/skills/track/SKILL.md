@@ -1,7 +1,8 @@
 ---
 name: track
 specle_group: Integration
-requires: [spec]
+requires:
+  - spec
 description: >-
   Link Specle work to configured external sources and destinations.
 usage: >-

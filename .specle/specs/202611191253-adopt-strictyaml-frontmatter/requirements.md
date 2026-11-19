@@ -21,7 +21,7 @@ Specle's package-owned skills use YAML frontmatter as their machine-readable int
 1. THE project SHALL depend on StrictYAML for package-owned skill-frontmatter parsing.
 2. THE implementation SHALL replace the custom frontmatter value parser with a StrictYAML parser and an explicit schema.
 3. THE parser SHALL accept only the current fields `name`, `specle_group`, `description`, `usage`, and `requires`.
-4. THE schema SHALL require non-empty scalar values for `name`, `specle_group`, `description`, and `usage`, and a sequence of skill-name scalars for `requires`.
+4. THE schema SHALL require non-empty scalar values for `name`, `specle_group`, `description`, and `usage`, and accept an optional sequence of skill-name scalars for `requires`; its absence means no dependencies.
 5. THE implementation SHALL report malformed frontmatter, schema violations, and invalid skill names as actionable `SkillMetadataError` messages without a traceback.
 6. THE parser SHALL not use PyYAML, `yaml.load`, or an unsafe loader.
 
@@ -33,7 +33,7 @@ Specle's package-owned skills use YAML frontmatter as their machine-readable int
 
 1. EACH blueprint skill SHALL conform to the StrictYAML frontmatter schema.
 2. EACH active local `.agents/skills/` Specle skill SHALL match its blueprint metadata and conform to the same schema.
-3. EACH `requires` value SHALL use a block sequence, including an explicit empty block sequence where no dependency exists.
+3. A skill with dependencies SHALL express `requires` as a block sequence. A skill with no dependencies SHALL omit `requires`; the parser SHALL treat it as an empty dependency set.
 4. THE migration SHALL preserve every current skill name, group, description, usage, and direct dependency.
 5. THE migration SHALL not change the body instructions, lifecycle policy, or non-Specle skills.
 

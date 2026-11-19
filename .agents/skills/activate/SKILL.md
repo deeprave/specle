@@ -1,7 +1,11 @@
 ---
 name: activate
 specle_group: Planning
-requires: [estimate, design, tasks, build]
+requires:
+  - estimate
+  - design
+  - tasks
+  - build
 description: >-
   Explicitly commence a queued normal specification.
 usage: >-

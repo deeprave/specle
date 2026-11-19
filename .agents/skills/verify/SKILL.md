@@ -1,7 +1,6 @@
 ---
 name: verify
 specle_group: Quality
-requires: []
 description: >-
   Verify implementations against specs and quality gates.
 usage: >-

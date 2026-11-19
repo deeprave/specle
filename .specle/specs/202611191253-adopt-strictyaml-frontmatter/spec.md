@@ -12,7 +12,7 @@ Replace the custom parser with StrictYAML and a schema for the existing package-
 
 - Parse package-owned skill frontmatter only through StrictYAML and a safe, constrained schema.
 - Define the current fields (`name`, `specle_group`, `description`, `usage`, and `requires`) with their expected types and requiredness.
-- Migrate all blueprint skills and their active `.agents/skills/` counterparts to the schema-compatible block style, including block-list `requires` values.
+- Migrate all blueprint skills and their active `.agents/skills/` counterparts to the schema-compatible block style. Dependent skills use block-list `requires`; independent skills omit it.
 - Preserve existing inventory, dependency validation, and generated index behaviour.
 - Produce actionable metadata errors without tracebacks.
 

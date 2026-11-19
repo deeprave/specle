@@ -1,7 +1,6 @@
 ---
 name: context
 specle_group: Coordination
-requires: []
 description: >-
   Reconcile compact Specle context with recorded work state.
 usage: >-

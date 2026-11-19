@@ -1,7 +1,10 @@
 ---
 name: complete
 specle_group: Integration
-requires: [commit, triage, resolve]
+requires:
+  - commit
+  - triage
+  - resolve
 description: >-
   Confirm final delivery of a committed Specle change.
 usage: >-

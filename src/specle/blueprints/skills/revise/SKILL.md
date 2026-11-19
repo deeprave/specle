@@ -1,7 +1,6 @@
 ---
 name: revise
 specle_group: Planning
-requires: []
 description: >-
   Revise specs and plans after accepted feedback.
 usage: >-

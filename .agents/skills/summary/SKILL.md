@@ -1,7 +1,6 @@
 ---
 name: summary
 specle_group: Reporting
-requires: []
 description: >-
   Summarise completed Specle work for people.
 usage: >-

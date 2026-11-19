@@ -1,7 +1,6 @@
 ---
 name: specle
 specle_group: Reference
-requires: []
 description: >-
   Describe the installed Specle workflow and skill inventory.
 usage: >-

@@ -1,7 +1,8 @@
 ---
 name: review
 specle_group: Quality
-requires: [verify]
+requires:
+  - verify
 description: >-
   Review verified implementations for quality and policy compliance.
 usage: >-

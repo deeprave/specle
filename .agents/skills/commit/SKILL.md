@@ -1,7 +1,8 @@
 ---
 name: commit
 specle_group: Integration
-requires: [review]
+requires:
+  - review
 description: >-
   Deliver approved Specle work according to project policy.
 usage: >-

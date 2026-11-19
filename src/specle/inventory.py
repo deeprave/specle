@@ -10,9 +10,21 @@ from dataclasses import dataclass
 from importlib.resources import files
 from importlib.resources.abc import Traversable
 from pathlib import Path
-from typing import TypedDict
+from typing import NotRequired, TypedDict
+
+from strictyaml import Map, Optional, Seq, Str, load
+from strictyaml.exceptions import StrictYAMLError
 
 _SKILL_NAME = re.compile(r"[a-z][a-z0-9-]*")
+_SKILL_FRONTMATTER_SCHEMA = Map(
+    {
+        "name": Str(),
+        "specle_group": Str(),
+        "description": Str(),
+        "usage": Str(),
+        Optional("requires"): Seq(Str()),
+    }
+)
 _GROUP_ORDER = (
     "Reference",
     "Setup",
@@ -70,6 +82,16 @@ class SkillIndex(TypedDict):
     groups: list[SkillIndexGroup]
 
 
+class SkillFrontmatter(TypedDict):
+    """Schema-validated frontmatter fields for a package-owned skill."""
+
+    name: str
+    specle_group: str
+    description: str
+    usage: str
+    requires: NotRequired[list[str]]
+
+
 def packaged_skills_root() -> Traversable:
     """Return the packaged root directory for Specle skill blueprints."""
     root = files("specle").joinpath("blueprints", "skills")
@@ -95,37 +117,22 @@ def packaged_steering_root() -> Traversable:
 
 
 def read_skill_metadata(path: Path) -> SkillMetadata:
-    """Read the constrained Specle metadata from a skill frontmatter block."""
-    lines = path.read_text().splitlines()
-    if not lines or lines[0] != "---":
-        raise SkillMetadataError(f"{path} has no frontmatter")
+    """Read schema-validated Specle metadata from a skill frontmatter block."""
+    values = _read_skill_frontmatter(path)
 
-    try:
-        end = lines.index("---", 1)
-    except ValueError as error:
-        raise SkillMetadataError(f"{path} has unterminated frontmatter") from error
-
-    values = _read_frontmatter_values(lines[1:end], path)
-
-    name = values.get("name", "")
-    specle_group = values.get("specle_group", "")
-    description = values.get("description", "")
-    usage = values.get("usage", "")
+    name = values["name"]
+    specle_group = values["specle_group"]
+    description = values["description"]
+    usage = values["usage"]
     if not _SKILL_NAME.fullmatch(name):
         raise SkillMetadataError(f"{path} has an invalid skill name")
-    if not specle_group:
-        raise SkillMetadataError(f"{path} has no specle_group value")
-    if not description:
-        raise SkillMetadataError(f"{path} has no description value")
-    if not usage:
-        raise SkillMetadataError(f"{path} has no usage value")
 
     return SkillMetadata(
         name=name,
         specle_group=specle_group,
         description=description,
         usage=usage,
-        requires=_parse_requires(values.get("requires", "[]"), path),
+        requires=_parse_requires(values.get("requires", []), path),
         path=path,
     )
 
@@ -286,14 +293,10 @@ def initialise_distribution(
     return tuple(destinations)
 
 
-def _parse_requires(value: str, path: Path) -> tuple[str, ...]:
-    if not value.startswith("[") or not value.endswith("]"):
-        raise SkillMetadataError(f"{path} has an invalid requires value")
-
-    entries = [entry.strip() for entry in value[1:-1].split(",") if entry.strip()]
-    if any(not _SKILL_NAME.fullmatch(entry) for entry in entries):
+def _parse_requires(value: list[str], path: Path) -> tuple[str, ...]:
+    if any(not _SKILL_NAME.fullmatch(entry) for entry in value):
         raise SkillMetadataError(f"{path} has an invalid required skill name")
-    return tuple(entries)
+    return tuple(value)
 
 
 def _validate_skill_dependencies(skills: tuple[SkillMetadata, ...]) -> None:
@@ -352,14 +355,11 @@ def _discover_obsolete_managed_skills(
 
 def _has_specle_group(path: Path) -> bool:
     """Return whether a skill frontmatter block declares the Specle marker."""
-    lines = path.read_text().splitlines()
-    if not lines or lines[0] != "---":
-        return False
     try:
-        end = lines.index("---", 1)
-    except ValueError:
+        values = load(_frontmatter_text(path)).data
+    except (SkillMetadataError, StrictYAMLError):
         return False
-    return bool(_read_frontmatter_values(lines[1:end], path).get("specle_group"))
+    return isinstance(values, dict) and bool(values.get("specle_group"))
 
 
 def _backup_existing_destination(
@@ -403,27 +403,48 @@ def _clean_up_temporary(staged: list[Path], index_temporary: Path | None) -> Non
             continue
 
 
-def _read_frontmatter_values(lines: list[str], path: Path) -> dict[str, str]:
-    """Read simple scalar and folded scalar values without a YAML dependency."""
-    values: dict[str, str] = {}
-    index = 0
-    while index < len(lines):
-        line = lines[index]
-        index += 1
-        if not line or line[0].isspace() or ":" not in line:
-            continue
-        key, value = line.split(":", maxsplit=1)
-        if key in values:
-            raise SkillMetadataError(f"{path} declares {key!r} more than once")
-        value = value.strip()
-        if value in {">", ">-", "|", "|-"}:
-            folded: list[str] = []
-            while index < len(lines) and (
-                not lines[index] or lines[index][0].isspace()
-            ):
-                if lines[index].strip():
-                    folded.append(lines[index].strip())
-                index += 1
-            value = " ".join(folded)
-        values[key] = value
-    return values
+def _read_skill_frontmatter(path: Path) -> SkillFrontmatter:
+    """Load constrained, schema-validated metadata from one package-owned skill."""
+    try:
+        values = load(_frontmatter_text(path), _SKILL_FRONTMATTER_SCHEMA).data
+    except StrictYAMLError as error:
+        detail = getattr(error, "problem", str(error).splitlines()[0])
+        raise SkillMetadataError(f"{path} has invalid frontmatter: {detail}") from error
+
+    name = values.get("name")
+    specle_group = values.get("specle_group")
+    description = values.get("description")
+    usage = values.get("usage")
+    requires = values.get("requires")
+    if not all(
+        isinstance(value, str) and value.strip()
+        for value in (name, specle_group, description, usage)
+    ):
+        raise SkillMetadataError(f"{path} has an empty required metadata value")
+    if requires is not None and (
+        not isinstance(requires, list)
+        or not all(isinstance(requirement, str) for requirement in requires)
+    ):
+        raise SkillMetadataError(f"{path} has an invalid requires value")
+    frontmatter: SkillFrontmatter = {
+        "name": name,
+        "specle_group": specle_group,
+        "description": description,
+        "usage": usage,
+    }
+    if requires is not None:
+        frontmatter["requires"] = requires
+    return frontmatter
+
+
+def _frontmatter_text(path: Path) -> str:
+    """Return delimited frontmatter text or raise a path-specific metadata error."""
+    lines = path.read_text().splitlines()
+    if not lines or lines[0] != "---":
+        raise SkillMetadataError(f"{path} has no frontmatter")
+
+    try:
+        end = lines.index("---", 1)
+    except ValueError as error:
+        raise SkillMetadataError(f"{path} has unterminated frontmatter") from error
+    return "\n".join(lines[1:end])

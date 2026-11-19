@@ -1,7 +1,6 @@
 ---
 name: design
 specle_group: Planning
-requires: []
 description: >-
   Design a normal spec's technical implementation.
 usage: >-
