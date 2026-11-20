@@ -42,6 +42,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
 
 - Never act when the branch guard fails.
 - Never discard staged, unstaged, untracked, or ignored work; retain the stash if restoration is incomplete.
+- For a branch-and-pull-request delivery that has not reached its final event, do not direct the user to merge manually; `complete` owns the authorised merge and archival finalisation sequence.
 - Lack of merge authority does not prevent preparing archive finalisation for an already evidenced external merge.
 - Do not create or consume a separate delivery record, or depend on queued future schema work.
 
