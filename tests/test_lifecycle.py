@@ -12,6 +12,7 @@ from specle.lifecycle import (
     validate_lifecycle_graph,
     validate_runtime_records,
 )
+from specle.schema_registry import SCHEMA_IDENTIFIERS
 
 
 def test_packaged_lifecycle_has_no_graph_diagnostics() -> None:
@@ -194,6 +195,65 @@ def test_reports_malformed_runtime_json(tmp_path: Path) -> None:
     assert "malformed-json" in codes
 
 
+def test_rejects_unsupported_runtime_contracts_before_lifecycle_checks(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "project"
+    spec_path = ".specle/specs/example"
+    (target / spec_path).mkdir(parents=True)
+    _write_runtime(
+        target,
+        {
+            "$schema": "https://example.invalid/context",
+            "current_spec": {
+                "name": "example",
+                "path": spec_path,
+                "status": "defined",
+                "next": "start",
+            },
+            "recent_specs": [],
+            "queued_specs": [],
+        },
+        {"spec_path": spec_path},
+    )
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert [diagnostic.code for diagnostic in diagnostics] == ["invalid-contract"]
+    assert "expected schema" in diagnostics[0].message
+
+
+def test_rejects_missing_runtime_contracts_before_lifecycle_checks(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "project"
+    spec_path = ".specle/specs/example"
+    (target / spec_path).mkdir(parents=True)
+    _write_runtime(
+        target,
+        {
+            "current_spec": {
+                "name": "example",
+                "path": spec_path,
+                "status": "defined",
+                "next": "start",
+            },
+            "recent_specs": [],
+            "queued_specs": [],
+        },
+        {
+            "$schema": SCHEMA_IDENTIFIERS["current-issue"],
+            "spec_path": spec_path,
+        },
+        add_contract_markers=False,
+    )
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert [diagnostic.code for diagnostic in diagnostics] == ["invalid-contract"]
+    assert "missing string '$schema'" in diagnostics[0].message
+
+
 def _runtime_skills() -> tuple[SkillMetadata, ...]:
     return (
         _skill(
@@ -213,9 +273,16 @@ def _runtime_skills() -> tuple[SkillMetadata, ...]:
     )
 
 
-def _write_runtime(target: Path, context: object, issue: object) -> None:
+def _write_runtime(
+    target: Path, context: object, issue: object, *, add_contract_markers: bool = True
+) -> None:
     runtime = target / ".specle"
     runtime.mkdir(exist_ok=True)
+    if add_contract_markers and isinstance(context, dict):
+        context.setdefault("$schema", SCHEMA_IDENTIFIERS["context"])
+        context.setdefault("recent_specs", [])
+    if add_contract_markers and isinstance(issue, dict):
+        issue.setdefault("$schema", SCHEMA_IDENTIFIERS["current-issue"])
     (runtime / "context.json").write_text(json.dumps(context))
     (runtime / "current-issue.json").write_text(json.dumps(issue))
 

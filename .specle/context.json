@@ -1,43 +1,66 @@
 {
-  "$comment": "Runtime context for the active Specle validate feature specification.",
+  "$schema": "https://github.com/deeprave/specle/schemas/context/1.0",
+  "$comment": "Runtime context for the active versioned JSON contracts specification.",
   "current_spec": {
-    "name": "202611191221-add-specle-validate",
-    "path": ".specle/specs/202611191221-add-specle-validate",
+    "name": "202611172043-versioned-json-schemas",
+    "path": ".specle/specs/202611172043-versioned-json-schemas",
     "kind": "change",
-    "status": "complete",
-    "next": null,
+    "status": "committed",
+    "next": "complete",
     "progress": {
-      "tasks_completed": 8,
-      "tasks_total": 8
+      "tasks_completed": 9,
+      "tasks_total": 9
     },
-    "present_task": null,
     "verification": {
       "status": "pass",
       "gates": {
-        "pytest": "pass (55 tests)",
+        "pytest": "pass (63 tests)",
         "ruff check": "pass",
         "ruff format --check": "pass",
         "ty check": "pass",
         "specle validate .": "pass",
-        "specle validate . --verbose": "pass",
         "git diff --check": "pass"
       }
     },
     "review": {
-      "status": "resolved",
+      "status": "pass",
       "findings": 0
     },
-    "revision_note": "PR #6 merged; local main synchronised. Deferred queue findings remain with restructure-spec-state.",
+    "revision_note": "PR #7 updated with accepted schema review corrections.",
     "delivery": {
-      "reference": "https://github.com/deeprave/specle/pull/6",
-      "head_branch": "feature/add-specle-validate",
+      "reference": "https://github.com/deeprave/specle/pull/7",
+      "head_branch": "feature/versioned-json-schemas",
       "target_branch": "main",
-      "commit": "542b7bc",
-      "merge_commit": "cb9857e001286b7b137caf049601bde6d838307d",
-      "final_event": "merged 2026-11-19T22:44:40Z"
+      "commit": "19b73a3",
+      "final_event": null
     }
   },
   "recent_specs": [
+    {
+      "name": "202611191221-add-specle-validate",
+      "path": ".specle/specs/202611191221-add-specle-validate",
+      "kind": "change",
+      "status": "complete",
+      "progress": {
+        "tasks_completed": 8,
+        "tasks_total": 8
+      },
+      "verification": {
+        "status": "pass"
+      },
+      "review": {
+        "status": "resolved",
+        "findings": 0
+      },
+      "delivery": {
+        "reference": "https://github.com/deeprave/specle/pull/6",
+        "head_branch": "feature/add-specle-validate",
+        "target_branch": "main",
+        "commit": "542b7bc",
+        "merge_commit": "cb9857e001286b7b137caf049601bde6d838307d",
+        "final_event": "merged 2026-11-19T22:44:40Z"
+      }
+    },
     {
       "name": "202611191253-adopt-strictyaml-frontmatter",
       "path": ".specle/specs/202611191253-adopt-strictyaml-frontmatter",
@@ -246,13 +269,6 @@
       "status": "defined",
       "next": "activate",
       "revision_note": "Added Dependabot configuration as the explicit auto-merge workflow prerequisite."
-    },
-    {
-      "name": "202611172043-versioned-json-schemas",
-      "path": ".specle/specs/202611172043-versioned-json-schemas",
-      "kind": "change",
-      "status": "defined",
-      "next": "activate"
     },
     {
       "name": "202611191211-document-validation",

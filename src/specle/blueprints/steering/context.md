@@ -10,6 +10,7 @@ Every skill that reads or writes context must follow both documents.
 
 ```json
 {
+  "$schema": "https://github.com/deeprave/specle/schemas/current-issue/1.0",
   "spec_path": ".specle/specs/YYYYMMDDHHMM-slug"
 }
 ```
@@ -18,6 +19,7 @@ Every skill that reads or writes context must follow both documents.
 
 ```json
 {
+  "$schema": "https://github.com/deeprave/specle/schemas/context/1.0",
   "$comment": "optional explanation",
   "current_spec": {
     "name": "YYYYMMDDHHMM-slug",

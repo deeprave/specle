@@ -34,6 +34,7 @@ When the configured connection supports the requested operation:
 3. For an import, use the selected existing target spec. If the user asks to establish a new spec and no unfinished active spec would be displaced, use `spec` to create it before importing. Otherwise, ask which existing or new spec should receive the imported material.
 4. Use only the connector or tool named by the project's tracking guidance. Source operations are read-only.
 5. Record links in `.specle/specs/<spec>/tracker-links.json`:
+   - `$schema` is `https://github.com/deeprave/specle/schemas/tracker-links/1.0`.
    - `sources` is an array of objects with `system`, `kind`, `id`, and canonical `url`.
    - `destination` is either `null` or an object with the same identifying fields.
    - Preserve existing links and do not invent identifiers or URLs.

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/deeprave/specle/schemas/findings/1.0",
+  "type": "object",
+  "required": ["$schema", "question", "hypothesis", "effort", "scope", "status", "findings", "recommendations", "risks", "outcome_spec"],
+  "properties": {
+    "$schema": {"const": "https://github.com/deeprave/specle/schemas/findings/1.0"},
+    "question": {"type": "string"},
+    "hypothesis": {"type": "string"},
+    "effort": {"enum": ["S", "M", "L", "XL"]},
+    "scope": {"type": "string"},
+    "status": {"enum": ["defined", "spiking", "complete"]},
+    "findings": {"type": "array"},
+    "recommendations": {"type": "array"},
+    "risks": {"type": "array"},
+    "outcome_spec": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}

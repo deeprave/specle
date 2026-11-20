@@ -15,6 +15,8 @@ from typing import NotRequired, TypedDict
 from strictyaml import Enum, Map, Optional, Seq, Str, load
 from strictyaml.exceptions import StrictYAMLError
 
+from specle.schema_registry import SCHEMA_IDENTIFIERS
+
 _SKILL_NAME = re.compile(r"[a-z][a-z0-9-]*")
 _LIFECYCLE_STATUSES = (
     "defined",
@@ -144,10 +146,10 @@ class SkillIndexGroup(TypedDict):
     skills: list[SkillIndexEntry]
 
 
-class SkillIndex(TypedDict):
-    """The generated installed-skill index resource."""
-
-    groups: list[SkillIndexGroup]
+SkillIndex = TypedDict(
+    "SkillIndex",
+    {"$schema": str, "groups": list[SkillIndexGroup]},
+)
 
 
 class SkillFrontmatter(TypedDict):
@@ -314,7 +316,7 @@ def build_skill_index(
             for skill in sorted(grouped[group_name], key=lambda skill: skill.name)
         ]
         groups.append({"name": group_name, "skills": entries})
-    return {"groups": groups}
+    return {"$schema": SCHEMA_IDENTIFIERS["skill-index"], "groups": groups}
 
 
 def initialise_distribution(
