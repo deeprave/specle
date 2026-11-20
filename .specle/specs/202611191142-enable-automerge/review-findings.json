@@ -1,0 +1,13 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261120-enable-automerge",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree",
+      "findings": 0,
+      "outcome": "approve"
+    }
+  ],
+  "findings": []
+}
