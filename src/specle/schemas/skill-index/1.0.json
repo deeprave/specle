@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/deeprave/specle/schemas/skill-index/1.0",
+  "type": "object",
+  "required": ["$schema", "groups"],
+  "properties": {
+    "$schema": {"const": "https://github.com/deeprave/specle/schemas/skill-index/1.0"},
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "skills"],
+        "properties": {
+          "name": {"type": "string"},
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "specle_group", "description", "usage", "resource"],
+              "properties": {
+                "name": {"type": "string"},
+                "specle_group": {"type": "string"},
+                "description": {"type": "string"},
+                "usage": {"type": "string"},
+                "resource": {"type": "string", "format": "uri"}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

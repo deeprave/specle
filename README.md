@@ -32,6 +32,16 @@ This installs the packaged skills and steering documents into `/path/to/project/
 
 `update`, standalone `index`, launcher, client-integration, and project-bootstrap commands are deliberately deferred to later changes.
 
+## JSON schemas
+
+Specle distributes versioned JSON Schema contracts for its shared agent-managed records. Export a portable schema tree for external tools or integrations with:
+
+```console
+uvx specle schemas export /path/to/schemas
+```
+
+Use `--force` only when intentionally replacing an existing export. See [the layout and contract reference](docs/LAYOUT.md#json-contracts).
+
 ## Skill inventory
 
 In this repository, `src/specle/blueprints/` is the canonical source inventory of the portable `AGENTS.md`, reusable skill blueprints, and steering documents. Each skill blueprint declares a human-facing `specle_group`, concise `description`, detailed `usage`, and its direct `requires` dependencies in frontmatter. Any skill with `specle_group` is considered to be part of the Specle skill inventory.

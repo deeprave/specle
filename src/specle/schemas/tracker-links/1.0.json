@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/deeprave/specle/schemas/tracker-links/1.0",
+  "type": "object",
+  "required": ["$schema", "sources", "destination"],
+  "properties": {
+    "$schema": {"const": "https://github.com/deeprave/specle/schemas/tracker-links/1.0"},
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["system", "kind", "id", "url"],
+        "properties": {
+          "system": {"type": "string"},
+          "kind": {"type": "string"},
+          "id": {"type": "string"},
+          "url": {"type": "string", "format": "uri"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "destination": {
+      "type": ["object", "null"]
+    }
+  },
+  "additionalProperties": true
+}

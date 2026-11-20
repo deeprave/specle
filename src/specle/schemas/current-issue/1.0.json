@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/deeprave/specle/schemas/current-issue/1.0",
+  "type": "object",
+  "required": ["$schema", "spec_path"],
+  "properties": {
+    "$schema": {"const": "https://github.com/deeprave/specle/schemas/current-issue/1.0"},
+    "spec_path": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": true
+}

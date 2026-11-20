@@ -15,6 +15,7 @@ from specle.inventory import (
     SkillMetadataError,
     discover_installed_specle_skills,
 )
+from specle.schema_registry import SchemaRegistryError, validate_instance
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,6 +64,10 @@ def validate_runtime_records(
     context = snapshot.context
     issue = snapshot.issue
     if context is None or issue is None:
+        return tuple(diagnostics)
+    if not _validate_contract(context, context_path, diagnostics):
+        return tuple(diagnostics)
+    if not _validate_contract(issue, issue_path, diagnostics):
         return tuple(diagnostics)
 
     issue_spec_path = issue.get("spec_path")
@@ -143,6 +148,18 @@ def _load_json_object(
         diagnostics.append(_diagnostic(path, "invalid-json-object", "root"))
         return None
     return value
+
+
+def _validate_contract(
+    record: dict[str, object], path: Path, diagnostics: list[LifecycleDiagnostic]
+) -> bool:
+    """Validate a versioned runtime record before applying lifecycle rules."""
+    try:
+        validate_instance(record)
+    except SchemaRegistryError as error:
+        diagnostics.append(LifecycleDiagnostic("invalid-contract", f"{path}: {error}"))
+        return False
+    return True
 
 
 def _validate_record(

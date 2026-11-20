@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/deeprave/specle/schemas/context/1.0",
+  "type": "object",
+  "required": ["$schema", "current_spec", "recent_specs", "queued_specs"],
+  "properties": {
+    "$schema": {"const": "https://github.com/deeprave/specle/schemas/context/1.0"},
+    "current_spec": {"$ref": "https://github.com/deeprave/specle/schemas/common/1.0#/$defs/record"},
+    "recent_specs": {
+      "type": "array",
+      "items": {"$ref": "https://github.com/deeprave/specle/schemas/common/1.0#/$defs/record"}
+    },
+    "queued_specs": {
+      "type": "array",
+      "items": {"$ref": "https://github.com/deeprave/specle/schemas/common/1.0#/$defs/record"}
+    }
+  },
+  "additionalProperties": true
+}

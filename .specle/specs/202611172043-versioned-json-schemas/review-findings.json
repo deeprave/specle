@@ -1,0 +1,66 @@
+{
+  "sources": [
+    {
+      "id": "local-20261120-versioned-json-schemas",
+      "kind": "local-review",
+      "revision": "working-tree-after-verification",
+      "findings": 2
+    },
+    {
+      "id": "local-20261120-versioned-json-schemas-rereview",
+      "kind": "local-review",
+      "revision": "working-tree-after-runtime-coverage-revision",
+      "findings": 1
+    },
+    {
+      "id": "local-20261120-versioned-json-schemas-final-review",
+      "kind": "local-review",
+      "revision": "working-tree-after-context-guidance-revision",
+      "findings": 0
+    }
+  ],
+  "items": [
+    {
+      "id": "runtime-missing-schema-coverage",
+      "source_ids": ["local-20261120-versioned-json-schemas"],
+      "severity": "P3",
+      "description": "The runtime-contract test named for unversioned records supplies an unknown schema URI rather than an absent `$schema` field.",
+      "evidence": "tests/test_lifecycle.py:198-225",
+      "analysis": "The helper adds a valid `$schema` when it is absent, so the test exercises unsupported-contract handling only. Requirement 2 requires actionable errors for both missing and unsupported versions at the runtime boundary.",
+      "recommendation": "Add a direct missing-marker runtime case or adjust the helper so the test proves the missing-marker diagnostic.",
+      "state": "decided",
+      "decision": "accept",
+      "route": "revise active change",
+      "execution_mode": "after triage",
+      "dispatch_result": "Task 4 reopened for the active change; missing-marker runtime coverage remains to be implemented."
+    },
+    {
+      "id": "export-failure-recovery-coverage",
+      "source_ids": ["local-20261120-versioned-json-schemas"],
+      "severity": "P3",
+      "description": "Schema export collision and replacement are tested, but staging or replacement failure does not prove that the original destination is retained.",
+      "evidence": "tests/test_schema_registry.py:53-64; src/specle/schema_registry.py:86-110",
+      "analysis": "Failure-safe replacement is an explicit design and task requirement. The implementation has a recovery path, but it lacks behavioural evidence for that path.",
+      "recommendation": "Add a focused failure-injection test that confirms the prior destination remains intact after an export replacement failure.",
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "execution_mode": "none",
+      "dispatch_result": "Declined: export failure injection is disproportionate for the expected user-managed destination model."
+    },
+    {
+      "id": "context-guidance-schema-marker",
+      "source_ids": ["local-20261120-versioned-json-schemas-rereview"],
+      "severity": "P4",
+      "description": "Distributed context guidance examples omit the required `$schema` contract marker.",
+      "evidence": "src/specle/blueprints/steering/context.md:9-38; .agents/steering/context.md:9-38",
+      "analysis": "The context skill now instructs writers to add the marker, but the canonical context guidance still presents unversioned current-issue and context JSON shapes. This conflicts with the baseline-contract documentation requirement.",
+      "recommendation": "Add the context and current-issue baseline schema URIs to those examples, then synchronise active steering.",
+      "state": "decided",
+      "decision": "accept",
+      "route": "revise active change",
+      "execution_mode": "after triage",
+      "dispatch_result": "Task 8 reopened for the active change; canonical context guidance will be updated and synchronised."
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from specle.inventory import SkillMetadata, build_skill_index
+from specle.schema_registry import SCHEMA_IDENTIFIERS
 
 
 def test_builds_a_stable_grouped_index_for_installed_skills(tmp_path: Path) -> None:
@@ -20,6 +21,7 @@ def test_builds_a_stable_grouped_index_for_installed_skills(tmp_path: Path) -> N
         "Implementation",
         "Unknown",
     ]
+    assert index["$schema"] == SCHEMA_IDENTIFIERS["skill-index"]
     assert [skill["name"] for skill in index["groups"][-1]["skills"]] == [
         "alpha",
         "zeta",

@@ -24,6 +24,11 @@ from specle.lifecycle import (
     validate_installed_skill_inventory,
     validate_runtime_records,
 )
+from specle.schema_registry import (
+    SchemaRegistryError,
+    export_schemas,
+    validate_instance,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -56,6 +61,21 @@ def build_parser() -> argparse.ArgumentParser:
         "--verbose",
         action="store_true",
         help="Report each completed validation area and its summary count.",
+    )
+    schemas = commands.add_parser(
+        "schemas", help="Manage the packaged Specle JSON Schema resources."
+    )
+    schema_commands = schemas.add_subparsers(dest="schemas_command", required=True)
+    export = schema_commands.add_parser(
+        "export", help="Export all packaged schemas to a destination directory."
+    )
+    export.add_argument(
+        "destination", help="Directory to create or replace with schemas."
+    )
+    export.add_argument(
+        "--force",
+        action="store_true",
+        help="Replace an existing schema destination after staging a complete export.",
     )
     return parser
 
@@ -90,6 +110,15 @@ async def main(args: list[str] | None = None) -> None:
                 diagnostics.append(
                     _diagnostic(f"invalid generated skill index: {index_path}")
                 )
+            else:
+                try:
+                    validate_instance(index)
+                except SchemaRegistryError as error:
+                    diagnostics.append(
+                        _diagnostic(
+                            f"invalid generated skill index: {index_path}: {error}"
+                        )
+                    )
         if diagnostics:
             for diagnostic in diagnostics:
                 print(diagnostic.message)
@@ -118,6 +147,16 @@ async def main(args: list[str] | None = None) -> None:
                 f"validated runtime state: current spec + {queued_count} queued specs"
             )
         print(f"validated {resolved_target}")
+        return
+
+    if parsed.command == "schemas":
+        try:
+            destination = await anyio.to_thread.run_sync(
+                partial(export_schemas, Path(parsed.destination), force=parsed.force)
+            )
+        except SchemaRegistryError as error:
+            raise SystemExit(str(error)) from error
+        print(destination)
         return
 
     try:

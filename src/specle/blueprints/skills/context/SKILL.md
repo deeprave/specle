@@ -23,7 +23,7 @@ context other agents read first.
    - `queued_specs` — every unfinished queued spec, retaining its name, path, kind, status, next step, and any recorded dependencies.
    - `python_checks`, `commit_policy` — carry forward unless they changed.
    - `current_diagnosis` / `requirements_summary` — condensed `spec.md` content, not the full requirements document.
-5. Write valid JSON that follows `context.md`. Keep it concise and actionable; do not paste whole specs. Default a missing legacy kind to `change`, preserve unknown non-empty kebab-case kinds, and do not infer a verification or review transition from task checkboxes.
+5. Write valid JSON that follows `context.md` and identifies the current baseline contract with `"$schema": "https://github.com/deeprave/specle/schemas/context/1.0"`. Keep it concise and actionable; do not paste whole specs. Default a missing legacy kind to `change`, preserve unknown non-empty kebab-case kinds, and do not infer a verification or review transition from task checkboxes.
 
 Run this after context compaction or major changes so the next agent starts with accurate context.
 

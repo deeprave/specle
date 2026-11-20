@@ -1,4 +1,5 @@
 {
+  "$schema": "https://github.com/deeprave/specle/schemas/skill-index/1.0",
   "groups": [
     {
       "name": "Reference",
