@@ -17,11 +17,9 @@ lifecycle:
     - from:
         status: planned
         kind: refactor
-        scope: queued
       to:
         status: building
         kind: refactor
-        scope: queued
       next: verify
 ---
 
@@ -33,16 +31,16 @@ Improve structure while keeping behaviour identical, with explicit invariants an
 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.specle/current-issue.json` and `.specle/context.json`. Preserve the recorded active current spec; this workflow must not replace it.
+1. Read `.specle/current-spec` when present. Preserve the local selected spec; this workflow must not replace it.
 2. Read the relevant authoritative `.agents/project/` documents and the codebase area being refactored.
-   If the user names an existing queued refactor, locate its matching `kind: "refactor"` record and read its `spec.md` and `tasks.md`; reuse those artefacts and skip directly to step 6. Do not create another directory or queued record.
+   If the user names an existing refactor, locate its matching `kind: "refactor"` status record and read its `spec.md` and `tasks.md`; reuse those artefacts and skip directly to step 6. Do not create another directory or status record.
 3. Create a spec folder `.specle/specs/YYYYMMDDHHMM-{slug}/` with a short `spec.md` containing:
    - Current state and target state.
    - Behavioural invariants that must remain true.
    - Baseline or characterisation evidence to establish before restructuring.
    - Refactor approach.
-4. Add a matching `queued_specs` record to `.specle/context.json` with `kind: "refactor"`, `status: "defined"`, and `next: "refactor"`. Do not change `current_spec` or `.specle/current-issue.json`.
-   When active work exists, do not execute unlinked abbreviated work in that worktree. Require an explicit relationship to the active spec before execution, or direct the user to `prepare` it for later named execution in a separate worktree. A linked sidecar records its origin `spec_path`, relationship `type`, and `"delivery": "with-related-spec"`.
+4. Add a matching versioned `status.json` with `kind: "refactor"`, `status: "defined"`, empty progress, `not-run` verification/review, `delivery: null`, and empty relationships/dependencies. Do not change `.specle/current-spec`.
+   When selected work exists, do not execute unlinked abbreviated work in that worktree. Require an explicit relationship to the selected spec before execution, or direct the user to `prepare` it for later named execution in a separate worktree. A linked sidecar records its origin stable name, relationship `type`, and `"delivery": "with-related-spec"` in `relationships`.
 5. Create `tasks.md` with incremental steps:
    - Confirm the relevant baseline tests pass or add focused characterisation coverage.
    - Record the behaviour-preserving invariants for each affected area.
@@ -50,18 +48,18 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - Run focused checks after every cycle, then repeat until the target structure is reached.
    - Run the documented quality gates before verification.
 6. Before implementation while active work exists, require the user to establish the explicit relationship in step 4; otherwise prepare the refactor without implementation and direct later named execution in a separate worktree.
-7. If the user asks to prepare the refactor without implementation, update only the matching queued record to `status: "planned"` and `next: "refactor"`, then report its generated timestamped name and stop. Later `refactor` and `verify` requests must name that refactor explicitly.
-8. Otherwise, execute the linked tasks immediately; mark them `- [x]` as you go. Update only the matching queued record to `status: "building"` and `next: "verify"` when implementation starts.
+7. If the user asks to prepare the refactor without implementation, update only the matching status to `planned`, then report its generated timestamped name and stop. Later `refactor` and `verify` requests must name that refactor explicitly.
+8. Otherwise, execute the linked tasks immediately; mark them `- [x]` as you go. Update only the matching status to `building` when implementation starts.
 
 ## Critical
 
 - Do not intentionally change observable behaviour or add features. If that becomes necessary, stop and use the normal `spec` workflow.
 - Tests may be restructured alongside production code, including renaming fixtures, helpers, and test cases that expose renamed internals, when their coverage remains equivalent or stronger for the recorded invariants.
-- A refactor is non-active work. Never replace the active feature's `current_spec` or `.specle/current-issue.json`.
+- A refactor is non-selected work. Never replace `.specle/current-spec`.
 
 ## Next
 
 - `refactor <spec-name>` — resume a prepared named refactor.
-- `verify` — verify the named refactor against its abbreviated contract and update its queued record without activating it.
+- `verify` — verify the named refactor against its abbreviated contract and update its status without selecting it.
 
 After successful execution, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `verify <spec-name>`; otherwise report it and wait.

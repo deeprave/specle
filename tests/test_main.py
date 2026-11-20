@@ -78,5 +78,5 @@ def test_schema_export_uses_the_explicit_destination(tmp_path, capsys) -> None:
 
     anyio.run(main, ["schemas", "export", str(destination)])
 
-    assert (destination / "context" / "1.0.json").is_file()
+    assert (destination / "spec-status" / "1.0.json").is_file()
     assert str(destination) in capsys.readouterr().out

@@ -1,16 +1,16 @@
 from pathlib import Path
 
-from specle.inventory import discover_skills, discover_steering
+from specle.inventory import discover_policies, discover_skills
 
 BLUEPRINTS = Path(__file__).parents[1] / "src" / "specle" / "blueprints"
 
 
 def test_distribution_includes_delivery_and_automation_policy() -> None:
-    steering = discover_steering(BLUEPRINTS / "steering")
+    policies = discover_policies(BLUEPRINTS / "policies")
     skills = discover_skills(BLUEPRINTS / "skills")
 
-    assert "delivery.md" in [path.name for path in steering]
-    assert "automation.md" in [path.name for path in steering]
+    assert "delivery.md" in [path.name for path in policies]
+    assert "automation.md" in [path.name for path in policies]
     assert {
         (skill.name, skill.specle_group)
         for skill in skills
@@ -20,9 +20,9 @@ def test_distribution_includes_delivery_and_automation_policy() -> None:
 
 
 def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
-    delivery = (BLUEPRINTS / "steering" / "delivery.md").read_text()
+    delivery = (BLUEPRINTS / "policies" / "delivery.md").read_text()
     onboard = (BLUEPRINTS / "skills" / "onboard" / "SKILL.md").read_text()
-    lifecycle = (BLUEPRINTS / "steering" / "lifecycle.md").read_text()
+    lifecycle = (BLUEPRINTS / "policies" / "lifecycle.md").read_text()
     triage = (BLUEPRINTS / "skills" / "triage" / "SKILL.md").read_text()
     resolve = (BLUEPRINTS / "skills" / "resolve" / "SKILL.md").read_text()
     verify = (BLUEPRINTS / "skills" / "verify" / "SKILL.md").read_text()
@@ -43,29 +43,29 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
     assert "delivery.md" in onboard
     assert "one focused question at a\n   time" in onboard
     assert all(status in lifecycle for status in ("`approved`", "`committed`"))
-    assert "without replacing the active current issue" in triage
+    assert "without replacing `.specle/current-spec`" in triage
     assert (
         "returns through build, verification, review, approval, and commit" in resolve
     )
     assert "locally reviewed target to `approved`" in resolve
     assert "previously committed target to `committed`" in resolve
-    assert "queued `defined` work" in resolve
+    assert "unselected `defined` work" in resolve
     assert "Do not complete the origin" in resolve
     assert {"activate", "spec"} <= {
         skill.name for skill in discover_skills(BLUEPRINTS / "skills")
     }
     assert "committed` normal changes may be verified" in verify
     assert "explicit user authorisation" in commit
-    assert "selected target's existing context record" in commit
+    assert "target's `status.json`" in commit
     assert "versioned delivery-record contract" not in commit
     assert "checkout is on the recorded delivery head branch" in complete
-    assert "selected target's existing context record" in complete
+    assert "selected target's `status.json`" in complete
     assert "versioned delivery-record contract" not in complete
     assert "Do not stash, switch, merge, pull, fetch" in complete
     assert "stash that includes untracked files" in complete
     assert "retain the stash" in complete
-    assert "recent_specs" in commit
-    assert "recent_specs" in complete
+    assert "current-spec" in commit
+    assert "archive" in complete
     assert "branch-and-pull-request delivery" in (BLUEPRINTS / "AGENTS.md").read_text()
     assert (
         "explicitly named committed normal target"
@@ -90,7 +90,7 @@ def test_root_references_match_the_delivery_workflow() -> None:
     assert "review approves| approved" in lifecycle
     assert "resolve: local all no-action| approved" in lifecycle
     assert "resolve: external all no-action| committed" in lifecycle
-    assert "creates queued normal work" in lifecycle
+    assert "creates unselected normal work" in lifecycle
     assert "src/specle/blueprints/skills/" in schema
     assert "skills/specle/index.json" in schema
     assert "delivery evidence" in schema

@@ -12,11 +12,19 @@ lifecycle:
   creates:
     - defined
   transitions:
-    - from: defined
-      to: spiking
+    - from:
+        status: defined
+        kind: spike
+      to:
+        status: spiking
+        kind: spike
       next: spike
-    - from: spiking
-      to: complete
+    - from:
+        status: spiking
+        kind: spike
+      to:
+        status: complete
+        kind: spike
   terminal:
     - complete
 ---
@@ -29,16 +37,16 @@ Research a question for decision-making as active work. **Do not implement anyth
 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.specle/current-issue.json`, `.specle/context.json`, and the relevant steering and project guidance. Do not replace an unfinished active work item unless the user intends to do so; retain it in `queued_specs` when switching the current issue.
+1. Read `.specle/current-spec` when present, relevant policies, steering, and project guidance. Create the spike unselected; only `activate <spec-name>` may select and commence it.
 2. Establish the investigation question, hypothesis, scope, and an S/M/L/XL effort budget. The budget bounds research effort; it is not a delivery estimate or due date.
 3. Create `.specle/specs/YYYYMMDDHHMM-{slug}/findings.json` with `"$schema": "https://github.com/deeprave/specle/schemas/findings/1.0"`, `question`, `hypothesis`, `effort`, `scope`, `status: "defined"`, `findings`, `recommendations`, `risks`, and `outcome_spec: null`.
-4. Set `.specle/current-issue.json` to the new path using `"$schema": "https://github.com/deeprave/specle/schemas/current-issue/1.0"`, and initialise the matching `current_spec` with `kind: "spike"`, `status: "defined"`, and verification and review both `not-applicable`.
-5. Set the active spike status to `spiking`, then research the question using code, documentation, and read-only experiments only. Update `findings.json` with concrete evidence, recommendations, and risks.
-6. On completion, set `findings.json.status` to `complete`. If a resulting normal spec, bugfix, or refactor exists, set `outcome_spec` to its `.specle/specs/...` path; otherwise leave it `null`. Update the active context to `complete` without changing verification or review to an implementation state.
+4. Initialise the new spec's versioned `status.json` with `kind: "spike"`, `status: "defined"`, empty progress and relationships/dependencies, `delivery: null`, and verification/review both `not-applicable`. Do not select or commence it.
+5. When invoked by `activate`, set the selected spike status to `spiking`, then research the question using code, documentation, and read-only experiments only. Update `findings.json` with concrete evidence, recommendations, and risks.
+6. On completion, set `findings.json.status` and the spike `status.json.status` to `complete`. If a resulting normal spec, bugfix, or refactor exists, set `outcome_spec` to its stable spec name; otherwise leave it `null`.
 
 Research only — no production code, tests, task plans, or implementation changes.
 
 ## Next
 
-- `spec` — create an outcome feature spec when the findings recommend one, then record its path in `outcome_spec`.
+- `spec` — create an outcome feature spec when the findings recommend one, then record its stable name in `outcome_spec`.
 - Move on — when the spike recommends no follow-up work.

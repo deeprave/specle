@@ -1,0 +1,30 @@
+{
+  "$schema": "https://github.com/deeprave/specle/schemas/spec-status/1.0",
+  "kind": "change",
+  "status": "committed",
+  "progress": {"tasks_completed": 11, "tasks_total": 11},
+  "verification": {
+    "status": "pass",
+    "gates": {
+      "pytest": "pass (65 tests)",
+      "ruff check": "pass",
+      "ruff format --check": "pass",
+      "ty check": "pass",
+      "specle validate --verbose": "pass",
+      "git diff --check": "pass"
+    }
+  },
+  "review": {
+    "status": "pass",
+    "findings": 0,
+    "source": "local-review"
+  },
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/8",
+    "head_branch": "feature/restructure-spec-state",
+    "target_branch": "main",
+    "event": "pull-request-updated"
+  },
+  "relationships": [],
+  "dependencies": []
+}

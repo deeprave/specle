@@ -5,17 +5,22 @@ Specle separates stable, human-maintained guidance from agent-managed runtime st
 ```text
 .agents/
   skills/                         # Core Markdown skill inventory
-  steering/                       # Generic Markdown guidance for every project
+  policies/                       # Package-owned generic Markdown policy
+  steering/                       # Project-owned generic Markdown guidance
   project/                        # Project-specific Markdown guidance
 
 .specle/
+  .gitignore                       # Ignores worktree-local runtime selection/cache
+  current-spec                     # Ignored one-line selected spec name
   specs/
-    YYYYMMDDHHMM-<spec-slug>/      # One self-contained specification
+    YYYYMMDDHHMM-<spec-slug>/      # Active or queued self-contained specification
+  archive/
+    YYYYMMDDHHMM-<spec-slug>/      # Completed self-contained specification
 ```
 
 The Specle distribution inventory lives in `src/specle/blueprints/skills/` and
-`src/specle/blueprints/steering/`. Installation copies those inventories into the target project's
-`.agents/` directory; it does not replace `.agents/project/`.
+`src/specle/blueprints/policies/`. Installation copies those inventories into the target project's
+`.agents/` directory; it does not replace `.agents/steering/` or `.agents/project/`.
 
 Each skill blueprint declares a human-facing `specle_group`, concise `description`, detailed `usage`, and optional direct `requires` dependencies in its frontmatter. A non-empty `specle_group` is the single marker that identifies a Specle skill and supplies its inventory group. Specle validates declared dependencies and manages only the distributed inventory; unrelated installed skills are left untouched. The `specle` guide uses the generated installed inventory's group, description, and usage metadata to present available skills. See [FRONTMATTER.md](FRONTMATTER.md) for the complete metadata contract.
 
@@ -24,23 +29,26 @@ Each skill blueprint declares a human-facing `specle_group`, concise `descriptio
 Guidance in `.agents/` is Markdown and remains human-maintained. The generated `skills/specle/index.json` resource is the deliberate machine-readable exception.
 
 - `.agents/skills/` is the core skill inventory distributed and updated by Specle.
-- `.agents/steering/` contains generic steering documents distributed and updated by Specle.
+- `.agents/policies/` contains package-owned generic policy distributed and updated by Specle.
+- `.agents/steering/` contains project-owned generic steering. Specle does not install, update, or remove it.
 - `.agents/project/` contains project-specific documents referenced by skills. The onboarding skill creates or updates this directory; users manage it thereafter. Specle distribution updates must leave it untouched.
 
 ## `.specle/`
 
 `.specle/` is the agent-managed runtime workspace. It can use a distinct commit, permission, or ignore policy from `.agents/`.
 
-`context.json` classifies work with a `kind` separate from lifecycle status. The initial kinds are `change`, `bugfix`, `refactor`, `spike`, `docs`, and `release`; unknown non-empty kebab-case kinds are preserved. Legacy records without `kind` are treated as `change`.
+Every spec directory owns a versioned `status.json`. It records its `kind` separately from lifecycle status. The initial kinds are `change`, `bugfix`, `refactor`, `spike`, `docs`, and `release`; unknown non-empty kebab-case kinds are preserved. Directory name is the stable identity; active versus archived location is the durable classification.
+
+`.specle/current-spec` is an ignored, one-line worktree-local selector. It is absent in a fresh clone until `activate` selects a normal spec or spike. It is never committed, copied, or synchronised between worktrees. `context.json` is an optional ignored agent cache only; it has no Specle contract or lifecycle authority.
 
 ## JSON contracts
 
-Agent-managed records that cross skill or external-system boundaries identify their versioned contract through a top-level `$schema` URI. Specle packages the initial Draft 2020-12 schemas for runtime context, current issue selection, spike findings, tracker links, and the generated skill index. Their stable identifiers follow `https://github.com/deeprave/specle/schemas/<contract>/1.0`; the package registry loads and validates them without assuming a source checkout.
+Agent-managed records that cross skill or external-system boundaries identify their versioned contract through a top-level `$schema` URI. Specle packages Draft 2020-12 schemas for spec status, spike findings, tracker links, and the generated skill index. Their stable identifiers follow `https://github.com/deeprave/specle/schemas/<contract>/1.0`; the package registry loads and validates them without assuming a source checkout.
 
 Use `specle schemas export <destination>` to create a portable copy of every schema resource. The command refuses to replace an existing destination unless `--force` is explicit, stages the complete export first, and preserves the existing destination if replacement fails.
 The exported `registry.json` maps each stable schema URI to its relative resource path; offline consumers can register those resources under the listed URIs before validating schemas with internal `$ref` values.
 
-Specifications live in `.specle/specs/`. Each specification has a self-contained directory named `YYYYMMDDHHMM-<spec-slug>`. The date-time prefix exists only to provide a stable directory ordering; it is not part of the specification's identity or meaning.
+Active specifications live in `.specle/specs/`; durably completed specifications live in `.specle/archive/`. Each specification has a self-contained directory named `YYYYMMDDHHMM-<spec-slug>`. The complete directory name is its stable identity and the date-time prefix provides ordering.
 
 Artifacts belonging to a specification stay in that specification's directory rather than in a top-level artefacts directory.
 
@@ -60,13 +68,12 @@ Keep narrative authority in Markdown:
 Use JSON for operational state that agents must update, query, compare, or validate mechanically:
 
 - `metrics.json` for measurements.
-- `manifest.json` or `status.json` for specification identity, lifecycle state, dependencies, timestamps, current phase, and the canonical Markdown document.
+- `status.json` for a specification's durable kind, lifecycle state, progress, verification, review, delivery evidence, stable-name dependencies, and relationships.
 - `estimate.json` only when estimates feed automated scheduling or prioritisation.
 - `findings.json` for a spike's time-boxed investigation question, effort budget, findings, risks, recommendations, and optional outcome spec.
 - `review-findings.json` for source-aware review findings, triage decisions, and routes.
 - `tracker-links.json` for external work-source links and the optional delivery destination for that specification.
-- `context.json` for the active or queued target's lifecycle, verification, review, and applicable delivery evidence. A submitted target's `delivery` object contains its reference, head branch, target branch, and final delivery event.
-- A queued abbreviated sidecar may include `relationship` with its origin `spec_path`, relationship `type`, and delivery mode. This is required before executing it alongside an active origin.
+- A sidecar may include `relationships` with its origin stable spec name, relationship type, and delivery mode. This is required before executing it alongside a selected origin.
 
 ## External work links
 
@@ -108,7 +115,7 @@ An active spike is a `kind: "spike"` work item that records a bounded investigat
 }
 ```
 
-`effort` is an S/M/L/XL research budget, not a delivery estimate or due date. `outcome_spec` is the path of a resulting normal spec, bugfix, or refactor when one exists.
+`effort` is an S/M/L/XL research budget, not a delivery estimate or due date. `outcome_spec` is the stable name of a resulting normal spec, bugfix, or refactor when one exists.
 
 ## Completed-work summaries
 

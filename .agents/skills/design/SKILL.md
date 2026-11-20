@@ -27,9 +27,9 @@ Changes are independent by default. A queued or future change must not create a 
 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.specle/context.json` and `.specle/current-issue.json` to locate the active spec. A named queued normal spec is also valid for explicit planning; it must remain queued and unactivated.
+1. Read `.specle/current-spec` when present and the target `status.json` to locate the selected spec. A named unselected normal spec is also valid for explicit planning; it must remain unselected.
 2. Read `requirements.md` and `spec.md` from that folder.
-3. Read `.agents/steering/*.md` and the authoritative `.agents/project/` documents relevant to the change so the design
+3. Read `.agents/policies/*.md`, `.agents/steering/*.md`, and the authoritative `.agents/project/` documents relevant to the change so the design
    follows the repository's architecture, API, security, and testing conventions.
 4. Write `design.md` in the spec folder with:
    - **Overview** — what changes, at a glance.
@@ -38,13 +38,13 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - **Error handling** — map each failure to its documented policy.
    - **Report/output rendering** — if the feature has output, show relevant output shapes.
    - **Test strategy** — the behavioural tests and project quality gates to run.
-5. For an active target, update `.specle/context.json` according to `context.md` and `lifecycle.md`: record that design is present and set its status to `designed`. For a named queued target, write only its design artifact and retain `status: "defined"` with next `activate`.
+5. For a selected target, update its `status.json` according to `lifecycle.md`: record that design is present and set its status to `designed`. For a named unselected target, write only its design artifact and retain `status: "defined"`.
 
 Keep the design faithful to every requirement — `verify` later checks design coverage.
 
 ## Next
 
-After recording a successful design for the active target, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `tasks <spec-name>` unless a material design decision remains; otherwise report it and wait. For a named queued target, stop and report `activate <spec-name>`.
+After recording a successful design for the selected target, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `tasks <spec-name>` unless a material design decision remains; otherwise report it and wait. For a named unselected target, stop and report `activate <spec-name>`.
 
 - `tasks` — generate the implementation tasks from this design.
 - `verify` — confirm the design covers all requirements before building.

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-import re
 from collections import defaultdict, deque
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -15,11 +13,7 @@ from specle.inventory import (
     SkillMetadataError,
     discover_installed_specle_skills,
 )
-from specle.schema_registry import (
-    SCHEMA_IDENTIFIERS,
-    SchemaRegistryError,
-    validate_instance,
-)
+from specle.spec_state import SpecStateSnapshot, read_spec_state
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,14 +26,10 @@ class LifecycleDiagnostic:
 
 @dataclass(frozen=True, slots=True)
 class RuntimeSnapshot:
-    """One buffered read of the runtime records used by validation and reporting."""
+    """One buffered read of durable state used by validation and reporting."""
 
-    context: dict[str, object] | None
-    issue: dict[str, object] | None
+    state: SpecStateSnapshot
     diagnostics: tuple[LifecycleDiagnostic, ...]
-
-
-_KIND = re.compile(r"[a-z][a-z0-9-]*")
 
 
 def validate_installed_skill_inventory(
@@ -58,204 +48,63 @@ def validate_runtime_records(
     skills: Iterable[SkillMetadata],
     snapshot: RuntimeSnapshot | None = None,
 ) -> tuple[LifecycleDiagnostic, ...]:
-    """Validate established runtime fields without rejecting future fields."""
+    """Validate discovered per-spec records without rejecting future fields."""
     skills = tuple(skills)
-    target = target_directory.expanduser().resolve()
-    context_path = target / ".specle" / "context.json"
-    issue_path = target / ".specle" / "current-issue.json"
-    snapshot = snapshot or read_runtime_snapshot(target)
+    snapshot = snapshot or read_runtime_snapshot(target_directory)
     diagnostics = list(snapshot.diagnostics)
-    context = snapshot.context
-    issue = snapshot.issue
-    if context is None or issue is None:
-        return tuple(diagnostics)
-    context_valid = _validate_contract(
-        context, context_path, SCHEMA_IDENTIFIERS["context"], diagnostics
-    )
-    issue_valid = _validate_contract(
-        issue, issue_path, SCHEMA_IDENTIFIERS["current-issue"], diagnostics
-    )
-    if not context_valid or not issue_valid:
-        return tuple(diagnostics)
-
-    issue_spec_path = issue.get("spec_path")
-    if not isinstance(issue_spec_path, str):
-        diagnostics.append(_diagnostic(issue_path, "missing-string", "spec_path"))
-        return tuple(diagnostics)
-    current = context.get("current_spec")
-    if not isinstance(current, dict):
-        diagnostics.append(_diagnostic(context_path, "missing-object", "current_spec"))
-    else:
+    for record in (*snapshot.state.active, *snapshot.state.archived):
         _validate_record(
-            current,
-            "current_spec",
-            target,
-            _lifecycle_statuses(skills),
-            skills,
+            record.status,
+            record.directory / "status.json",
+            _lifecycle_statuses_for_kind(skills, record.status.get("kind")),
             diagnostics,
         )
-        if current.get("path") != issue_spec_path:
+        if record.archived and record.status.get("status") != "complete":
             diagnostics.append(
                 LifecycleDiagnostic(
-                    "current-path-mismatch",
-                    f"{context_path}: current_spec.path does not match {issue_path}",
+                    "archived-not-complete",
+                    f"{record.directory / 'status.json'}: archived spec is not complete",
                 )
-            )
-
-    queued = context.get("queued_specs", [])
-    if not isinstance(queued, list):
-        diagnostics.append(_diagnostic(context_path, "invalid-list", "queued_specs"))
-    else:
-        for index, record in enumerate(queued):
-            if not isinstance(record, dict):
-                diagnostics.append(
-                    _diagnostic(
-                        context_path, "invalid-record", f"queued_specs[{index}]"
-                    )
-                )
-                continue
-            _validate_record(
-                record,
-                f"queued_specs[{index}]",
-                target,
-                _lifecycle_statuses(skills),
-                skills,
-                diagnostics,
             )
     return tuple(diagnostics)
 
 
 def read_runtime_snapshot(target_directory: Path) -> RuntimeSnapshot:
-    """Read both runtime records once for validation and optional reporting."""
-    target = target_directory.expanduser().resolve()
-    diagnostics: list[LifecycleDiagnostic] = []
-    context = _load_json_object(target / ".specle" / "context.json", diagnostics)
-    issue = _load_json_object(target / ".specle" / "current-issue.json", diagnostics)
-    return RuntimeSnapshot(context, issue, tuple(diagnostics))
-
-
-def _load_json_object(
-    path: Path, diagnostics: list[LifecycleDiagnostic]
-) -> dict[str, object] | None:
-    try:
-        value = json.loads(path.read_text())
-    except FileNotFoundError:
-        diagnostics.append(
-            LifecycleDiagnostic("missing-runtime-file", f"missing {path}")
-        )
-        return None
-    except json.JSONDecodeError as error:
-        diagnostics.append(
-            LifecycleDiagnostic("malformed-json", f"{path}: {error.msg}")
-        )
-        return None
-    except (OSError, UnicodeDecodeError) as error:
-        diagnostics.append(LifecycleDiagnostic("unreadable-json", f"{path}: {error}"))
-        return None
-    if not isinstance(value, dict):
-        diagnostics.append(_diagnostic(path, "invalid-json-object", "root"))
-        return None
-    return value
-
-
-def _validate_contract(
-    record: dict[str, object],
-    path: Path,
-    expected: str,
-    diagnostics: list[LifecycleDiagnostic],
-) -> bool:
-    """Validate a versioned runtime record before applying lifecycle rules."""
-    try:
-        actual = record.get("$schema")
-        if actual is not None and actual != expected:
-            raise SchemaRegistryError(f"expected schema {expected!r}")
-        validate_instance(record)
-    except SchemaRegistryError as error:
-        diagnostics.append(LifecycleDiagnostic("invalid-contract", f"{path}: {error}"))
-        return False
-    return True
+    """Read durable records once for validation and optional reporting."""
+    state = read_spec_state(target_directory)
+    diagnostics = tuple(
+        LifecycleDiagnostic("invalid-runtime-state", message)
+        for message in state.diagnostics
+    )
+    return RuntimeSnapshot(state, diagnostics)
 
 
 def _validate_record(
     record: dict[str, object],
-    label: str,
-    target: Path,
+    path: Path,
     statuses: set[str],
-    skills: tuple[SkillMetadata, ...],
     diagnostics: list[LifecycleDiagnostic],
 ) -> None:
-    name = record.get("name")
-    path = record.get("path")
     status = record.get("status")
     kind = record.get("kind", "change")
-    next_skill = record.get("next")
-    for field, value in (("name", name), ("path", path), ("status", status)):
-        if not isinstance(value, str):
-            diagnostics.append(
-                _diagnostic(
-                    target / ".specle" / "context.json",
-                    "missing-string",
-                    f"{label}.{field}",
-                )
-            )
-    if not isinstance(path, str):
-        return
-    if isinstance(name, str) and Path(path).name != name:
-        diagnostics.append(
-            _diagnostic(
-                target / ".specle" / "context.json",
-                "path-name-mismatch",
-                f"{label}.name",
-            )
-        )
-    if not (target / path).is_dir():
-        diagnostics.append(
-            LifecycleDiagnostic(
-                "missing-spec-directory", f"{label}.path does not exist: {path}"
-            )
-        )
-    if not isinstance(kind, str) or not _KIND.fullmatch(kind):
-        diagnostics.append(
-            _diagnostic(
-                target / ".specle" / "context.json", "invalid-kind", f"{label}.kind"
-            )
-        )
+    if not isinstance(kind, str):
+        diagnostics.append(_diagnostic(path, "invalid-kind", "kind"))
     if not isinstance(status, str) or status not in statuses:
-        diagnostics.append(
-            _diagnostic(
-                target / ".specle" / "context.json", "invalid-status", f"{label}.status"
-            )
-        )
-    allowed_next = _allowed_next_skills(status, kind, skills)
-    terminal = _terminal_statuses(skills)
-    if status not in terminal and not isinstance(next_skill, str):
-        diagnostics.append(
-            _diagnostic(
-                target / ".specle" / "context.json", "missing-next", f"{label}.next"
-            )
-        )
-    elif next_skill is not None and (
-        not isinstance(next_skill, str) or next_skill not in allowed_next
-    ):
-        diagnostics.append(
-            _diagnostic(
-                target / ".specle" / "context.json", "invalid-next", f"{label}.next"
-            )
-        )
+        diagnostics.append(_diagnostic(path, "invalid-status", "status"))
     if status == "verified" and _nested_status(record, "verification") != "pass":
         diagnostics.append(
             _diagnostic(
-                target / ".specle" / "context.json",
+                path,
                 "missing-evidence",
-                f"{label}.verification",
+                "verification",
             )
         )
     if status == "approved" and _nested_status(record, "review") != "pass":
         diagnostics.append(
             _diagnostic(
-                target / ".specle" / "context.json",
+                path,
                 "missing-evidence",
-                f"{label}.review",
+                "review",
             )
         )
     if status == "committed":
@@ -267,9 +116,9 @@ def _validate_record(
         ):
             diagnostics.append(
                 _diagnostic(
-                    target / ".specle" / "context.json",
+                    path,
                     "missing-evidence",
-                    f"{label}.delivery",
+                    "delivery",
                 )
             )
 
@@ -293,6 +142,31 @@ def _lifecycle_statuses(skills: Iterable[SkillMetadata]) -> set[str]:
     return statuses
 
 
+def _lifecycle_statuses_for_kind(
+    skills: Iterable[SkillMetadata], kind: object
+) -> set[str]:
+    """Return lifecycle statuses that can apply to one persisted spec kind.
+
+    Spikes have their own declared lifecycle and cannot pass through the
+    implementation lifecycle. Other current kinds share the implementation
+    lifecycle, including extension kinds deliberately accepted by the status
+    schema.
+    """
+    statuses = _lifecycle_statuses(skills)
+    if kind != "spike":
+        return statuses
+
+    spike_statuses: set[str] = set()
+    for skill in skills:
+        if skill.lifecycle is None:
+            continue
+        for transition in skill.lifecycle.transitions:
+            for state in (transition.source, transition.target):
+                if state.kind == "spike":
+                    spike_statuses.add(state.status)
+    return spike_statuses
+
+
 def _terminal_statuses(skills: Iterable[SkillMetadata]) -> set[str]:
     """Return every lifecycle status declared terminal by installed skills."""
     return {
@@ -301,30 +175,6 @@ def _terminal_statuses(skills: Iterable[SkillMetadata]) -> set[str]:
         if skill.lifecycle is not None
         for status in skill.lifecycle.terminal
     }
-
-
-def _allowed_next_skills(
-    status: object, kind: object, skills: Iterable[SkillMetadata]
-) -> set[str]:
-    """Return commands whose declaration can operate on a record selector."""
-    if not isinstance(status, str) or not isinstance(kind, str):
-        return set()
-    allowed: set[str] = set()
-    for skill in skills:
-        lifecycle = skill.lifecycle
-        if lifecycle is None:
-            continue
-        if status in lifecycle.accepts:
-            allowed.add(skill.name)
-        for transition in lifecycle.transitions:
-            source = transition.source
-            if source.status != status or (
-                source.kind is not None and source.kind != kind
-            ):
-                continue
-            if transition.next_skill is not None:
-                allowed.add(transition.next_skill)
-    return allowed
 
 
 def _diagnostic(path: Path, code: str, field: str) -> LifecycleDiagnostic:

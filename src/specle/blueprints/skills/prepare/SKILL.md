@@ -7,7 +7,7 @@ requires:
 description: >-
   Prepare non-active bugfixes or refactors for later work.
 usage: >-
-  Use to create an explicitly named queued repair or behaviour-preserving restructure without implementation changes.
+  Use to create an explicitly named unselected repair or behaviour-preserving restructure without implementation changes.
 lifecycle:
   creates:
     - planned
@@ -15,23 +15,23 @@ lifecycle:
 
 # Prepare abbreviated side work
 
-Create a named, implementation-ready bugfix or refactor without executing its tasks or changing the active current issue.
+Create a named, implementation-ready bugfix or refactor without executing its tasks or changing the local selection.
 
 ## Workflow
 
 Before creating or recording lifecycle state, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.specle/current-issue.json`, `.specle/context.json`, the relevant steering, and applicable authoritative `.agents/project/` documents.
+1. Read `.specle/current-spec` when present, the relevant policies and steering, and applicable authoritative `.agents/project/` documents.
 2. Determine the work kind. Use `bugfix` for a bounded defect whose intended behaviour is known. Use `refactor` for a behaviour-preserving structural change. Ask the user if that distinction is unclear.
-3. Invoke the selected owning workflow in prepare mode. It must create the timestamped spec directory, write the abbreviated `spec.md` and `tasks.md`, and register the matching queued record without executing any task.
-4. Confirm the queued record has the generated name and path, the selected `kind`, `status: "planned"`, and next `bugfix` or `refactor`. Preserve `current_spec` and `.specle/current-issue.json`.
+3. Invoke the selected owning workflow in prepare mode. It must create the timestamped spec directory, write the abbreviated `spec.md` and `tasks.md`, and create the matching status record without executing any task.
+4. Confirm the status record has the selected `kind` and `status: "planned"`. Preserve `.specle/current-spec`.
 5. Report the exact generated spec name. Later invocation must name that item's owning `bugfix` or `refactor` skill; `verify <spec-name>` verifies it after those tasks are complete.
 
 ## Critical
 
 - Never implement code, tests, or task steps in this workflow.
 - Do not use this skill for a normal feature, documentation change, or release; use the normal `spec` workflow instead.
-- Do not choose an existing queued abbreviated item implicitly.
+- Do not choose an existing abbreviated item implicitly.
 
 ## Next
 

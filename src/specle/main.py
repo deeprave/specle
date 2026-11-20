@@ -136,16 +136,15 @@ async def main(args: list[str] | None = None) -> None:
                 if skill.lifecycle is not None
                 for status in skill.lifecycle.terminal
             }
-            queued = runtime.context.get("queued_specs", []) if runtime.context else []
-            queued_count = len(queued) if isinstance(queued, list) else 0
+            selected = runtime.state.selected_name or "none"
             print(f"validated managed skills: {len(skills)}")
             print(
                 f"validated lifecycle graph: {len(statuses)} statuses, {len(terminal)} terminal"
             )
             print(f"validated skill index: {index_path}")
-            print(
-                f"validated runtime state: current spec + {queued_count} queued specs"
-            )
+            print(f"validated active specs: {len(runtime.state.active)}")
+            print(f"validated archived specs: {len(runtime.state.archived)}")
+            print(f"validated local selection: {selected}")
         print(f"validated {resolved_target}")
         return
 

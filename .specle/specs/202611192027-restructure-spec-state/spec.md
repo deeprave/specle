@@ -8,13 +8,15 @@ Shared runtime context duplicates current-selection and per-spec delivery data. 
 
 Make specs self-describing, make worktree selection local, and make completion derivable from delivery evidence rather than a mandatory post-merge tracked mutation.
 
-## Open questions
+## Decided direction
 
-The proposal must decide the single local selection record, worktree-local storage mechanism, effective-completion model, archive timing, and whether any policy values belong in a regenerated context report. These decisions are intentionally unresolved before activation.
+Each worktree uses an ignored one-line `.specle/current-spec` selector. Each spec owns a versioned `status.json`, identified by its directory name. Durable records contain spec-owned lifecycle and delivery facts only; optional agent handoff context is ignored and unschematized.
+
+A merged delivery is effectively complete from its recorded reference and observed final evidence. Finalisation generates `summary.md`, moves the spec to `.specle/archive/`, and commits that durable completion state. Direct-main projects commit finalisation directly; branch-and-pull-request projects open a `<merged-branch>-completion` PR, after which unrelated work may continue on synchronised `main`.
 
 ## Intended direction
 
-Each spec owns a `status.json` and is identified by name. Active specs live under `.specle/specs/`; completed specs eventually move to `.specle/archive/`. The generated skill index remains the skills catalogue. Worktree paths are local runtime facts, not committed project data.
+Each spec owns a versioned `status.json` and is identified by name. Active specs live under `.specle/specs/`; completed specs move to `.specle/archive/`. The generated skill index remains the skills catalogue. Worktree paths, current selection, and optional handoff cache are local runtime facts, not committed project data.
 
 ## Verification
 
