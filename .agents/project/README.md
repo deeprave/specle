@@ -6,6 +6,7 @@ This directory records the project-specific guidance for Specle. These documents
 - [tech.md](tech.md) records the Python tooling and repository conventions.
 - [tracking.md](tracking.md) records issue-tracking policy.
 - [testing.md](testing.md) records required quality gates.
+- [language.md](language.md) records human language, spelling, and terminology guidance.
 - [security.md](security.md) records secret-handling and authentication policy.
 - [logging.md](logging.md) records CLI output and logging policy.
 - [api-standards.md](api-standards.md) records external API policy.

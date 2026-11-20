@@ -27,10 +27,11 @@ def test_initialises_a_fresh_project_target_and_generates_an_index(
     ).read_text() == "/current-spec\n/context.json\n"
     index = json.loads((skills_root / "specle" / "index.json").read_text())
     indexed_skills = [skill for group in index["groups"] for skill in group["skills"]]
-    assert (
-        next(skill for skill in indexed_skills if skill["name"] == "spec")["resource"]
-        == (skills_root / "spec" / "SKILL.md").as_uri()
-    )
+    assert next(skill for skill in indexed_skills if skill["name"] == "spec") == {
+        "name": "spec",
+        "description": "Spec skill.",
+        "usage": "Use spec for tests.",
+    }
     assert installed[-1] == skills_root / "specle" / "index.json"
 
 

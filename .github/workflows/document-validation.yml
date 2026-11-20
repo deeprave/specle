@@ -1,0 +1,84 @@
+name: Document validation
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+      - name: Markdownlint source documentation
+        uses: DavidAnson/markdownlint-cli2-action@696eb3f2509270d7b882d2aa68347bc676e7af34 # v25.0.0
+        with:
+          config: .markdownlint-cli2.yaml
+          globs: |
+            README.md
+            docs/**/*.md
+            src/specle/blueprints/**/*.md
+
+  cspell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+      - name: Check source documentation spelling
+        uses: streetsidesoftware/cspell-action@ce1816e4ce36532956ac6e983737392774b6e169 # v9.2.0
+        with:
+          config: cspell.json
+          files: |
+            README.md
+            docs/**/*.md
+            src/specle/blueprints/**/*.md
+          incremental_files_only: false
+
+  lifecycle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: "3.15"
+          enable-cache: true
+      - name: Synchronise dependencies
+        run: uv sync --frozen --all-groups
+      - name: Validate Specle lifecycle
+        run: uv run --frozen specle validate . --verbose
+
+  vale:
+    if: github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+      - name: Report advisory prose findings
+        uses: errata-ai/vale-action@518a9136acc6e6668ce7c00d367051e0941e87ff # v3.0.0
+        with:
+          version: 3.27.0
+          config: .vale.ini
+          files: README.md,docs,src/specle/blueprints
+          reporter: github-pr-check
+          min_alert_level: suggestion
+          fail_level: any
+
+  vale-fork:
+    if: github.event.pull_request.head.repo.fork
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+      - name: Report advisory prose findings
+        uses: errata-ai/vale-action@518a9136acc6e6668ce7c00d367051e0941e87ff # v3.0.0
+        with:
+          version: 3.27.0
+          config: .vale.ini
+          files: README.md,docs,src/specle/blueprints
+          reporter: github-pr-annotations
+          min_alert_level: suggestion
+          fail_level: any

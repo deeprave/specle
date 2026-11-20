@@ -133,10 +133,8 @@ class SkillIndexEntry(TypedDict):
     """A skill entry in the generated installed-skill index."""
 
     name: str
-    specle_group: str
     description: str
     usage: str
-    resource: str
 
 
 class SkillIndexGroup(TypedDict):
@@ -289,9 +287,7 @@ def discover_policies(source_root: Path) -> tuple[Path, ...]:
     return policies
 
 
-def build_skill_index(
-    skills: tuple[SkillMetadata, ...], target_skills_root: Path
-) -> SkillIndex:
+def build_skill_index(skills: tuple[SkillMetadata, ...]) -> SkillIndex:
     """Build the generated installed-skill index from validated metadata."""
     grouped: dict[str, list[SkillMetadata]] = {}
     for skill in skills:
@@ -306,12 +302,8 @@ def build_skill_index(
         entries: list[SkillIndexEntry] = [
             {
                 "name": skill.name,
-                "specle_group": skill.specle_group,
                 "description": skill.description,
                 "usage": skill.usage,
-                "resource": (target_skills_root / skill.name / "SKILL.md")
-                .resolve()
-                .as_uri(),
             }
             for skill in sorted(grouped[group_name], key=lambda skill: skill.name)
         ]
@@ -384,7 +376,7 @@ def initialise_distribution(
 
         index_temporary = _temporary_sibling(skills_root / "index.json")
         index_temporary.write_text(
-            json.dumps(build_skill_index(skills, skills_root), indent=2) + "\n"
+            json.dumps(build_skill_index(skills), indent=2) + "\n"
         )
         ignore_contents = _local_runtime_ignore_contents(ignore_destination)
         if ignore_contents is not None:

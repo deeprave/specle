@@ -5,15 +5,13 @@ from specle.schema_registry import SCHEMA_IDENTIFIERS
 
 
 def test_builds_a_stable_grouped_index_for_installed_skills(tmp_path: Path) -> None:
-    skills_root = tmp_path / ".agents" / "skills"
     index = build_skill_index(
         (
             _skill("zeta", "Unknown", tmp_path),
             _skill("build", "Implementation", tmp_path),
             _skill("analyse", "Discovery", tmp_path),
             _skill("alpha", "Unknown", tmp_path),
-        ),
-        skills_root,
+        )
     )
 
     assert [group["name"] for group in index["groups"]] == [
@@ -29,12 +27,17 @@ def test_builds_a_stable_grouped_index_for_installed_skills(tmp_path: Path) -> N
     assert index["groups"][0]["skills"] == [
         {
             "name": "analyse",
-            "specle_group": "Discovery",
             "description": "Analyse description.",
             "usage": "Use analyse.",
-            "resource": (skills_root / "analyse" / "SKILL.md").as_uri(),
         }
     ]
+
+
+def test_index_does_not_depend_on_skill_locations(tmp_path: Path) -> None:
+    left = build_skill_index((_skill("spec", "Planning", tmp_path / "left"),))
+    right = build_skill_index((_skill("spec", "Planning", tmp_path / "right"),))
+
+    assert left == right
 
 
 def _skill(name: str, group: str, root: Path) -> SkillMetadata:
