@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/spec-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "complete",
   "progress": {"tasks_completed": 11, "tasks_total": 11},
   "verification": {
     "status": "pass",
@@ -23,7 +23,8 @@
     "reference": "https://github.com/deeprave/specle/pull/8",
     "head_branch": "feature/restructure-spec-state",
     "target_branch": "main",
-    "event": "pull-request-updated"
+    "commit": "29acaf2c1fcd84941d15f7533e3d97f15640eeb9",
+    "event": "pull-request-merged"
   },
   "relationships": [],
   "dependencies": []
