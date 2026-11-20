@@ -3,7 +3,7 @@
 - [x] 1. Add the repository pre-commit configuration
   - [x] 1.1 Confirm the current release tags for `pre-commit-hooks`, `ruff-pre-commit`, and `osvcheck`.
   - [x] 1.2 Add `.pre-commit-config.yaml` with the required remote hooks, pinned releases, branch guard, and Ruff arguments.
-  - [x] 1.3 Add local `system` hooks for `uv run pytest -Walways -Werror` and `ty check`, limited to Python files without filename arguments.
+  - [x] 1.3 Add local `system` hooks for `uv run --frozen pytest -Walways -Werror` and `uv run --frozen ty check`, limited to Python files without filename arguments.
 
 - [x] 2. Validate and install the local Git hook
   - [x] 2.1 Validate the configuration and install the hosted pre-commit hook in this checkout.
