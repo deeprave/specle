@@ -10,11 +10,11 @@ Add a root pre-commit configuration and install its Git hook using the hosted pr
 
 ## Scope
 
-The configuration will combine the requested standard repository checks, Ruff autofix, osvcheck, and local pytest and Ty hooks. Remote hook revisions will be pinned to their current releases at implementation time. The hook will reject commits directly to `main` while allowing normal feature-branch work.
+The configuration will combine the requested standard repository checks, Ruff autofix, osvcheck, and local uv-managed pytest and Ty hooks. Remote hook revisions will be pinned to their current releases at implementation time. The hook will reject commits directly to `main` while allowing normal feature-branch work.
 
 ## Constraints
 
-Pre-commit remains host-provided: it must not be added to the project environment, `pyproject.toml`, or CI. The requested local Ty hook entry is retained exactly as specified and must be validated during implementation.
+Pre-commit remains host-provided: it must not be added to the project environment, `pyproject.toml`, or CI. Local Python quality hooks must use the committed uv lockfile and be validated during implementation.
 
 ## Verification
 
