@@ -55,7 +55,7 @@ Eligibility is explicit:
 | `uv` | SemVer patch and minor |
 | `github-actions` | SemVer patch, minor, and major |
 
-All other authors, ecosystems, update types, metadata failures, and unknown values are ineligible. An eligible pull request has merge-commit auto-merge enabled; GitHub then waits for `Verify` and every existing ruleset condition before merging. The workflow never performs an immediate merge and does not bypass the ruleset.
+All other authors, ecosystems, update types, metadata failures, and unknown values are ineligible. For an eligible pull request, the workflow uses the App token to run `gh pr checks --required --watch --fail-fast` against the PR. That command waits for the live required-check set, which includes `Verify`; a failed check exits the job without any merge operation. Only after the command succeeds does the workflow invoke merge-commit auto-merge. The trusted App retains its ruleset bypass, but the workflow itself enforces the required-check precondition.
 
 ## Ruleset and repository settings
 
@@ -68,6 +68,7 @@ Retain automatic deletion of merged pull-request branches. No workflow setting c
 | Condition | Behaviour |
 | --- | --- |
 | Quality job fails | `Verify` fails; the ruleset prevents merge. |
+| Required check fails or is cancelled | The required-check command exits without invoking the merge operation. |
 | App token or metadata lookup fails | The auto-merge job fails without enabling merge. |
 | Dependabot created the PR base ref | Repository secrets are unavailable under GitHub's Dependabot restrictions; the job fails closed without enabling merge. |
 | PR is not Dependabot-authored | The auto-merge workflow does nothing. |
@@ -80,4 +81,5 @@ Retain automatic deletion of merged pull-request branches. No workflow setting c
 - Validate Dependabot configuration syntax and its two ecosystem entries.
 - Inspect ruleset configuration to confirm `Verify` is required while existing rules and bypass actors remain present.
 - Exercise or inspect workflow conditions for eligible and ineligible Dependabot metadata, and confirm no workflow path checks out untrusted pull-request code or logs credentials.
+- Inspect the workflow to confirm it waits for the PR's live required checks and invokes the merge operation only after they pass.
 - Run the project quality gates: `pytest`, `ruff check`, `ruff format --check`, and `ty`.

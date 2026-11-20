@@ -16,6 +16,7 @@ Provide a clear CI verification gate and an opt-in Dependabot auto-merge workflo
 - Configure Dependabot to create updates for the `uv` and GitHub Actions ecosystems.
 - Add a workflow that authenticates as the configured Uniquode GitHub App and enables merge-commit auto-merge only for eligible Dependabot updates.
 - Use `AUTOMERGE_APP_CLIENT_ID` and `AUTOMERGE_APP_PRIVATE_KEY`; do not expose secret values.
+- Before invoking the trusted App's merge operation, query the PR's currently required checks and proceed only when every check, including `Verify`, has passed.
 
 ## Constraints
 
