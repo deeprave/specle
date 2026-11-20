@@ -5,8 +5,8 @@
     "name": "202611172043-versioned-json-schemas",
     "path": ".specle/specs/202611172043-versioned-json-schemas",
     "kind": "change",
-    "status": "committed",
-    "next": "complete",
+    "status": "complete",
+    "next": null,
     "progress": {
       "tasks_completed": 9,
       "tasks_total": 9
@@ -23,16 +23,17 @@
       }
     },
     "review": {
-      "status": "pass",
+      "status": "resolved",
       "findings": 0
     },
-    "revision_note": "PR #7 updated with accepted schema review corrections.",
+    "revision_note": "PR #7 merged; local main synchronised.",
     "delivery": {
       "reference": "https://github.com/deeprave/specle/pull/7",
       "head_branch": "feature/versioned-json-schemas",
       "target_branch": "main",
       "commit": "19b73a3",
-      "final_event": null
+      "merge_commit": "c50a4a5ed611cab21711dda412247e6ab6a0575a",
+      "final_event": "merged 2026-11-20T02:16:19Z"
     }
   },
   "recent_specs": [
