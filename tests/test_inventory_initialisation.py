@@ -181,6 +181,22 @@ def test_force_prunes_an_obsolete_skill_with_legacy_flow_style_metadata(
     assert not obsolete.exists()
 
 
+def test_force_prunes_obsolete_distributed_steering(tmp_path: Path) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    retired = target / ".agents" / "steering" / "retired.md"
+    retired.write_text("# Retired guidance\n")
+
+    with pytest.raises(SkillInstallationError, match="retired.md"):
+        initialise_distribution(source_root, target)
+
+    initialise_distribution(source_root, target, force=True)
+
+    assert not retired.exists()
+
+
 def test_staging_failure_preserves_existing_content_and_cleans_up(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

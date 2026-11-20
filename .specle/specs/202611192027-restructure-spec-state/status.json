@@ -1,0 +1,25 @@
+{
+  "$schema": "https://github.com/deeprave/specle/schemas/spec-status/1.0",
+  "kind": "change",
+  "status": "approved",
+  "progress": {"tasks_completed": 8, "tasks_total": 8},
+  "verification": {
+    "status": "pass",
+    "gates": {
+      "pytest": "pass (63 tests)",
+      "ruff check": "pass",
+      "ruff format --check": "pass",
+      "ty check": "pass",
+      "specle validate --verbose": "pass",
+      "git diff --check": "pass"
+    }
+  },
+  "review": {
+    "status": "pass",
+    "findings": 0,
+    "source": "local-review"
+  },
+  "delivery": null,
+  "relationships": [],
+  "dependencies": []
+}

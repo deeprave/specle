@@ -12,9 +12,9 @@ This is a Specle-project workflow, not a distributable Specle skill. It publishe
 
 ## Select and validate the target
 
-1. Read `.specle/current-issue.json` and `.specle/context.json`. Without an explicit name, select the current issue. With a name, select that exact record from `current_spec` or `recent_specs`; do not choose a queued item implicitly.
+1. Read `.specle/current-spec` when present and per-spec `status.json` records. Without an explicit name, select the locally selected spec. With a name, resolve that exact stable name in `.specle/archive/`; do not choose an active item implicitly.
 2. Stop unless the selected record has `status: "complete"`. State the recorded next workflow if it is not complete. Do not infer completion or advance lifecycle state.
-3. Read the selected work item's artifacts and use the `summary` skill to create or refresh `.specle/specs/<target>/summary.md`. Retain only evidenced verification and review results.
+3. Read the selected work item's artifacts and use the `summary` skill to create or refresh `.specle/archive/<target>/summary.md`. Retain only evidenced verification and review results.
 
 The generated summary remains in the working tree under the repository's ordinary delivery policy. Do not stage, commit, push, or otherwise change the source repository.
 

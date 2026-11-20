@@ -4,13 +4,14 @@
 
 Specle currently keeps substantial lifecycle, delivery, inventory, and historical state in a shared `context.json`, while `current-issue.json` duplicates the current selection. External completion events then mutate repository-tracked state after a pull request has merged, leaving routine completion with uncommitted files. This proposal redesigns persistence around self-contained spec records and worktree-local runtime state.
 
-## Open questions — resolve before activation
+## Decided state model
 
-1. **Single local selection record:** should `current-issue.json` be folded into a local-only context record, or should one file replace the other under a new name?
-2. **Worktree discovery and storage:** can Git’s local worktree metadata provide the canonical worktree list, with Specle storing only local spec-selection associations outside tracked content?
-3. **Effective completion:** should `complete` derive completion from recorded delivery references and observed provider/Git evidence without mutating tracked spec state?
-4. **Archival timing:** should physical moves to `.specle/archive/` occur through an explicit maintenance PR, or through authorised post-merge automation?
-5. **Policy access:** which resolved policy values, if any, belong in a regenerated runtime report without becoming a second authoritative policy source?
+- `.specle/current-spec` is an ignored, one-line local selector containing a stable spec name. It is created or updated by `activate`, is not synchronised between worktrees, and is absent in a fresh clone until a user explicitly activates a spec.
+- `.specle/.gitignore` contains `/current-spec` and `/context.json`.
+- `context.json` is retired as a durable contract. Agents may maintain an optional ignored handoff cache, but it has no required shape or lifecycle authority.
+- Every spec owns a versioned `status.json`. The directory name supplies identity and its location supplies active-versus-archived classification, so durable status does not duplicate a name, path, queue, history, selected spec, or next workflow.
+- Delivery merge evidence makes a branch-and-pull-request spec effectively complete. Durable completion generates `summary.md` and archives the spec with its completion evidence.
+- Direct-main projects commit finalisation directly. Branch-and-pull-request projects create a `<merged-branch>-completion` branch and completion PR, then may continue unrelated work after synchronising local `main`.
 
 ## Glossary
 
@@ -27,7 +28,7 @@ Specle currently keeps substantial lifecycle, delivery, inventory, and historica
 
 #### Acceptance Criteria
 
-1. EACH active or archived spec SHALL contain a machine-readable status record that identifies its kind, lifecycle, progress, verification, review, and delivery evidence.
+1. EACH active or archived spec SHALL contain a versioned `status.json` that identifies its kind, lifecycle, progress, verification, review, delivery evidence, dependencies, and relationships.
 2. SPECLE SHALL identify specs by their directory name; workflow records SHALL NOT require repository-relative spec paths as identity.
 3. THE redesign SHALL remove redundant `recent_specs` history from shared runtime context.
 4. THE installed-skill catalogue SHALL remain the generated `skills/specle/index.json` resource and SHALL NOT be duplicated in runtime context.
@@ -38,7 +39,7 @@ Specle currently keeps substantial lifecycle, delivery, inventory, and historica
 
 #### Acceptance Criteria
 
-1. THE redesign SHALL use exactly one authoritative current-spec selection per worktree; it SHALL NOT duplicate that selection in two runtime files.
+1. THE redesign SHALL use exactly one authoritative current-spec selection per worktree: the ignored one-line `.specle/current-spec` file. It SHALL NOT duplicate that selection in tracked state.
 2. WORKTREE paths and branch associations SHALL be treated as workstation-local runtime data and SHALL NOT be committed as portable project facts.
 3. THE implementation SHALL use Git worktree information where applicable rather than inventing a competing tracked absolute-path registry.
 4. A worktree’s local state SHALL not require edits to another worktree’s selected spec or status record.
@@ -50,9 +51,9 @@ Specle currently keeps substantial lifecycle, delivery, inventory, and historica
 #### Acceptance Criteria
 
 1. A branch-and-pull-request spec SHALL record its delivery reference before merge.
-2. `complete` SHALL determine effective completion from final delivery evidence without requiring a tracked source-file rewrite after merge.
-3. THE workflow SHALL continue to block activation of unrelated normal work while the current delivery is not effectively complete.
-4. THE selected archival policy SHALL avoid routine uncommitted source-tree changes after merge.
+2. `complete` SHALL determine effective completion from final delivery evidence without requiring a tracked source-file rewrite on the already merged delivery branch.
+3. THE workflow SHALL permit activation of unrelated normal work after effective completion, even while a branch-and-pull-request completion PR is pending.
+4. Finalisation SHALL generate `summary.md`, archive the spec, and record durable completion evidence in one committed delivery according to the project's delivery model.
 
 ### Requirement 4: Archive completed specs
 
@@ -68,6 +69,6 @@ Specle currently keeps substantial lifecycle, delivery, inventory, and historica
 ## Non-Functional Requirements
 
 - The design must minimise Git merge conflicts across worktrees.
-- It must remain independent of the queued JSON-schema-versioning change; do not introduce versioning requirements by assumption.
+- Per-spec `status.json` is a durable versioned JSON contract; the retired optional handoff cache has no schema.
 - Project steering and project guidance remain authoritative for policy unless an explicit later decision changes that model.
 - Migration must preserve existing active, queued, completed, and delivery evidence without fabricating external outcomes.

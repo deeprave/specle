@@ -354,9 +354,13 @@ def initialise_distribution(
     obsolete_skills = _discover_obsolete_managed_skills(
         skills_root, {skill.name for skill in skills}
     )
+    obsolete_steering = _discover_obsolete_steering(
+        steering_root, {source.name for source in steering}
+    )
     collisions = [
         *(destination for destination in destinations if destination.exists()),
         *obsolete_skills,
+        *obsolete_steering,
     ]
     if collisions and not force:
         raise SkillInstallationError(
@@ -393,6 +397,8 @@ def initialise_distribution(
     destination: Path | None = None
     try:
         for destination in obsolete_skills:
+            _backup_existing_destination(destination, backups)
+        for destination in obsolete_steering:
             _backup_existing_destination(destination, backups)
         for temporary, destination in staged:
             if _replace_staged_destination(temporary, destination, backups):
@@ -534,6 +540,19 @@ def _discover_obsolete_managed_skills(
         if skill_file.is_file() and _has_specle_group(skill_file):
             obsolete.append(directory)
     return tuple(obsolete)
+
+
+def _discover_obsolete_steering(
+    steering_root: Path, incoming_names: set[str]
+) -> tuple[Path, ...]:
+    """Return distributed steering files absent from the incoming inventory."""
+    if not steering_root.is_dir():
+        return ()
+    return tuple(
+        path
+        for path in sorted(steering_root.glob("*.md"))
+        if path.name not in incoming_names
+    )
 
 
 def _has_specle_group(path: Path) -> bool:

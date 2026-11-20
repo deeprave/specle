@@ -1,6 +1,6 @@
 # Spec lifecycle
 
-This is the lifecycle implemented by Specle today. It is a reference for the workflow skills and the state recorded in `.specle/context.json`; `.agents/steering/lifecycle.md` remains the authoritative policy.
+This is the lifecycle implemented by Specle today. It is a reference for the workflow skills and the per-spec state recorded in `.specle/specs/<name>/status.json` or `.specle/archive/<name>/status.json`; `.agents/steering/lifecycle.md` remains the authoritative policy.
 
 Local approval and final delivery are distinct. `approved` records a passing local review; the selected project delivery policy determines whether `commit` completes the work directly or creates a submitted `committed` delivery for `complete` to finalise.
 
@@ -8,7 +8,7 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 
 | Status | Meaning | Usual next workflow command |
 | --- | --- | --- |
-| `defined` | A work artefact exists but work has not begun. | `activate <spec-name>` for a queued normal change; its named abbreviated owner or `spike` otherwise. |
+| `defined` | A work artefact exists but work has not begun. | `activate <spec-name>` for an unselected normal change; its named abbreviated owner or `spike` otherwise. |
 | `estimated` | Complexity has been assessed. | `design` or `tasks` |
 | `designed` | Technical design exists. | `tasks` |
 | `planned` | Tasks exist and implementation has not begun. | `build`, or named `bugfix` / `refactor` for abbreviated work |
@@ -27,9 +27,9 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 
 | Workflow command | Status transition |
 | --- | --- |
-| `spec` | Creates a queued normal spec as `defined`; it does not select or commence it. |
-| `activate` | Promotes a named queued normal spec to current, then fills the required estimate → design → tasks preparation chain before build. |
-| `estimate` | Marks the active target `estimated`; active normal work continues to design, while a named queued target writes only its advisory estimate and remains queued. |
+| `spec` | Creates an unselected normal spec as `defined`; it does not select or commence it. |
+| `activate` | Writes the named normal spec to ignored local `current-spec`, then fills the required estimate → design → tasks preparation chain before build. |
+| `estimate` | Marks the selected target `estimated`; selected normal work continues to design, while a named unselected target writes only its advisory estimate and remains unselected. |
 | `design` | Marks the active normal spec `designed`; a named queued target writes only its design and remains queued. |
 | `tasks` | Requires a design. Marks the active normal spec `planned`; a named queued target writes only its task plan and remains queued. |
 | `build` | Marks the active normal spec `building` while completing its tasks. A named committed normal target may be built in place without replacing the active issue. |
@@ -38,13 +38,13 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 | `commit` | Applies the selected delivery model: local-only and direct delivery may complete; branch-and-pull-request delivery becomes `committed`. |
 | `complete` | Confirms the configured final event for committed branch-and-pull-request delivery. |
 | `triage` | Sets a fully decided target `triaged`. |
-| `resolve` | Reconciles previously dispatched accepted work, then dispatches any pending accepted follow-up. It reports `resolve <target>` as the later reconciliation step for incomplete follow-ups. A local no-action outcome returns to `approved`; a previously committed no-action outcome returns to `committed`. An independent-spec hand-off creates queued normal work and preserves the origin for its own delivery. |
+| `resolve` | Reconciles previously dispatched accepted work, then dispatches any pending accepted follow-up. It reports `resolve <target>` as the later reconciliation step for incomplete follow-ups. A local no-action outcome returns to `approved`; a previously committed no-action outcome returns to `committed`. An independent-spec hand-off creates unselected normal work and preserves the origin for its own delivery. |
 | `revise` | Reconciles accepted feedback and returns an active normal spec to the earliest viable planning state; a named committed normal target becomes `planned` with `next: "build"`, and a named abbreviated item becomes queued `planned` with its owning next skill. |
 | `prepare` | Creates a queued bugfix or refactor as `planned` with its owning next skill. |
 | `bugfix` / `refactor` | When executed, move only the named abbreviated item to `building`; when called through `prepare`, they create artefacts without executing them. |
 | `spike` | Moves an active spike through `defined` → `spiking` → `complete`. |
 
-`analyse`, `context`, `specle`, `status`, `summary`, and `track` do not themselves transition lifecycle status. `summary` requires a completed target but does not alter it.
+`analyse`, `specle`, `status`, `summary`, and `track` do not themselves transition lifecycle status. `summary` requires a completed target but does not alter it.
 
 ## Transition audit
 
@@ -52,7 +52,7 @@ Every non-terminal state has an owning workflow command and a valid next transit
 
 | State | Valid exit or terminal outcome | Audit result |
 | --- | --- | --- |
-| `defined` | `activate <spec-name>` commences a queued normal change; the named abbreviated owner or `spike` establishes the other paths. | Has an exit. |
+| `defined` | `activate <spec-name>` commences an unselected normal change; the named abbreviated owner or `spike` establishes the other paths. | Has an exit. |
 | `estimated` | `design` or, for sufficiently small understood work, `tasks`. | Has an exit. |
 | `designed` | `tasks`. | Has an exit. |
 | `planned` | `build` for active normal work or named `bugfix` / `refactor` for queued abbreviated work. | Has an exit. |
@@ -131,4 +131,4 @@ flowchart TB
   spiking -->|spike records findings| complete
 ```
 
-Resolve preserves the active current issue for every explicitly named non-active target. `commit` or `complete` moves a target to `complete` only after its selected delivery policy's final event.
+Resolve preserves `.specle/current-spec` for every explicitly named non-selected target. `complete` archives a target only after its selected delivery policy's final event.

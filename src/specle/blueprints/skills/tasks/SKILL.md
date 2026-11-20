@@ -27,7 +27,7 @@ Changes are independent by default. A queued or future change must not create a 
 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.specle/context.json` and `.specle/current-issue.json` to locate the active spec. A named queued normal spec is also valid for explicit planning; it must remain queued and unactivated.
+1. Read `.specle/current-spec` when present and the target `status.json` to locate the selected spec. A named unselected normal spec is also valid for explicit planning; it must remain unselected.
 2. Require and read `requirements.md`, `spec.md`, and `design.md` (for architecture and dependency ordering). Stop if the target has no design.
    Read applicable authoritative `.agents/project/` documents for project constraints that the
    implementation tasks must preserve.
@@ -38,13 +38,13 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - Logical ordering (data/records → processor → report/output → CLI wiring).
    - Note the files each task touches.
    - Do not mark a task complete solely because a diff or existing code appears to satisfy it; reconcile that evidence into the plan and leave completion to `build` and `verify`.
-5. For an active target, update `.specle/context.json` with the top-level task count (`0/N`) and set its status to `planned` according to `context.md` and `lifecycle.md`. For a named queued target, write only its task plan and retain `status: "defined"` with next `activate`.
+5. For a selected target, update its `status.json` with the top-level task count (`0/N`) and set its status to `planned` according to `lifecycle.md`. For a named unselected target, write only its task plan and retain `status: "defined"`.
 
 Tasks must be atomic and independently verifiable — one behavior per cycle.
 
 ## Next
 
-After recording a complete plan for the active target, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `build <spec-name>`; otherwise report it and wait. For a named queued target, stop and report `activate <spec-name>`.
+After recording a complete plan for the selected target, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `build <spec-name>`; otherwise report it and wait. For a named unselected target, stop and report `activate <spec-name>`.
 
 - `build` — start executing the tasks with TDD.
 - `verify` — confirm the tasks cover every acceptance criterion.

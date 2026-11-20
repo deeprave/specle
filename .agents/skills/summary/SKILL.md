@@ -13,7 +13,7 @@ Produce `summary.md` as a useful human account of completed work. It is a commun
 
 ## Workflow
 
-1. Read `.specle/context.json`, `.specle/current-issue.json`, relevant steering, and applicable project guidance. Select the active work item by default. A non-active completed item in `recent_specs`, of any kind, must be explicitly named.
+1. Read `.specle/current-spec` when present, relevant steering, applicable project guidance, and the target status record. Select the local work item by default. An archived completed item, of any kind, must be explicitly named.
 2. Apply the state guard before writing anything. The selected record must have `status: "complete"`. Otherwise, stop and identify the owning next workflow. Do not imply completion, run verification or review, or change lifecycle state.
 3. Read the target's evidence in full:
    - For normal work, read its requirements, design, task plan, verification evidence, review outcome, and the relevant implementation.

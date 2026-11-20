@@ -1,0 +1,11 @@
+{
+  "$schema": "https://github.com/deeprave/specle/schemas/spec-status/1.0",
+  "kind": "change",
+  "status": "complete",
+  "progress": {"tasks_completed": 8, "tasks_total": 8},
+  "verification": {"status": "pass"},
+  "review": {"status": "resolved", "findings": 0},
+  "delivery": {"reference": "https://github.com/deeprave/specle/pull/6", "head_branch": "feature/add-specle-validate", "target_branch": "main", "commit": "542b7bc", "merge_commit": "cb9857e001286b7b137caf049601bde6d838307d", "final_event": "merged 2026-11-19T22:44:40Z"},
+  "relationships": [],
+  "dependencies": []
+}

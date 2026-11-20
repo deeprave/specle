@@ -29,13 +29,6 @@
       "name": "Coordination",
       "skills": [
         {
-          "name": "context",
-          "specle_group": "Coordination",
-          "description": "Reconcile compact Specle context with recorded work state.",
-          "usage": "Use after material progress, context compaction, or suspected state drift; reconcile evidence without inventing lifecycle transitions.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/context/SKILL.md"
-        },
-        {
           "name": "status",
           "specle_group": "Coordination",
           "description": "List pending and active Specle work with next stages.",
@@ -69,8 +62,8 @@
         {
           "name": "activate",
           "specle_group": "Planning",
-          "description": "Explicitly commence a queued normal specification.",
-          "usage": "Use with a named queued normal spec to make it current and begin its planning lifecycle.",
+          "description": "Explicitly select and commence an unselected normal specification.",
+          "usage": "Use with a named unselected normal spec to select it in this worktree and begin its planning lifecycle.",
           "resource": "file:///Users/davidn/Code/specle/.agents/skills/activate/SKILL.md"
         },
         {

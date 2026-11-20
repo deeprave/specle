@@ -22,7 +22,7 @@ Changes are independent by default. A queued or future change must not create a 
 
 Before creating or recording lifecycle state, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.agents/steering/*.md`, especially `context.md` and `lifecycle.md`, then read the authoritative `.agents/project/*.md` documents relevant to the requested change.
+1. Read `.agents/steering/*.md`, especially `lifecycle.md`, then read the authoritative `.agents/project/*.md` documents relevant to the requested change.
 2. Ask (or infer) the intent of the feature. If it is underspecified, ask 2–4 targeted clarifying questions before writing — propose sensible defaults so the user can confirm quickly.
 3. Create the spec folder: `.specle/specs/YYYYMMDDHHMM-{feature-slug}/` (today's date/time, a 2–4 word slug).
 4. Write `requirements.md` with:
@@ -32,11 +32,11 @@ Before creating or recording lifecycle state, consult this skill's `lifecycle` f
      (`THE … SHALL …`, `IF … THEN … SHALL …`). These are the conformance checklist `verify` uses.
    - **Non-Functional Requirements** — dependencies, applicable project rules, and unchanged behaviour.
 5. Write `spec.md` (concise, well under 500 words) — the condensed intent for context retention after compression: problem, goal, key result keys, output, design sketch, verification.
-6. Add a queued `.specle/context.json` record with `kind: "change"`, `status: "defined"`, and next `activate`. Do not write `.specle/current-issue.json`, select a current issue, invoke planning, or commence implementation.
+6. Add versioned `status.json` with `kind: "change"`, `status: "defined"`, empty progress, `not-run` verification/review, `delivery: null`, and empty `relationships` and `dependencies`. Do not select it in `.specle/current-spec`, invoke planning, or commence implementation.
 
-If the user identifies a completed spike as the source of this spec, update that spike's `findings.json` `outcome_spec` with this spec's `.specle/specs/...` path.
+If the user identifies a completed spike as the source of this spec, update that spike's `findings.json` `outcome_spec` with this spec's stable name.
 
-Do not replace an unfinished active spec in `current-issue.json`.
+Do not replace an unfinished local selection in `.specle/current-spec`.
 
 ## Next
 

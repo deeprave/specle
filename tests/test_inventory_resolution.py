@@ -31,7 +31,6 @@ def test_discovers_packaged_steering_documents() -> None:
 
     assert [path.name for path in steering] == [
         "automation.md",
-        "context.md",
         "delivery.md",
         "lifecycle.md",
         "review.md",

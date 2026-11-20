@@ -29,17 +29,17 @@ Use the project's documented command runner for every command.
 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.specle/context.json` (current and queued records) and `.specle/current-issue.json` (the active spec path). Unless the user names an abbreviated queued spec, verify the active spec. If the selected target has `kind: "spike"`, stop: spikes complete from recorded findings and do not enter verification.
+1. Read `.specle/current-spec` when present and discover active specs by their `status.json`. Unless the user names an abbreviated spec, verify the locally selected spec. If the selected target has `kind: "spike"`, stop: spikes complete from recorded findings and do not enter verification.
 2. Locate the target spec and read its documents in full:
-   - A normal active spec has `requirements.md`, whose **acceptance criteria** (`SHALL` clauses) and optional `## Contract` `checks[]` array are the conformance checklist. Read its `design.md`, `tasks.md`, and `spec.md` when present.
-   - A named queued `bugfix` may omit `requirements.md` and `design.md`. Its `spec.md` must state the bug, expected and actual behaviour, reproduction when inferable, root cause, fix approach, and regression-test evidence.
-   - A named queued `refactor` may omit `requirements.md` and `design.md`. Its `spec.md` must state the current and target state, behavioural invariants, baseline or characterisation evidence, and refactor approach.
+   - A normal selected spec has `requirements.md`, whose **acceptance criteria** (`SHALL` clauses) and optional `## Contract` `checks[]` array are the conformance checklist. Read its `design.md`, `tasks.md`, and `spec.md` when present.
+   - A named `bugfix` may omit `requirements.md` and `design.md`. Its `spec.md` must state the bug, expected and actual behaviour, reproduction when inferable, root cause, fix approach, and regression-test evidence.
+   - A named `refactor` may omit `requirements.md` and `design.md`. Its `spec.md` must state the current and target state, behavioural invariants, baseline or characterisation evidence, and refactor approach.
    - Every target needs `tasks.md` and `spec.md`. Stop and report an incomplete abbreviated contract rather than treating it as a normal spec.
 3. Read the relevant steering docs so you can check adherence:
-   `.agents/steering/{context,lifecycle,testing}.md` and all applicable authoritative
+   `.agents/steering/{lifecycle,testing}.md` and all applicable authoritative
    `.agents/project/` documents.
 
-Only `bugfix`, `refactor`, and `committed` normal changes may be verified as explicitly named non-active work. Never choose a non-active item implicitly; preserve the active current issue throughout such a verification.
+Only `bugfix`, `refactor`, and `committed` normal changes may be verified as explicitly named non-selected work. Never choose a non-selected item implicitly; preserve `.specle/current-spec` throughout such a verification.
 
 ## Step 2 — Run the project quality gates
 
@@ -55,7 +55,7 @@ not pass verification, regardless of the acceptance-criteria review.
 
 ## Step 4 — Check the verification contract
 
-For a normal active spec, go through each requirement's `SHALL` clauses (and each `Contract.checks[]` entry, if present) one by one. For each, find the concrete evidence:
+For a normal selected spec, go through each requirement's `SHALL` clauses (and each `Contract.checks[]` entry, if present) one by one. For each, find the concrete evidence:
 
 - the code that implements it (cite `file:line`), and
 - the test that exercises it (cite the test name/file).
@@ -94,7 +94,7 @@ Produce a clear verification report:
 - **Next step** — if PASS, use `review`; if FAIL, list the specific fixes needed before
   re-verifying (use `build` to fix, then re-run `verify`).
 
-After reporting, update `.specle/context.json` according to `lifecycle.md`. For an active normal spec, a PASS records verification as `pass`, resets a stale review to `not-run`, and sets status `verified`; a FAIL records verification as `fail` and sets status `building`. For a named committed normal target, a PASS sets only its matching record to `verified` with `next: "review"`; a FAIL leaves only that record `building` with next `build`. For a named queued abbreviated spec, a PASS sets only its queued record to `verified` with `next: "review"`; a FAIL leaves only that record `building` with next set to `bugfix` or `refactor`. Verification alone never marks a spec complete.
+After reporting, update only the target `status.json` according to `lifecycle.md`. For a selected normal spec, a PASS records verification as `pass`, resets a stale review to `not-run`, and sets status `verified`; a FAIL records verification as `fail` and sets status `building`. For a named committed normal target, a PASS sets only its matching status to `verified`; a FAIL leaves only that status `building`. For a named abbreviated spec, a PASS sets only its status to `verified`; a FAIL leaves only that status `building`. Verification alone never marks a spec complete.
 
 Keep evidence concrete (cite files, lines, and test names). Do not report PASS on a criterion whose
 only support is a checked task box or a claim in `spec.md`.

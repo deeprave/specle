@@ -1,0 +1,11 @@
+{
+  "$schema": "https://github.com/deeprave/specle/schemas/spec-status/1.0",
+  "kind": "change",
+  "status": "complete",
+  "progress": {},
+  "verification": {"status": "not-recorded"},
+  "review": {"status": "not-recorded", "findings": 0},
+  "delivery": {"reference": "https://github.com/deeprave/specle/pull/5", "head_branch": "feature/adopt-strictyaml-frontmatter", "target_branch": "main", "merge_commit": "fe898648f7e9e854113e997c061d0e11859c81ca", "final_event": "merged 2026-11-19T11:51:06Z"},
+  "relationships": [],
+  "dependencies": []
+}

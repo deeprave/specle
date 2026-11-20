@@ -31,9 +31,7 @@ in sync.
 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.specle/context.json` (current spec + progress), `.specle/current-issue.json` (spec folder path),
-   `.agents/steering/lifecycle.md`, and the relevant authoritative `.agents/project/` documents.
-   Confirm the two current-spec paths agree before continuing. Default to the active normal spec. A named non-active committed normal target is permitted only when explicitly requested; update only that target and preserve the active current issue.
+1. Read `.specle/current-spec` when present, the selected target's `status.json`, `.agents/steering/lifecycle.md`, and the relevant authoritative `.agents/project/` documents. Default to the selected normal spec. A named non-selected committed normal target is permitted only when explicitly requested; update only that target and preserve the local selection.
 2. Run a lifecycle preflight before reading or changing `tasks.md`:
    - `defined` — stop and advise `estimate`, or `design`/`tasks` only for small, understood work.
    - `estimated` — stop and advise `design`.
@@ -42,7 +40,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
      uncompleted task.
    - `verified` — stop and advise `review`.
    - `complete` — stop and report that no build work remains.
-   - Any missing, inconsistent, or unrecognised lifecycle state — stop and advise `context`.
+   - Any missing, inconsistent, or unrecognised lifecycle state — stop and report the status-record defect.
    If `review-findings` has no uncompleted task, advise `triage` so the reviewed decisions
    can be routed and recorded. If `planned` or `building` has no uncompleted task, advise `verify`.
 3. Read `tasks.md`; find the first uncompleted task (`- [ ]`).
@@ -51,13 +49,13 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    b. Implement the minimum code to pass — no speculative code.
    c. Run the focused test and any project checks needed to keep the change safe.
    d. Mark the task complete: change `- [ ]` to `- [x]` in `tasks.md`.
-   e. Update `.specle/context.json` with the new progress and the `building` transition. Invalidate
+   e. Update the target `status.json` with the new progress and the `building` transition. Invalidate
       prior verification and review evidence as `stale` when this task changes implementation.
 ## Critical
 
 - Do not implement, create tasks, or change lifecycle state when the preflight says another skill
   is required.
-- Always update `tasks.md` and `.specle/context.json` after each task.
+- Always update `tasks.md` and the target `status.json` after each task.
 - Use the project's documented command runner and non-interactive flags.
 - Never delete the `.agents/` folder or its contents.
 

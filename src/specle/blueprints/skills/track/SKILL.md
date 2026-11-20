@@ -29,7 +29,7 @@ When the configured connection supports the requested operation:
 
 ## Workflow
 
-1. Read `.agents/project/tracking.md`, `.specle/context.json`, and `.specle/current-issue.json`. Default the target to the active normal spec. A queued `bugfix` or `refactor` is a valid target only when the user explicitly names it; never select a queued sidecar implicitly.
+1. Read `.agents/project/tracking.md`, `.specle/current-spec` when present, and the target `status.json`. Default the target to the selected normal spec. A `bugfix` or `refactor` is a valid target only when the user explicitly names it; never select a sidecar implicitly.
 2. Identify the requested operation: import, check sources, or publish destination. Identify the configured source item or destination record by its project-guidance convention.
 3. For an import, use the selected existing target spec. If the user asks to establish a new spec and no unfinished active spec would be displaced, use `spec` to create it before importing. Otherwise, ask which existing or new spec should receive the imported material.
 4. Use only the connector or tool named by the project's tracking guidance. Source operations are read-only.
@@ -45,5 +45,5 @@ When the configured connection supports the requested operation:
 - Do not write to a source. Do not write to a destination without explicit user authorisation.
 - Do not configure or infer external systems; project tracking guidance is authoritative.
 - Do not attach a source or destination link to a queued bugfix or refactor unless the user explicitly names that target.
-- Preserve source and destination links in the per-spec JSON record; do not place them in `.specle/context.json` or invent generic identifiers.
+- Preserve source and destination links in the per-spec JSON record; do not use a shared runtime cache or invent generic identifiers.
 - Use `spec` to establish a new import target, `revise` for confirmed changes to an existing normal spec, and `verify` after implementation.

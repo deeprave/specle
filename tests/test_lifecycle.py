@@ -138,120 +138,39 @@ usage: Use for installed inventory tests.
     assert "requires missing skill" in diagnostics[0].message
 
 
-def test_validates_runtime_records_and_preserves_unknown_fields(tmp_path: Path) -> None:
+def test_validates_per_spec_state_and_ignored_selection(tmp_path: Path) -> None:
     target = tmp_path / "project"
-    spec_path = ".specle/specs/example"
-    (target / spec_path).mkdir(parents=True)
-    context = {
-        "current_spec": {
-            "name": "example",
-            "path": spec_path,
-            "kind": "change",
-            "status": "defined",
-            "next": "start",
-            "future_field": {"kept": True},
-        },
-        "queued_specs": [],
-        "future_root": True,
-    }
-    _write_runtime(target, context, {"spec_path": spec_path})
+    _write_status(target, "202611200001-example", status="defined")
+    selector = target / ".specle" / "current-spec"
+    selector.write_text("202611200001-example\n")
 
     assert validate_runtime_records(target, _runtime_skills()) == ()
 
-    context["current_spec"].update(
-        {"path": ".specle/specs/missing", "kind": "Invalid", "next": "missing"}
-    )
-    context["queued_specs"] = [
-        {"name": "broken", "path": ".specle/specs/missing", "status": "unknown"}
-    ]
-    _write_runtime(target, context, {"spec_path": spec_path})
+
+def test_reports_invalid_status_and_archived_non_completion(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "202611200001-example", status="unknown")
+    _write_status(target, "202611200002-archived", status="defined", archived=True)
 
     codes = {
         diagnostic.code
         for diagnostic in validate_runtime_records(target, _runtime_skills())
     }
 
-    assert {
-        "current-path-mismatch",
-        "path-name-mismatch",
-        "invalid-kind",
-        "invalid-next",
-        "invalid-status",
-    } <= codes
+    assert {"invalid-status", "archived-not-complete"} <= codes
 
 
-def test_reports_malformed_runtime_json(tmp_path: Path) -> None:
+def test_reports_malformed_status_and_invalid_local_selector(tmp_path: Path) -> None:
     target = tmp_path / "project"
-    runtime = target / ".specle"
-    runtime.mkdir(parents=True)
-    (runtime / "context.json").write_text("{")
-    (runtime / "current-issue.json").write_text("{}")
-
-    codes = {
-        diagnostic.code
-        for diagnostic in validate_runtime_records(target, _runtime_skills())
-    }
-
-    assert "malformed-json" in codes
-
-
-def test_rejects_unsupported_runtime_contracts_before_lifecycle_checks(
-    tmp_path: Path,
-) -> None:
-    target = tmp_path / "project"
-    spec_path = ".specle/specs/example"
-    (target / spec_path).mkdir(parents=True)
-    _write_runtime(
-        target,
-        {
-            "$schema": "https://example.invalid/context",
-            "current_spec": {
-                "name": "example",
-                "path": spec_path,
-                "status": "defined",
-                "next": "start",
-            },
-            "recent_specs": [],
-            "queued_specs": [],
-        },
-        {"spec_path": spec_path},
-    )
+    directory = target / ".specle" / "specs" / "202611200001-example"
+    directory.mkdir(parents=True)
+    (directory / "status.json").write_text("{")
+    (target / ".specle" / "current-spec").write_text("not-a-spec\nsecond\n")
 
     diagnostics = validate_runtime_records(target, _runtime_skills())
 
-    assert [diagnostic.code for diagnostic in diagnostics] == ["invalid-contract"]
-    assert "expected schema" in diagnostics[0].message
-
-
-def test_rejects_missing_runtime_contracts_before_lifecycle_checks(
-    tmp_path: Path,
-) -> None:
-    target = tmp_path / "project"
-    spec_path = ".specle/specs/example"
-    (target / spec_path).mkdir(parents=True)
-    _write_runtime(
-        target,
-        {
-            "current_spec": {
-                "name": "example",
-                "path": spec_path,
-                "status": "defined",
-                "next": "start",
-            },
-            "recent_specs": [],
-            "queued_specs": [],
-        },
-        {
-            "$schema": SCHEMA_IDENTIFIERS["current-issue"],
-            "spec_path": spec_path,
-        },
-        add_contract_markers=False,
-    )
-
-    diagnostics = validate_runtime_records(target, _runtime_skills())
-
-    assert [diagnostic.code for diagnostic in diagnostics] == ["invalid-contract"]
-    assert "missing string '$schema'" in diagnostics[0].message
+    assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
+    assert "malformed JSON" in diagnostics[0].message
 
 
 def _runtime_skills() -> tuple[SkillMetadata, ...]:
@@ -273,18 +192,27 @@ def _runtime_skills() -> tuple[SkillMetadata, ...]:
     )
 
 
-def _write_runtime(
-    target: Path, context: object, issue: object, *, add_contract_markers: bool = True
+def _write_status(
+    target: Path, name: str, *, status: str, archived: bool = False
 ) -> None:
-    runtime = target / ".specle"
-    runtime.mkdir(exist_ok=True)
-    if add_contract_markers and isinstance(context, dict):
-        context.setdefault("$schema", SCHEMA_IDENTIFIERS["context"])
-        context.setdefault("recent_specs", [])
-    if add_contract_markers and isinstance(issue, dict):
-        issue.setdefault("$schema", SCHEMA_IDENTIFIERS["current-issue"])
-    (runtime / "context.json").write_text(json.dumps(context))
-    (runtime / "current-issue.json").write_text(json.dumps(issue))
+    root = "archive" if archived else "specs"
+    directory = target / ".specle" / root / name
+    directory.mkdir(parents=True)
+    (directory / "status.json").write_text(
+        json.dumps(
+            {
+                "$schema": SCHEMA_IDENTIFIERS["spec-status"],
+                "kind": "change",
+                "status": status,
+                "progress": {},
+                "verification": {"status": "not-run"},
+                "review": {"status": "not-run"},
+                "delivery": None,
+                "relationships": [],
+                "dependencies": [],
+            }
+        )
+    )
 
 
 def _skill(name: str, lifecycle: LifecycleDeclaration | None) -> SkillMetadata:

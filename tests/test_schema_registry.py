@@ -14,25 +14,25 @@ from specle.schema_registry import (
 )
 
 
-def test_loads_packaged_schema_with_internal_reference() -> None:
-    schema = load_schema(SCHEMA_IDENTIFIERS["context"])
+def test_loads_packaged_spec_status_schema() -> None:
+    schema = load_schema(SCHEMA_IDENTIFIERS["spec-status"])
 
-    assert schema["$id"] == SCHEMA_IDENTIFIERS["context"]
-    assert "$ref" in str(schema)
+    assert schema["$id"] == SCHEMA_IDENTIFIERS["spec-status"]
     assert (
         validate_instance(
             {
-                "$schema": SCHEMA_IDENTIFIERS["context"],
-                "current_spec": {
-                    "name": "example",
-                    "path": ".specle/specs/example",
-                    "status": "defined",
-                },
-                "recent_specs": [],
-                "queued_specs": [],
+                "$schema": SCHEMA_IDENTIFIERS["spec-status"],
+                "kind": "change",
+                "status": "defined",
+                "progress": {},
+                "verification": {"status": "not-run"},
+                "review": {"status": "not-run"},
+                "delivery": None,
+                "relationships": [],
+                "dependencies": [],
             }
         )
-        == SCHEMA_IDENTIFIERS["context"]
+        == SCHEMA_IDENTIFIERS["spec-status"]
     )
 
 
@@ -44,9 +44,9 @@ def test_rejects_unknown_and_invalid_contract_instances() -> None:
     with pytest.raises(SchemaRegistryError, match="failed required"):
         validate_instance(
             {
-                "$schema": SCHEMA_IDENTIFIERS["context"],
-                "recent_specs": [],
-                "queued_specs": [],
+                "$schema": SCHEMA_IDENTIFIERS["spec-status"],
+                "kind": "change",
+                "status": "defined",
             }
         )
 
@@ -55,7 +55,7 @@ def test_exports_complete_schema_tree_safely(tmp_path: Path) -> None:
     destination = tmp_path / "schemas"
 
     assert export_schemas(destination) == destination
-    assert (destination / "context" / "1.0.json").is_file()
+    assert (destination / "spec-status" / "1.0.json").is_file()
     with pytest.raises(SchemaRegistryError, match="already exists"):
         export_schemas(destination)
 
@@ -98,9 +98,9 @@ def test_enforces_contract_constraints_and_exports_registry(tmp_path: Path) -> N
     export_schemas(destination)
     assert (
         json.loads((destination / "registry.json").read_text())[
-            SCHEMA_IDENTIFIERS["context"]
+            SCHEMA_IDENTIFIERS["spec-status"]
         ]
-        == "context/1.0.json"
+        == "spec-status/1.0.json"
     )
     file_destination = tmp_path / "file"
     file_destination.write_text("old")

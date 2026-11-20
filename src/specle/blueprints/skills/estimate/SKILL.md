@@ -27,11 +27,11 @@ Changes are independent by default. A queued or future change must not create a 
 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.specle/context.json` for current state. Default to the active normal spec. A named queued normal spec is valid for advisory estimation only; it must remain queued and unactivated.
+1. Read `.specle/current-spec` when present and the target's `status.json`. Default to the selected normal spec. A named unselected normal spec is valid for advisory estimation only; it must remain unselected.
 2. Read `requirements.md` (or `spec.md`) thoroughly.
 3. Read the relevant authoritative `.agents/project/` documents and the codebase to understand the
    current state, project constraints, and blast radius.
-4. Skim relevant past-work memory (`.specle/specs/*/memory.json`, prior specs) for similar efforts.
+4. Skim relevant archived specs under `.specle/archive/` for similar efforts.
 5. Read `.agents/steering/lifecycle.md` before recording state.
 
 ## Output
@@ -44,11 +44,11 @@ Write `estimate.md` in the spec folder with:
 - **Recommendation**: describe the planning risks and any reason to split the work. Active normal work always continues through design before tasks.
 - **Similar past work**: reference relevant memory/specs.
 
-If estimating the active spec, update its lifecycle status to `estimated`. A named queued-spec
-estimate records only that spec's artifact; it does not change `.specle/current-issue.json`.
+If estimating the selected spec, update its lifecycle status to `estimated`. A named unselected
+estimate records only that spec's artifact; it does not change `.specle/current-spec`.
 
 ## Next
 
-After recording a successful estimate for the active spec, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `design <spec-name>`; otherwise report it and wait. For a named queued spec, stop and report `activate <spec-name>` regardless of progression policy.
+After recording a successful estimate for the selected spec, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `design <spec-name>`; otherwise report it and wait. For a named unselected spec, stop and report `activate <spec-name>` regardless of progression policy.
 
 - `design` — required before tasks for active normal work.

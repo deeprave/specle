@@ -43,29 +43,29 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
     assert "delivery.md" in onboard
     assert "one focused question at a\n   time" in onboard
     assert all(status in lifecycle for status in ("`approved`", "`committed`"))
-    assert "without replacing the active current issue" in triage
+    assert "without replacing `.specle/current-spec`" in triage
     assert (
         "returns through build, verification, review, approval, and commit" in resolve
     )
     assert "locally reviewed target to `approved`" in resolve
     assert "previously committed target to `committed`" in resolve
-    assert "queued `defined` work" in resolve
+    assert "unselected `defined` work" in resolve
     assert "Do not complete the origin" in resolve
     assert {"activate", "spec"} <= {
         skill.name for skill in discover_skills(BLUEPRINTS / "skills")
     }
     assert "committed` normal changes may be verified" in verify
     assert "explicit user authorisation" in commit
-    assert "selected target's existing context record" in commit
+    assert "target's `status.json`" in commit
     assert "versioned delivery-record contract" not in commit
     assert "checkout is on the recorded delivery head branch" in complete
-    assert "selected target's existing context record" in complete
+    assert "selected target's `status.json`" in complete
     assert "versioned delivery-record contract" not in complete
     assert "Do not stash, switch, merge, pull, fetch" in complete
     assert "stash that includes untracked files" in complete
     assert "retain the stash" in complete
-    assert "recent_specs" in commit
-    assert "recent_specs" in complete
+    assert "current-spec" in commit
+    assert "archive" in complete
     assert "branch-and-pull-request delivery" in (BLUEPRINTS / "AGENTS.md").read_text()
     assert (
         "explicitly named committed normal target"
