@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/spec-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "complete",
   "progress": {"tasks": "10/10"},
   "verification": {"status": "pass"},
   "review": {"status": "pass", "findings": 0},
@@ -10,7 +10,8 @@
     "head_branch": "feature/document-validation",
     "target_branch": "main",
     "commit": "6ea287f",
-    "event": "pull-request-updated"
+    "merge_commit": "6807ee1387388acda0f4f034276dd7cc7ffc1ec2",
+    "event": "pull-request-merged"
   },
   "relationships": [],
   "dependencies": []
