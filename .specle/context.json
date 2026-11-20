@@ -5,8 +5,8 @@
     "name": "202611172043-versioned-json-schemas",
     "path": ".specle/specs/202611172043-versioned-json-schemas",
     "kind": "change",
-    "status": "approved",
-    "next": "commit",
+    "status": "committed",
+    "next": "complete",
     "progress": {
       "tasks_completed": 8,
       "tasks_total": 8
@@ -27,7 +27,14 @@
       "status": "pass",
       "findings": 0
     },
-    "revision_note": "Reopened task 8 after accepted local review feedback: add schema markers to canonical context guidance."
+    "revision_note": "PR #7 created after local verification and review approval.",
+    "delivery": {
+      "reference": "https://github.com/deeprave/specle/pull/7",
+      "head_branch": "feature/versioned-json-schemas",
+      "target_branch": "main",
+      "commit": "860ca6f",
+      "final_event": null
+    }
   },
   "recent_specs": [
     {
