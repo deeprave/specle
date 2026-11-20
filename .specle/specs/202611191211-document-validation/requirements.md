@@ -60,6 +60,7 @@ The Markdown blueprints distributed by Specle are both human guidance and operat
 3. THE validator SHALL confirm each transition has an owning skill, each documented `next` workflow names an installed Specle skill, and each terminal status has no required next workflow.
 4. THE validator SHALL detect invalid transitions, unreachable states, and state/skill ownership contradictions with actionable diagnostics.
 5. THE lifecycle contract and validation tests SHALL be maintained with the blueprint source rather than installed `.agents/` copies.
+6. THE generated skill index SHALL be portable across installations: each group SHALL state its name once, and every contained skill entry SHALL contain only its name, description, and usage. It SHALL NOT contain filesystem paths, resource URIs, or a duplicate group field.
 
 ### Requirement 5: Record project language guidance
 

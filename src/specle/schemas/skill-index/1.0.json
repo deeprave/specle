@@ -16,13 +16,11 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["name", "specle_group", "description", "usage", "resource"],
+              "required": ["name", "description", "usage"],
               "properties": {
                 "name": {"type": "string"},
-                "specle_group": {"type": "string"},
                 "description": {"type": "string"},
-                "usage": {"type": "string"},
-                "resource": {"type": "string", "format": "uri"}
+                "usage": {"type": "string"}
               },
               "additionalProperties": false
             }

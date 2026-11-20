@@ -103,9 +103,7 @@ async def main(args: list[str] | None = None) -> None:
                 _diagnostic(f"invalid generated skill index: {index_path}")
             )
         else:
-            expected_index = build_skill_index(
-                skills, resolved_target / ".agents" / "skills"
-            )
+            expected_index = build_skill_index(skills)
             if index != expected_index:
                 diagnostics.append(
                     _diagnostic(f"invalid generated skill index: {index_path}")

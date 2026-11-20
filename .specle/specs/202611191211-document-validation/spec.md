@@ -15,7 +15,7 @@ Add a local document-validation skill and a separate pull-request workflow for t
 - Use this project's UK/AU spelling policy, CSpell's software terms, and a narrow exception list.
 - Run Vale with narrow repository-owned rules in advisory mode.
 - Run the installed checkers locally with source-documentation scope and repository-owned configuration.
-- Add deterministic lifecycle checks that identify invalid transitions, unowned states, invalid `next` skills, and non-terminal dead ends.
+- Add deterministic lifecycle checks that identify invalid transitions, unowned states, invalid `next` skills, non-terminal dead ends, and non-portable generated skill indexes.
 - Add project-owned language guidance and onboarding support; language choices no longer belong in `AGENTS.md`.
 - Add a pull-request-only document-validation workflow that uses the same source scope and repository-owned configuration as the local skill.
 - Add changed-file pre-commit hooks for Markdownlint, CSpell, and advisory Vale, plus an inventory-wide `specle validate` hook.
@@ -27,4 +27,4 @@ Do not lint installed `.agents/` copies or `.specle/` runtime artefacts. Validat
 
 ## Verification
 
-Verify source-only scope, UK/AU spelling configuration, expected Markdown and lifecycle failures, advisory Vale output, changed-file pre-commit behaviour, PR-only workflow triggering, read-only execution, and independence from the main `Verify` gate.
+Verify source-only scope, UK/AU spelling configuration, a portable minimal skill index, expected Markdown and lifecycle failures, advisory Vale output, changed-file pre-commit behaviour, PR-only workflow triggering, read-only execution, and independence from the main `Verify` gate.

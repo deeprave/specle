@@ -44,6 +44,8 @@ Repository-root configuration files own the repeatable tool policy:
 
 The validation skill and workflow own the explicit source-documentation inventory passed to every command. Shared configuration applies across skills and documentation by default. If tuning proves a genuine convention differs by scope, add a documented, narrow override rather than weakening shared checks or excluding a class of documents. The workflow installs its tools without adding project dependencies and runs no formatter or fixer.
 
+The generated skill index is portable inventory data, not a filesystem resolver. It retains the index schema and ordered groups, but each group declares its name once and each entry contains only `name`, `description`, and `usage`. The builder, schema, tests, and committed installed index must reject or omit installation-specific resource URIs and redundant per-entry groups.
+
 Pre-commit hooks receive staged filenames and use a source-inventory file filter, providing faster feedback than the full local or CI runs. Markdownlint and CSpell use their maintained upstream hooks; Vale uses its maintained hook and remains advisory at its configured suggestion level. `specle validate` is the single local system hook: it uses `uv run --frozen`, accepts no filenames, and always runs because lifecycle declarations can be affected by relationships across the inventory. No hook uses a formatter, fixer, or write-capable command.
 
 ## Skill behaviour
@@ -77,6 +79,7 @@ Add `language.md` to the project overlay and onboarding inventory. It records th
 | Pre-commit Markdownlint or CSpell finding | Fail the commit with the staged-file diagnostic; do not modify the staged files. |
 | Pre-commit Vale finding | Display the suggestion without blocking the commit. |
 | Pre-commit lifecycle finding | Fail the commit with the inventory-wide diagnostic; do not infer safety from the changed-file list. |
+| Generated index contains an installation-specific location or redundant group field | Fail lifecycle validation with an index diagnostic; regenerate the portable index from the installed inventory. |
 
 ## Test strategy
 
@@ -87,4 +90,5 @@ Add `language.md` to the project overlay and onboarding inventory. It records th
 - Confirm selected-file invocations use the same configuration and scope rules.
 - Confirm the pull-request workflow runs read-only checks using the same configuration and paths, remains separate from `Verify`, and is non-required by repository rules.
 - Confirm pre-commit restricts prose checks to staged source-inventory files, reuses the repository configuration, preserves advisory Vale behaviour, and runs lifecycle validation without file arguments.
+- Confirm an index generated for one target validates from another target location and contains only the agreed group and entry fields.
 - Run the project quality gates through `uv`: pytest, Ruff check, Ruff format check, and Ty check.

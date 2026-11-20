@@ -26,6 +26,20 @@
       "kind": "local-review",
       "revision": "sha256:5f998d6348d20456979db60970afa15358f8018972ca660370865e3d0df3c019",
       "outcome": "approve"
+    },
+    {
+      "id": "github-actions-pr17-lifecycle",
+      "system": "github-actions",
+      "kind": "ci",
+      "reference": "https://github.com/deeprave/specle/actions/runs/44742845620/job/136310567557",
+      "outcome": "request_changes"
+    },
+    {
+      "id": "local-review-20261121-portable-index",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "sha256:e413f5f9629fc7bdf8a256db06fbe81098ba8399401f3474cee627ee8ecf000a",
+      "outcome": "approve"
     }
   ],
   "findings": [
@@ -40,6 +54,20 @@
       "state": "resolved",
       "decision": "accept",
       "rationale": "Language and spelling preferences vary by project, so this repository's guidance belongs only in its project overlay.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "github-actions-pr17-lifecycle-1",
+      "source_ids": ["github-actions-pr17-lifecycle"],
+      "severity": "P2",
+      "description": "The generated skill index embeds workstation-specific resource URIs and fails lifecycle validation in CI.",
+      "evidence": ".agents/skills/specle/index.json resource entries; GitHub Actions lifecycle job 136310567557",
+      "analysis": "The index builder resolves each installed SKILL.md to an absolute file URI. CI regenerates the expected index for its own checkout path, so the committed index cannot match outside the workstation that created it. Per-entry specle_group fields also duplicate the enclosing group name.",
+      "recommendation": "Generate a portable index with group names only on groups and name, description, and usage only on entries.",
+      "state": "resolved",
+      "decision": "accept",
+      "rationale": "The index is an inventory resource, not a filesystem resolver; absolute locations and duplicated grouping provide no required information.",
       "route": "revise",
       "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
     }

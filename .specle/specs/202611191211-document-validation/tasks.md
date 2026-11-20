@@ -37,3 +37,8 @@
   - [x] 8.1 Add maintained Markdownlint, CSpell, and Vale hooks restricted to staged source-documentation files and their shared repository configuration.
   - [x] 8.2 Add an always-run local `specle validate` hook with no file arguments.
   - [x] 8.3 Confirm Markdownlint, CSpell, and lifecycle findings block commits; confirm Vale suggestions remain advisory; and confirm no hook modifies staged files.
+
+- [x] 9. Make the generated skill index portable and minimal
+  - [x] 9.1 Remove installation-specific resource URIs and redundant per-entry group fields from the index builder, model, and JSON Schema.
+  - [x] 9.2 Update focused index and initialisation tests to assert the portable group-and-entry contract across different installation locations.
+  - [x] 9.3 Regenerate the managed active index and confirm local and CI-equivalent lifecycle validation pass from distinct checkout paths.

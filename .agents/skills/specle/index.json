@@ -6,17 +6,13 @@
       "skills": [
         {
           "name": "explain",
-          "specle_group": "Reference",
           "description": "Explain a Specle change's purpose, requirements, approach, and current lifecycle state.",
-          "usage": "Use with a named spec when a user wants to understand its intent, implementation direction, kind, status, and next action without changing it.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/explain/SKILL.md"
+          "usage": "Use with a named spec when a user wants to understand its intent, implementation direction, kind, status, and next action without changing it."
         },
         {
           "name": "specle",
-          "specle_group": "Reference",
           "description": "Describe the installed Specle workflow and skill inventory.",
-          "usage": "Use when a user asks what Specle does, which skills are available, what a skill does, or where to begin.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/specle/SKILL.md"
+          "usage": "Use when a user asks what Specle does, which skills are available, what a skill does, or where to begin."
         }
       ]
     },
@@ -25,10 +21,8 @@
       "skills": [
         {
           "name": "onboard",
-          "specle_group": "Setup",
           "description": "Establish or refresh a repository's project guidance overlay.",
-          "usage": "Use when project guidance is missing or incomplete; inventory it, ask one question at a time, then write the completed overlay.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/onboard/SKILL.md"
+          "usage": "Use when project guidance is missing or incomplete; inventory it, ask one question at a time, then write the completed overlay."
         }
       ]
     },
@@ -37,10 +31,8 @@
       "skills": [
         {
           "name": "status",
-          "specle_group": "Coordination",
           "description": "List pending and active Specle work with next stages.",
-          "usage": "Use to inventory unfinished, selected, unselected, or dependent work and report its recorded next step; it never changes lifecycle state.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/status/SKILL.md"
+          "usage": "Use to inventory unfinished, selected, unselected, or dependent work and report its recorded next step; it never changes lifecycle state."
         }
       ]
     },
@@ -49,17 +41,13 @@
       "skills": [
         {
           "name": "analyse",
-          "specle_group": "Discovery",
           "description": "Analyse codebases for guidance drift, technical debt, and risk.",
-          "usage": "Use when a developer asks to understand a codebase, audit risks or technical debt, or refresh project guidance from implementation evidence.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/analyse/SKILL.md"
+          "usage": "Use when a developer asks to understand a codebase, audit risks or technical debt, or refresh project guidance from implementation evidence."
         },
         {
           "name": "spike",
-          "specle_group": "Discovery",
           "description": "Investigate a question within a time-box, without implementation.",
-          "usage": "Use before committing to a solution when a bounded investigation is needed; produce findings and recommendations, not production changes.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/spike/SKILL.md"
+          "usage": "Use before committing to a solution when a bounded investigation is needed; produce findings and recommendations, not production changes."
         }
       ]
     },
@@ -68,45 +56,33 @@
       "skills": [
         {
           "name": "activate",
-          "specle_group": "Planning",
           "description": "Explicitly select and commence an unselected normal specification.",
-          "usage": "Use with a named unselected normal spec to select it in this worktree and begin its planning lifecycle.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/activate/SKILL.md"
+          "usage": "Use with a named unselected normal spec to select it in this worktree and begin its planning lifecycle."
         },
         {
           "name": "design",
-          "specle_group": "Planning",
           "description": "Design a normal spec's technical implementation.",
-          "usage": "Use after normal requirements exist, especially for M/L/XL or uncertain work, and before task planning.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/design/SKILL.md"
+          "usage": "Use after normal requirements exist, especially for M/L/XL or uncertain work, and before task planning."
         },
         {
           "name": "estimate",
-          "specle_group": "Planning",
           "description": "Estimate Specle work complexity and planning depth.",
-          "usage": "Use before implementation to size an active spec and decide whether design is warranted; it is advisory and performs no implementation.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/estimate/SKILL.md"
+          "usage": "Use before implementation to size an active spec and decide whether design is warranted; it is advisory and performs no implementation."
         },
         {
           "name": "revise",
-          "specle_group": "Planning",
           "description": "Revise specs and plans after accepted feedback.",
-          "usage": "Use when accepted feedback changes requirements, design, or tasks; do not use it for an implementation-only defect.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/revise/SKILL.md"
+          "usage": "Use when accepted feedback changes requirements, design, or tasks; do not use it for an implementation-only defect."
         },
         {
           "name": "spec",
-          "specle_group": "Planning",
           "description": "Create normal feature specifications under `.specle/specs/`.",
-          "usage": "Use to plan a normal unit of work and capture functional and non-functional requirements without commencing it.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/spec/SKILL.md"
+          "usage": "Use to plan a normal unit of work and capture functional and non-functional requirements without commencing it."
         },
         {
           "name": "tasks",
-          "specle_group": "Planning",
           "description": "Generate task plans from normal specs and designs.",
-          "usage": "Use after normal requirements and any necessary design exist to create or reconcile an ordered TDD task plan; do not infer completed work from a diff.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/tasks/SKILL.md"
+          "usage": "Use after normal requirements and any necessary design exist to create or reconcile an ordered TDD task plan; do not infer completed work from a diff."
         }
       ]
     },
@@ -115,10 +91,8 @@
       "skills": [
         {
           "name": "build",
-          "specle_group": "Implementation",
           "description": "Implement active Specle tasks with TDD.",
-          "usage": "Use when the active normal spec, or an explicitly named committed normal target, is planned or building with incomplete tasks; execute tasks in order and stop at verify when they are complete.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/build/SKILL.md"
+          "usage": "Use when the active normal spec, or an explicitly named committed normal target, is planned or building with incomplete tasks; execute tasks in order and stop at verify when they are complete."
         }
       ]
     },
@@ -127,38 +101,28 @@
       "skills": [
         {
           "name": "document-validation",
-          "specle_group": "Quality",
           "description": "Validate Specle source documentation for Markdown structure, spelling, style, and lifecycle consistency.",
-          "usage": "Use when checking or tuning README, docs, or blueprint Markdown locally; it validates only the source documentation inventory and does not change lifecycle state or CI.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/document-validation/SKILL.md"
+          "usage": "Use when checking or tuning README, docs, or blueprint Markdown locally; it validates only the source documentation inventory and does not change lifecycle state or CI."
         },
         {
           "name": "resolve",
-          "specle_group": "Quality",
           "description": "Dispatch accepted review decisions to follow-up workflows.",
-          "usage": "Use only after triage has recorded decisions for all current findings; route accepted work without implementing it directly.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/resolve/SKILL.md"
+          "usage": "Use only after triage has recorded decisions for all current findings; route accepted work without implementing it directly."
         },
         {
           "name": "review",
-          "specle_group": "Quality",
           "description": "Review verified implementations for quality and policy compliance.",
-          "usage": "Use only after verification passes to assess implementation quality, guidance compliance, coverage, and security; it records approval or findings but does not implement fixes.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/review/SKILL.md"
+          "usage": "Use only after verification passes to assess implementation quality, guidance compliance, coverage, and security; it records approval or findings but does not implement fixes."
         },
         {
           "name": "triage",
-          "specle_group": "Quality",
           "description": "Consolidate review findings into prioritised decisions.",
-          "usage": "Use after local review or with supplied external feedback to deduplicate findings and record decisions without implementing fixes.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/triage/SKILL.md"
+          "usage": "Use after local review or with supplied external feedback to deduplicate findings and record decisions without implementing fixes."
         },
         {
           "name": "verify",
-          "specle_group": "Quality",
           "description": "Verify implementations against specs and quality gates.",
-          "usage": "Use after implementation tasks are complete and before review; check every requirement and documented gate against current code and tests.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/verify/SKILL.md"
+          "usage": "Use after implementation tasks are complete and before review; check every requirement and documented gate against current code and tests."
         }
       ]
     },
@@ -167,24 +131,18 @@
       "skills": [
         {
           "name": "commit",
-          "specle_group": "Integration",
           "description": "Deliver approved Specle work according to project policy.",
-          "usage": "Use after local review approves a change, bugfix, or refactor to prepare or perform its configured commit, push, and pull-request delivery actions.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/commit/SKILL.md"
+          "usage": "Use after local review approves a change, bugfix, or refactor to prepare or perform its configured commit, push, and pull-request delivery actions."
         },
         {
           "name": "complete",
-          "specle_group": "Integration",
           "description": "Confirm final delivery of a committed Specle change.",
-          "usage": "Use for a committed branch-and-pull-request delivery after external review is settled, to confirm or perform the policy-authorised final delivery event.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/complete/SKILL.md"
+          "usage": "Use for a committed branch-and-pull-request delivery after external review is settled, to confirm or perform the policy-authorised final delivery event."
         },
         {
           "name": "track",
-          "specle_group": "Integration",
           "description": "Link Specle work to configured external sources and destinations.",
-          "usage": "Use for explicitly named external imports, source checks, or authorised destination publishing; never write to a source.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/track/SKILL.md"
+          "usage": "Use for explicitly named external imports, source checks, or authorised destination publishing; never write to a source."
         }
       ]
     },
@@ -193,24 +151,18 @@
       "skills": [
         {
           "name": "bugfix",
-          "specle_group": "Alternatives",
           "description": "Fix bounded defects with abbreviated test-first work.",
-          "usage": "Use for a clear, bounded defect that needs a reproduction and regression test; use spec when the work introduces new behaviour or broader scope.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/bugfix/SKILL.md"
+          "usage": "Use for a clear, bounded defect that needs a reproduction and regression test; use spec when the work introduces new behaviour or broader scope."
         },
         {
           "name": "prepare",
-          "specle_group": "Alternatives",
           "description": "Prepare non-active bugfixes or refactors for later work.",
-          "usage": "Use to create an explicitly named unselected repair or behaviour-preserving restructure without implementation changes.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/prepare/SKILL.md"
+          "usage": "Use to create an explicitly named unselected repair or behaviour-preserving restructure without implementation changes."
         },
         {
           "name": "refactor",
-          "specle_group": "Alternatives",
           "description": "Restructure code without changing observable behaviour.",
-          "usage": "Use for structural cleanup protected by documented invariants and tests; use spec when new behaviour is needed.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/refactor/SKILL.md"
+          "usage": "Use for structural cleanup protected by documented invariants and tests; use spec when new behaviour is needed."
         }
       ]
     },
@@ -219,10 +171,8 @@
       "skills": [
         {
           "name": "summary",
-          "specle_group": "Reporting",
           "description": "Summarise completed Specle work for people.",
-          "usage": "Use only after work is complete to create a human-facing report and copy-ready update; it does not publish externally.",
-          "resource": "file:///Users/davidn/Code/specle/.agents/skills/summary/SKILL.md"
+          "usage": "Use only after work is complete to create a human-facing report and copy-ready update; it does not publish externally."
         }
       ]
     }
