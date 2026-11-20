@@ -8,8 +8,8 @@ This is the portable entrypoint for the repository's spec-driven workflow. A rep
 2. Read `.agents/steering/*.md` next. These are project-owned generic overrides.
 3. If `.agents/project/README.md` is absent, use the `onboard` skill before relying on project architecture, commands, security rules, API conventions, or tracker configuration.
 4. If the project overlay exists, treat `.agents/project/*.md` as the authoritative project-specific facts. Read its README and only the documents relevant to the task.
-4. Read the matching skill in `.agents/skills/` before performing a workflow stage.
-5. For spec work, read the selected spec from `.specle/current-spec` when it exists and use the target's `status.json` as the durable lifecycle record. A missing selector means no work is selected in this checkout.
+5. Read the matching skill in `.agents/skills/` before performing a workflow stage.
+6. For spec work, read the selected spec from `.specle/current-spec` when it exists and use the target's `status.json` as the durable lifecycle record. A missing selector means no work is selected in this checkout.
 
 ## Workflow
 

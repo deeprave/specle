@@ -51,6 +51,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    d. Mark the task complete: change `- [ ]` to `- [x]` in `tasks.md`.
    e. Update the target `status.json` with the new progress and the `building` transition. Invalidate
       prior verification and review evidence as `stale` when this task changes implementation.
+
 ## Critical
 
 - Do not implement, create tasks, or change lifecycle state when the preflight says another skill

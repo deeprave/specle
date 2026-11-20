@@ -1,0 +1,47 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261120",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree"
+    },
+    {
+      "id": "local-review-20261120-recheck",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-after-language-policy-resolution",
+      "outcome": "approve"
+    },
+    {
+      "id": "local-review-20261121-ci",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "sha256:0ef0eb397fed40d3ff323fbab457b6842484340fd1f49709f501a1b4209071ba",
+      "outcome": "approve"
+    },
+    {
+      "id": "local-review-20261121-pre-commit",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "sha256:5f998d6348d20456979db60970afa15358f8018972ca660370865e3d0df3c019",
+      "outcome": "approve"
+    }
+  ],
+  "findings": [
+    {
+      "id": "local-review-20261120-1",
+      "source_ids": ["local-review-20261120"],
+      "severity": "P3",
+      "description": "The root AGENTS.md still carries the repository's language and spelling directive.",
+      "evidence": "AGENTS.md:11",
+      "analysis": "Requirement 5 moves language, spelling locale, and accepted terminology to the project overlay so reusable skills do not rely on a root AGENTS.md instruction. Leaving the existing directive creates two potential sources of truth.",
+      "recommendation": "Remove the language directive from the root AGENTS.md and retain the established policy solely in .agents/project/language.md.",
+      "state": "resolved",
+      "decision": "accept",
+      "rationale": "Language and spelling preferences vary by project, so this repository's guidance belongs only in its project overlay.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    }
+  ]
+}

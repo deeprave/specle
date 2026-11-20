@@ -24,6 +24,24 @@ repos:
     hooks:
       - id: osvcheck
 
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.24.2
+    hooks:
+      - id: markdownlint-cli2
+        files: ^(README\.md|docs/.*\.md|src/specle/blueprints/.*\.md)$
+
+  - repo: https://github.com/streetsidesoftware/cspell-cli
+    rev: v10.4.1
+    hooks:
+      - id: cspell
+        files: ^(README\.md|docs/.*\.md|src/specle/blueprints/.*\.md)$
+
+  - repo: https://github.com/errata-ai/vale
+    rev: v3.28.1
+    hooks:
+      - id: vale
+        files: ^(README\.md|docs/.*\.md|src/specle/blueprints/.*\.md)$
+
   - repo: local
     hooks:
       - id: pytest
@@ -38,3 +56,9 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
+      - id: specle-validate
+        name: specle validate
+        entry: uv run --frozen specle validate . --verbose
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -1,0 +1,13 @@
+{
+  "version": "0.2",
+  "language": "en-GB",
+  "dictionaries": ["softwareTerms"],
+  "words": [
+    "frontmatter",
+    "resumable",
+    "Specle",
+    "specle",
+    "worktrees",
+    "YYYYMMDDHHMM"
+  ]
+}

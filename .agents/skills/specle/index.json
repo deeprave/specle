@@ -126,6 +126,13 @@
       "name": "Quality",
       "skills": [
         {
+          "name": "document-validation",
+          "specle_group": "Quality",
+          "description": "Validate Specle source documentation for Markdown structure, spelling, style, and lifecycle consistency.",
+          "usage": "Use when checking or tuning README, docs, or blueprint Markdown locally; it validates only the source documentation inventory and does not change lifecycle state or CI.",
+          "resource": "file:///Users/davidn/Code/specle/.agents/skills/document-validation/SKILL.md"
+        },
+        {
           "name": "resolve",
           "specle_group": "Quality",
           "description": "Dispatch accepted review decisions to follow-up workflows.",

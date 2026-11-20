@@ -66,6 +66,7 @@ For a named abbreviated spec, check its documented contract instead:
 - **Refactor** — every stated behavioural invariant remains true, the documented baseline or characterisation evidence passes, and no intentional feature behaviour was introduced.
 
 Mark each criterion or abbreviated validation check **PASS / FAIL / PARTIAL**:
+
 - **PASS** — implemented and covered by a test.
 - **PARTIAL** — implemented but untested, or tested but the implementation diverges in a detail.
 - **FAIL** — not implemented, or contradicted by the code.

@@ -40,7 +40,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - Do not mark a task complete solely because a diff or existing code appears to satisfy it; reconcile that evidence into the plan and leave completion to `build` and `verify`.
 5. For a selected target, update its `status.json` with the top-level task count (`0/N`) and set its status to `planned` according to `lifecycle.md`. For a named unselected target, write only its task plan and retain `status: "defined"`.
 
-Tasks must be atomic and independently verifiable — one behavior per cycle.
+Tasks must be atomic and independently verifiable — one behaviour per cycle.
 
 ## Next
 

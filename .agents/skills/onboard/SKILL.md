@@ -13,7 +13,7 @@ Create or refresh `.agents/project/`. These repository-local Markdown documents 
 
 ## Workflow
 
-1. Read `AGENTS.md`, `.agents/AGENTS.md`, `.agents/policies/*.md`, `.agents/steering/*.md`, and every existing `.agents/project/` document. Inventory the required project documents: `README.md`, `product.md`, `tech.md`, `tracking.md`, `testing.md`, `security.md`, `logging.md`, `api-standards.md`, `review.md`, `delivery.md`, and `automation.md`. Mark each as **present and complete**, **present but incomplete**, or **missing**. Treat placeholders, unsupported assumptions, and absent required facts as incomplete.
+1. Read `AGENTS.md`, `.agents/AGENTS.md`, `.agents/policies/*.md`, `.agents/steering/*.md`, and every existing `.agents/project/` document. Inventory the required project documents: `README.md`, `product.md`, `tech.md`, `tracking.md`, `testing.md`, `language.md`, `security.md`, `logging.md`, `api-standards.md`, `review.md`, `delivery.md`, and `automation.md`. Mark each as **present and complete**, **present but incomplete**, or **missing**. Treat placeholders, unsupported assumptions, and absent required facts as incomplete.
 2. Inspect the repository's manifest, configuration, source layout, CI configuration, and existing developer documentation. Prepare evidence-backed defaults, but do not treat inference as fact.
 3. Report the inventory and evidence-backed defaults to the user. Ask one focused question at a
    time for every missing or incomplete document. Wait for the answer before asking the next
@@ -23,6 +23,7 @@ Create or refresh `.agents/project/`. These repository-local Markdown documents 
    - languages, versions, frameworks, package/build management, architecture, dependencies, and implementation conventions;
    - issue tracking, connector, authentication, identifiers, links, and project scope;
    - test frameworks, organisation, methods, quality gates, and coverage expectations;
+   - human language, spelling locale, and accepted terminology exceptions;
    - credentials, tokens, secret handling, sensitive code, and application-security requirements;
    - logging format, destinations, levels, PII, redaction, and retention; and
    - inbound and outbound APIs, authentication, validation, pagination, rate limits, retries, error policy, and data handling; and
@@ -32,8 +33,8 @@ Create or refresh `.agents/project/`. These repository-local Markdown documents 
    Do not create or modify `.agents/project/` while collecting answers. Continue until every
    required topic is answered or explicitly recorded as not established.
 4. After all answers are collected, create or refresh the project documents needed by the workflow:
-   `README.md`, `product.md`, `tech.md`, `tracking.md`, `testing.md`, `security.md`, `logging.md`,
-   `api-standards.md`, `review.md`, `delivery.md`, and `automation.md`. In `review.md`, record the presentation mode, any policy-layout override, and automated-decision policy; severity and default layouts are defined by package policy. In `delivery.md`, record the selected delivery model and confirmed delivery conventions. In `automation.md`, record the selected progression mode and confirmed exceptions. Write only user-confirmed or source-supported facts. If a fact remains
+   `README.md`, `product.md`, `tech.md`, `tracking.md`, `testing.md`, `language.md`, `security.md`, `logging.md`,
+   `api-standards.md`, `review.md`, `delivery.md`, and `automation.md`. In `language.md`, record the human language, spelling locale, and accepted terminology exceptions. In `review.md`, record the presentation mode, any policy-layout override, and automated-decision policy; severity and default layouts are defined by package policy. In `delivery.md`, record the selected delivery model and confirmed delivery conventions. In `automation.md`, record the selected progression mode and confirmed exceptions. Write only user-confirmed or source-supported facts. If a fact remains
    unknown, say that it is not established rather than inventing it.
 5. Ensure the README identifies these documents as authoritative and maps each one.
 6. Keep package-owned `.agents/policies/` generic and unmodified. `.agents/steering/` is project-owned generic guidance; move repository-specific facts to `.agents/project/` rather than duplicating them in either layer.
