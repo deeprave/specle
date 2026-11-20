@@ -56,7 +56,7 @@ Specle's current test workflow runs the same quality checks in every Python-vers
 2. THE workflow SHALL obtain an App token using `AUTOMERGE_APP_CLIENT_ID` and `AUTOMERGE_APP_PRIVATE_KEY` without logging either credential.
 3. THE workflow SHALL enable merge-commit auto-merge only for updates that satisfy the documented eligibility policy.
 4. THE workflow SHALL not merge a pull request from another author or an ineligible Dependabot update.
-5. THE workflow SHALL rely on GitHub's required `Verify` check and the existing ruleset rather than bypassing verification.
+5. THE workflow SHALL query the target pull request's currently required checks and invoke the App's merge capability only after every required check, including `Verify`, has passed.
 
 ### Requirement 5: Preserve manual delivery controls
 
@@ -74,4 +74,5 @@ Specle's current test workflow runs the same quality checks in every Python-vers
 - No secret value may be committed, printed, or copied into project documentation.
 - The branch ruleset and workflow design must remain usable if the Python matrix changes later.
 - Dependabot configuration is a direct prerequisite for the auto-merge workflow because it supplies the pull requests the workflow evaluates.
+- The trusted App retains its ruleset bypass, but the workflow itself must treat successful required checks as a hard precondition for merging.
 - This change is independent of queued schema-versioning work and must not rely on it.

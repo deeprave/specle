@@ -1,0 +1,136 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261120-enable-automerge",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree",
+      "findings": 0,
+      "outcome": "approve"
+    },
+    {
+      "id": "sourcery-pr-10-8df9786",
+      "system": "github",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/10",
+      "revision": "8df9786887a2f8f045ba28a093a5fc3247c2427d",
+      "findings": 8
+    },
+    {
+      "id": "local-review-20261120-enable-automerge-ci-gate",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-ci-gate",
+      "findings": 0,
+      "outcome": "approve"
+    }
+  ],
+  "findings": [
+    {
+      "id": "sourcery-privileged-workflow-action",
+      "source_ids": ["sourcery-pr-10-8df9786"],
+      "severity": "P2",
+      "description": "A major GitHub Actions update can modify the privileged auto-merge workflow and then be auto-merged.",
+      "evidence": ".github/workflows/dependabot-automerge.yml:23,40; https://github.com/deeprave/specle/pull/10#discussion_r4641370909",
+      "analysis": "The auto-merge workflow itself consumes the App key. A Dependabot update to an action in that workflow could be eligible under the configured GitHub Actions major-update policy, merging a modified privileged workflow without a human review.",
+      "recommendation": "Require human review for Dependabot updates that modify the privileged auto-merge workflow, while retaining the agreed policy for other GitHub Actions updates.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The project intentionally trusts GitHub-maintained actions, including major updates, when the required CI gate passes. This is not treated as a separate privileged-workflow exception.",
+      "route": null
+    },
+    {
+      "id": "sourcery-app-bypasses-verify",
+      "source_ids": ["sourcery-pr-10-8df9786"],
+      "severity": "P2",
+      "description": "The App that enables auto-merge is a Main-ruleset bypass actor, which may permit a merge without Verify.",
+      "evidence": ".github/workflows/dependabot-automerge.yml:44; Main ruleset bypass actor 3880735; https://github.com/deeprave/specle/pull/10#discussion_r4641370919",
+      "analysis": "This conflicts with the design requirement that auto-merge wait for Verify. The current ruleset intentionally grants the Uniquode App an always-bypass, so the delivery policy must choose whether that bypass remains compatible with auto-merge.",
+      "recommendation": "Accept: retain the trusted Uniquode App bypass, but revise the workflow so it inspects the target PR's required checks, including Verify, and invokes the App's merge capability only after they pass.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "The App bypass is intentional, but GitHub's later auto-merge gate is insufficient. The auto-merge workflow itself must establish that all required checks, including Verify, are passing before it invokes the trusted App's merge capability.",
+      "route": "revise active change",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "sourcery-verify-ruleset-absent",
+      "source_ids": ["sourcery-pr-10-8df9786"],
+      "severity": "P2",
+      "description": "Verify is not required by the Main ruleset.",
+      "evidence": "https://github.com/deeprave/specle/pull/10#discussion_r4641370928",
+      "analysis": "The live Main ruleset was updated before this review and now requires the Verify context; no old job contexts are required.",
+      "recommendation": "Decline as already addressed by the live repository configuration.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Verified against the live active Main ruleset: Verify is its sole required status check, and PR #10 reports Verify as successful.",
+      "route": null
+    },
+    {
+      "id": "sourcery-client-id-input",
+      "source_ids": ["sourcery-pr-10-8df9786"],
+      "severity": "P4",
+      "description": "The workflow uses the legacy app-id input for a Client ID variable.",
+      "evidence": ".github/workflows/dependabot-automerge.yml:25; https://github.com/deeprave/specle/pull/10#discussion_r4641370934",
+      "analysis": "The action accepts app-id as a legacy alias, so the workflow is not broken. Its current documentation recommends the explicit client-id input, which matches the configured variable name.",
+      "recommendation": "Decline: retain app-id because the configured value is the GitHub App ID.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The current v3 action manifest explicitly supports app-id as the GitHub App ID. The configured value is an App ID, despite the repository variable's historical CLIENT_ID name.",
+      "route": null
+    },
+    {
+      "id": "sourcery-dependabot-secret-access",
+      "source_ids": ["sourcery-pr-10-8df9786"],
+      "severity": "P2",
+      "description": "A Dependabot-triggered workflow cannot access the App private key.",
+      "evidence": ".github/workflows/dependabot-automerge.yml:26; https://github.com/deeprave/specle/pull/10#discussion_r4641370946",
+      "analysis": "The workflow uses pull_request_target. GitHub's Dependabot restriction applies to that event only when Dependabot created the base ref; this project targets its human-owned main branch. The configured repository secret is therefore available in the intended case.",
+      "recommendation": "Configure AUTOMERGE_APP_PRIVATE_KEY as a Dependabot secret.",
+      "state": "resolved",
+      "decision": "accept",
+      "rationale": "GitHub documents Dependabot secrets as the secret store for workflows initiated by Dependabot. The required secret has now been configured there by the user.",
+      "route": "repository configuration",
+      "dispatch": {"state": "complete", "workflow": "manual configuration", "execution": "user-completed"}
+    },
+    {
+      "id": "sourcery-stale-eligibility-race",
+      "source_ids": ["sourcery-pr-10-8df9786"],
+      "severity": "P2",
+      "description": "An eligibility decision can race with a newer Dependabot head update.",
+      "evidence": ".github/workflows/dependabot-automerge.yml:33-44; https://github.com/deeprave/specle/pull/10#discussion_r4641370954",
+      "analysis": "The workflow evaluates metadata and enables auto-merge by pull-request URL rather than an immutable head SHA. A newer update can arrive between those operations.",
+      "recommendation": "Determine whether GitHub clears auto-merge on Dependabot pushes; if it does not, bind the action to the inspected head and cancel stale runs.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "This is disproportionate race hardening for the intended Dependabot automation. Dependabot updates are expected before merge, and the normal required-check flow handles the current revision.",
+      "route": null
+    },
+    {
+      "id": "sourcery-ineligible-retains-automerge",
+      "source_ids": ["sourcery-pr-10-8df9786"],
+      "severity": "P3",
+      "description": "An ineligible later update may retain previously enabled auto-merge.",
+      "evidence": ".github/workflows/dependabot-automerge.yml:33-44; https://github.com/deeprave/specle/pull/10#discussion_r4641370960",
+      "analysis": "The workflow does not disable a prior auto-merge setting when a later run is ineligible. This overlaps the head-update race and depends on GitHub's behaviour when Dependabot updates a branch.",
+      "recommendation": "Handle with the stale-eligibility finding after confirming GitHub's automatic reset behaviour.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "This depends on the same speculative stale-head scenario as item 6. In the intended flow, an eligible pull request passes required checks and is merged; it cannot later become ineligible.",
+      "route": null
+    },
+    {
+      "id": "sourcery-automerge-disabled",
+      "source_ids": ["sourcery-pr-10-8df9786"],
+      "severity": "P2",
+      "description": "Repository auto-merge is disabled.",
+      "evidence": "https://github.com/deeprave/specle/pull/10#discussion_r4641370968",
+      "analysis": "Repository settings were updated before the review. GitHub now reports allow_auto_merge: true.",
+      "recommendation": "Decline as already addressed by the live repository configuration.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Verified against the live repository setting: allow_auto_merge is true.",
+      "route": null
+    }
+  ]
+}
