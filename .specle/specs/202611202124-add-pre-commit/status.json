@@ -1,8 +1,8 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/spec-status/1.0",
   "kind": "change",
-  "status": "committed",
-  "progress": {"tasks": "4/4"},
+  "status": "approved",
+  "progress": {"tasks": "5/5"},
   "verification": {"status": "pass"},
   "review": {"status": "pass", "findings": 0},
   "delivery": {

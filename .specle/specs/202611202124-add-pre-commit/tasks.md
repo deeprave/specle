@@ -17,3 +17,8 @@
 - [x] 4. Keep generated hook caches out of the working tree
   - [x] 4.1 Extend the existing generic hidden-cache ignore rule to cover files as well as directories.
   - [x] 4.2 Confirm an osvcheck run no longer leaves an untracked cache file.
+
+- [x] 5. Align local Python hooks with the locked project environment
+  - [x] 5.1 Run pytest through `uv run --frozen`.
+  - [x] 5.2 Run Ty through `uv run --frozen`.
+  - [x] 5.3 Re-run the hook suite and project quality gates.

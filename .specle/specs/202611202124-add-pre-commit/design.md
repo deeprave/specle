@@ -25,7 +25,7 @@ The configuration has four hook groups:
 1. `pre-commit/pre-commit-hooks` supplies the requested branch, whitespace, YAML, file-size, merge-conflict, TOML, and requirements checks.
 2. `astral-sh/ruff-pre-commit` supplies Ruff with `--fix` and `--line-length=120`.
 3. `deeprave/osvcheck` supplies the dependency vulnerability hook.
-4. `repo: local` defines system-language `uv run pytest -Walways -Werror` and `ty check` hooks, both restricted to Python files and configured with `pass_filenames: false`.
+4. `repo: local` defines system-language `uv run --frozen pytest -Walways -Werror` and `uv run --frozen ty check` hooks, both restricted to Python files and configured with `pass_filenames: false`.
 
 No project configuration, dependency group, lockfile, or GitHub workflow is modified. The Git-hook installation is local checkout state and therefore is not committed.
 

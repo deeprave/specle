@@ -14,7 +14,7 @@ The configuration will combine the requested standard repository checks, Ruff au
 
 ## Constraints
 
-Pre-commit remains host-provided: it must not be added to the project environment, `pyproject.toml`, or CI. The local `ty check` hook must be validated during implementation.
+Pre-commit remains host-provided: it must not be added to the project environment, `pyproject.toml`, or CI. Local Python quality hooks must use the committed uv lockfile and be validated during implementation.
 
 ## Verification
 

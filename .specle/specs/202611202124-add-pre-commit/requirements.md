@@ -24,8 +24,8 @@ Specle currently has no repository-local pre-commit configuration or installed G
 
 ### Requirement 2: Provide local Python quality hooks
 
-1. THE configuration SHALL define a local system-language `pytest` hook with `entry: uv run pytest -Walways -Werror`, `types: [python]`, and `pass_filenames: false`.
-2. THE configuration SHALL define a local system-language `ty` hook named `ty check` with `entry: ty check`, `types: [python]`, and `pass_filenames: false`.
+1. THE configuration SHALL define a local system-language `pytest` hook with `entry: uv run --frozen pytest -Walways -Werror`, `types: [python]`, and `pass_filenames: false`.
+2. THE configuration SHALL define a local system-language `ty` hook named `ty check` with `entry: uv run --frozen ty check`, `types: [python]`, and `pass_filenames: false`.
 
 ### Requirement 3: Keep pre-commit local
 
