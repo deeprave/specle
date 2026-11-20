@@ -220,7 +220,7 @@ def test_rejects_unsupported_runtime_contracts_before_lifecycle_checks(
     diagnostics = validate_runtime_records(target, _runtime_skills())
 
     assert [diagnostic.code for diagnostic in diagnostics] == ["invalid-contract"]
-    assert "unknown schema" in diagnostics[0].message
+    assert "expected schema" in diagnostics[0].message
 
 
 def test_rejects_missing_runtime_contracts_before_lifecycle_checks(

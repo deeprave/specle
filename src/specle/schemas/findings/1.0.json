@@ -9,7 +9,7 @@
     "hypothesis": {"type": "string"},
     "effort": {"enum": ["S", "M", "L", "XL"]},
     "scope": {"type": "string"},
-    "status": {"type": "string"},
+    "status": {"enum": ["defined", "spiking", "complete"]},
     "findings": {"type": "array"},
     "recommendations": {"type": "array"},
     "risks": {"type": "array"},

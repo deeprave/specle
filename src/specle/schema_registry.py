@@ -11,7 +11,7 @@ from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Any
 
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import SchemaError, ValidationError
 from referencing import Registry, Resource
 
@@ -74,17 +74,20 @@ def load_schema(identifier: str) -> dict[str, Any]:
 
 def validate_instance(instance: Mapping[str, object]) -> str:
     """Validate a contract instance and return its schema identifier."""
+    instance = dict(instance)
     identifier = instance.get("$schema")
     if not isinstance(identifier, str):
         raise SchemaRegistryError("contract instance is missing string '$schema'")
     schema = load_schema(identifier)
-    validator = Draft202012Validator(schema, registry=_registry())
+    validator = Draft202012Validator(
+        schema, registry=_registry(), format_checker=FormatChecker()
+    )
     try:
         validator.validate(instance)
     except ValidationError as error:
         location = "/".join(str(part) for part in error.absolute_path) or "root"
         raise SchemaRegistryError(
-            f"invalid {identifier!r} instance at {location}: {error.message}"
+            f"invalid {identifier!r} instance at {location}: failed {error.validator}"
         ) from error
     return identifier
 
@@ -99,6 +102,9 @@ def export_schemas(destination: Path, *, force: bool = False) -> Path:
     try:
         with as_file(files("specle").joinpath("schemas")) as source:
             shutil.copytree(source, temporary)
+        (temporary / "registry.json").write_text(
+            json.dumps(_RESOURCE_PATHS, indent=2, sort_keys=True) + "\n"
+        )
         if destination.exists():
             os.replace(destination, backup)
         os.replace(temporary, destination)
@@ -109,10 +115,19 @@ def export_schemas(destination: Path, *, force: bool = False) -> Path:
             f"unable to export schemas to {destination}"
         ) from error
     finally:
-        if temporary.exists():
-            shutil.rmtree(temporary)
+        try:
+            _remove_path(temporary)
+        except OSError as error:
+            raise SchemaRegistryError(
+                f"unable to clean up schema export staging at {temporary}"
+            ) from error
     if backup.exists():
-        shutil.rmtree(backup)
+        try:
+            _remove_path(backup)
+        except OSError as error:
+            raise SchemaRegistryError(
+                f"unable to clean up schema export backup at {backup}"
+            ) from error
     return destination
 
 
@@ -121,3 +136,12 @@ def _registry() -> Registry:
         (identifier, Resource.from_contents(load_schema(identifier)))
         for identifier in _RESOURCE_PATHS
     )
+
+
+def _remove_path(path: Path) -> None:
+    if not path.exists():
+        return
+    if path.is_dir():
+        shutil.rmtree(path)
+    else:
+        path.unlink()

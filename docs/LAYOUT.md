@@ -38,6 +38,7 @@ Guidance in `.agents/` is Markdown and remains human-maintained. The generated `
 Agent-managed records that cross skill or external-system boundaries identify their versioned contract through a top-level `$schema` URI. Specle packages the initial Draft 2020-12 schemas for runtime context, current issue selection, spike findings, tracker links, and the generated skill index. Their stable identifiers follow `https://github.com/deeprave/specle/schemas/<contract>/1.0`; the package registry loads and validates them without assuming a source checkout.
 
 Use `specle schemas export <destination>` to create a portable copy of every schema resource. The command refuses to replace an existing destination unless `--force` is explicit, stages the complete export first, and preserves the existing destination if replacement fails.
+The exported `registry.json` maps each stable schema URI to its relative resource path; offline consumers can register those resources under the listed URIs before validating schemas with internal `$ref` values.
 
 Specifications live in `.specle/specs/`. Each specification has a self-contained directory named `YYYYMMDDHHMM-<spec-slug>`. The date-time prefix exists only to provide a stable directory ordering; it is not part of the specification's identity or meaning.
 

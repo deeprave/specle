@@ -14,13 +14,24 @@
           "system": {"type": "string"},
           "kind": {"type": "string"},
           "id": {"type": "string"},
-          "url": {"type": "string", "format": "uri"}
+          "url": {"type": "string", "format": "uri", "pattern": "^https?://"}
         },
         "additionalProperties": true
       }
     },
     "destination": {
-      "type": ["object", "null"]
+      "anyOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/link"}
+      ]
+    }
+  },
+  "$defs": {
+    "link": {
+      "type": "object",
+      "required": ["system", "kind", "id", "url"],
+      "properties": {"system": {"type": "string"}, "kind": {"type": "string"}, "id": {"type": "string"}, "url": {"type": "string", "format": "uri", "pattern": "^https?://"}},
+      "additionalProperties": true
     }
   },
   "additionalProperties": true

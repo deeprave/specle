@@ -15,7 +15,11 @@ from specle.inventory import (
     SkillMetadataError,
     discover_installed_specle_skills,
 )
-from specle.schema_registry import SchemaRegistryError, validate_instance
+from specle.schema_registry import (
+    SCHEMA_IDENTIFIERS,
+    SchemaRegistryError,
+    validate_instance,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,9 +69,13 @@ def validate_runtime_records(
     issue = snapshot.issue
     if context is None or issue is None:
         return tuple(diagnostics)
-    if not _validate_contract(context, context_path, diagnostics):
-        return tuple(diagnostics)
-    if not _validate_contract(issue, issue_path, diagnostics):
+    context_valid = _validate_contract(
+        context, context_path, SCHEMA_IDENTIFIERS["context"], diagnostics
+    )
+    issue_valid = _validate_contract(
+        issue, issue_path, SCHEMA_IDENTIFIERS["current-issue"], diagnostics
+    )
+    if not context_valid or not issue_valid:
         return tuple(diagnostics)
 
     issue_spec_path = issue.get("spec_path")
@@ -151,10 +159,16 @@ def _load_json_object(
 
 
 def _validate_contract(
-    record: dict[str, object], path: Path, diagnostics: list[LifecycleDiagnostic]
+    record: dict[str, object],
+    path: Path,
+    expected: str,
+    diagnostics: list[LifecycleDiagnostic],
 ) -> bool:
     """Validate a versioned runtime record before applying lifecycle rules."""
     try:
+        actual = record.get("$schema")
+        if actual is not None and actual != expected:
+            raise SchemaRegistryError(f"expected schema {expected!r}")
         validate_instance(record)
     except SchemaRegistryError as error:
         diagnostics.append(LifecycleDiagnostic("invalid-contract", f"{path}: {error}"))
