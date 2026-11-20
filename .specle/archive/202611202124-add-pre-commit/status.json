@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/spec-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "complete",
   "progress": {"tasks": "5/5"},
   "verification": {"status": "pass"},
   "review": {"status": "pass", "findings": 0},
@@ -9,8 +9,8 @@
     "reference": "https://github.com/deeprave/specle/pull/15",
     "head_branch": "feature/add-pre-commit",
     "target_branch": "main",
-    "commit": "ab206d305333c5fdaa9696ec3b8341ffe1b6c1b7",
-    "event": "pull-request-updated"
+    "commit": "06506164d61d9860c48865b454c5298e2833319b",
+    "event": "pull-request-merged"
   },
   "relationships": [],
   "dependencies": []
