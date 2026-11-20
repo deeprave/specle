@@ -1,0 +1,33 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261120",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree"
+    },
+    {
+      "id": "local-review-20261120-recheck",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-after-cache-ignore",
+      "outcome": "approve"
+    }
+  ],
+  "findings": [
+    {
+      "id": "local-review-20261120-1",
+      "source_ids": ["local-review-20261120"],
+      "severity": "P4",
+      "description": "The osvcheck hook leaves an untracked root cache file after normal use.",
+      "evidence": ".osvcheck_cache created by `pre-commit run --all-files`.",
+      "analysis": "The existing `.*_cache/` ignore pattern applies only to directories, while osvcheck creates a file. Every ordinary hook run therefore leaves working-tree noise.",
+      "recommendation": "Remove the directory-only slash from the existing generic `.*_cache/` rule so it ignores cache files and directories.",
+      "state": "resolved",
+      "decision": "vary",
+      "rationale": "A generic cache rule is already established. It should cover generated cache files as well as directories, rather than naming osvcheck specifically.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    }
+  ]
+}

@@ -16,7 +16,7 @@ dist/
 *.egg
 
 # Test, type-checking, and coverage output
-.*_cache/
+.*_cache
 .coverage
 coverage.xml
 htmlcov/
