@@ -13,13 +13,13 @@ Produce `summary.md` as a useful human account of completed work. It is a commun
 
 ## Workflow
 
-1. Read `.specle/current-spec` when present, relevant steering, applicable project guidance, and the target status record. Select the local work item by default. An archived completed item, of any kind, must be explicitly named.
+1. Read `.specle/current-spec` when present, relevant policies, steering, applicable project guidance, and the target status record. Resolve the target in either active specs or archive. Select the local work item by default. An archived completed item, of any kind, must be explicitly named.
 2. Apply the state guard before writing anything. The selected record must have `status: "complete"`. Otherwise, stop and identify the owning next workflow. Do not imply completion, run verification or review, or change lifecycle state.
 3. Read the target's evidence in full:
    - For normal work, read its requirements, design, task plan, verification evidence, review outcome, and the relevant implementation.
    - For a bugfix or refactor, read its abbreviated `spec.md`, task plan, verification evidence, review outcome, and the relevant implementation.
    - For a spike, read `findings.json`, including recommendations, risks, and `outcome_spec`.
-4. Write `.specle/specs/<target>/summary.md`. Make it stand on its own for people who have not followed the workflow. Use this structure, omitting sections that do not apply:
+4. Write `summary.md` inside the target's resolved active or archived directory. Make it stand on its own for people who have not followed the workflow. Use this structure, omitting sections that do not apply:
 
    ```md
    # Summary: <plain-language title>

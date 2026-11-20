@@ -28,11 +28,11 @@ gate, not a substitute for verification or a client-specific pull-request workfl
 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.specle/current-spec` when present, the selected target's `status.json`, `.agents/steering/{lifecycle,testing,review,delivery}.md`, and the relevant authoritative `.agents/project/` documents.
+1. Read `.specle/current-spec` when present, the selected target's `status.json`, `.agents/policies/{lifecycle,testing,review,delivery}.md`, applicable `.agents/steering/` overrides, and the relevant authoritative `.agents/project/` documents.
 2. Select the target. By default it is the locally selected spec, which must have `status: "verified"`. A non-selected target must be explicitly named and have `status: "verified"`; it never replaces the local selection. A spike does not enter review; report its findings and optional outcome spec instead. If the selected implementation target is not verified, stop and direct the user to `verify` (or `verify <spec-name>`); do not run verification implicitly.
 3. Read the target's `spec.md` and `tasks.md`, plus `requirements.md` and `design.md` when present. For abbreviated work, use its abbreviated verification contract in `spec.md`.
 4. Get the target changes with `git diff` and `git diff --staged`. Scope the review to files named by the target's task plan or explicitly named by the user; do not treat unrelated working-tree changes as part of the target.
-5. Check compliance with the portable steering policy and applicable project architecture, API, security, and test guidance. Evaluate correctness, readability, test coverage, security, and performance.
+5. Check compliance with the portable policy, applicable steering overrides, and project architecture, API, security, and test guidance. Evaluate correctness, readability, test coverage, security, and performance.
 
 ## Output
 

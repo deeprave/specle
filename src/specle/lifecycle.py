@@ -52,12 +52,11 @@ def validate_runtime_records(
     skills = tuple(skills)
     snapshot = snapshot or read_runtime_snapshot(target_directory)
     diagnostics = list(snapshot.diagnostics)
-    statuses = _lifecycle_statuses(skills)
     for record in (*snapshot.state.active, *snapshot.state.archived):
         _validate_record(
             record.status,
             record.directory / "status.json",
-            statuses,
+            _lifecycle_statuses_for_kind(skills, record.status.get("kind")),
             diagnostics,
         )
         if record.archived and record.status.get("status") != "complete":
@@ -141,6 +140,31 @@ def _lifecycle_statuses(skills: Iterable[SkillMetadata]) -> set[str]:
             statuses.add(transition.source.status)
             statuses.add(transition.target.status)
     return statuses
+
+
+def _lifecycle_statuses_for_kind(
+    skills: Iterable[SkillMetadata], kind: object
+) -> set[str]:
+    """Return lifecycle statuses that can apply to one persisted spec kind.
+
+    Spikes have their own declared lifecycle and cannot pass through the
+    implementation lifecycle. Other current kinds share the implementation
+    lifecycle, including extension kinds deliberately accepted by the status
+    schema.
+    """
+    statuses = _lifecycle_statuses(skills)
+    if kind != "spike":
+        return statuses
+
+    spike_statuses: set[str] = set()
+    for skill in skills:
+        if skill.lifecycle is None:
+            continue
+        for transition in skill.lifecycle.transitions:
+            for state in (transition.source, transition.target):
+                if state.kind == "spike":
+                    spike_statuses.add(state.status)
+    return spike_statuses
 
 
 def _terminal_statuses(skills: Iterable[SkillMetadata]) -> set[str]:

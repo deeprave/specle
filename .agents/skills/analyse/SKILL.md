@@ -15,7 +15,7 @@ Assess the codebase against its recorded project guidance and propose concrete u
 
 1. Read `.specle/current-spec` when present and the selected spec's `status.json` for current state and summary.
 2. Analyse the code: its tech stack, structure, conventions and patterns in use.
-3. Review `.agents/steering/*.md` and the relevant authoritative `.agents/project/*.md` files, and compare the project guidance against reality.
+3. Review `.agents/policies/*.md`, `.agents/steering/*.md`, and the relevant authoritative `.agents/project/*.md` files, and compare the project guidance against reality.
 4. Identify risks, tech debt, and areas requiring improvement.
 
 ## Output

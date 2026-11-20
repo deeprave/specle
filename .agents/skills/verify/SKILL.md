@@ -35,8 +35,8 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - A named `bugfix` may omit `requirements.md` and `design.md`. Its `spec.md` must state the bug, expected and actual behaviour, reproduction when inferable, root cause, fix approach, and regression-test evidence.
    - A named `refactor` may omit `requirements.md` and `design.md`. Its `spec.md` must state the current and target state, behavioural invariants, baseline or characterisation evidence, and refactor approach.
    - Every target needs `tasks.md` and `spec.md`. Stop and report an incomplete abbreviated contract rather than treating it as a normal spec.
-3. Read the relevant steering docs so you can check adherence:
-   `.agents/steering/{lifecycle,testing}.md` and all applicable authoritative
+3. Read the relevant policy and steering docs so you can check adherence:
+   `.agents/policies/{lifecycle,testing}.md`, applicable `.agents/steering/` overrides, and all applicable authoritative
    `.agents/project/` documents.
 
 Only `bugfix`, `refactor`, and `committed` normal changes may be verified as explicitly named non-selected work. Never choose a non-selected item implicitly; preserve `.specle/current-spec` throughout such a verification.
@@ -78,7 +78,7 @@ boundary values, error handling, and external-interface details.
 - **Coverage gaps** — any spec requirement with no implementation and/or no test.
 - **Scope creep** — implementation behaviour that is *not* in the spec (flag it; it may need a spec
   update or removal).
-- **Guidance adherence** — confirm the implementation follows the portable steering policy and all
+- **Guidance adherence** — confirm the implementation follows the portable policy, steering overrides, and all
   applicable project standards, including dependency, API, testing, and secret-handling rules.
 
 ## Step 6 — Report
@@ -90,7 +90,7 @@ Produce a clear verification report:
 - **Quality gates** — one line for each documented project gate.
 - **Tasks** — `X/Y` complete; list incomplete ones.
 - **Acceptance criteria or abbreviated validation checks** — a table of check → PASS/PARTIAL/FAIL → evidence (`file:line` / test).
-- **Gaps & adherence** — bulleted list of coverage gaps, scope creep, and any steering violations.
+- **Gaps & adherence** — bulleted list of coverage gaps, scope creep, and any policy or steering violations.
 - **Next step** — if PASS, use `review`; if FAIL, list the specific fixes needed before
   re-verifying (use `build` to fix, then re-run `verify`).
 

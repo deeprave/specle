@@ -63,8 +63,16 @@ def resolve_spec(
     snapshot: SpecStateSnapshot, name: str, *, allow_archived: bool = False
 ) -> SpecRecord:
     """Resolve a stable name to one record, never guessing on ambiguity."""
-    records = (*snapshot.active, *(snapshot.archived if allow_archived else ()))
-    matches = [record for record in records if record.name == name]
+    all_matches = [
+        record
+        for record in (*snapshot.active, *snapshot.archived)
+        if record.name == name
+    ]
+    if len(all_matches) > 1:
+        raise SpecStateError(f"duplicate spec name: {name!r}")
+    matches = [
+        record for record in all_matches if allow_archived or not record.archived
+    ]
     if len(matches) != 1:
         location = "active or archived" if allow_archived else "active"
         raise SpecStateError(f"no unique {location} spec named {name!r}")

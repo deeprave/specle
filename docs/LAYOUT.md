@@ -5,7 +5,8 @@ Specle separates stable, human-maintained guidance from agent-managed runtime st
 ```text
 .agents/
   skills/                         # Core Markdown skill inventory
-  steering/                       # Generic Markdown guidance for every project
+  policies/                       # Package-owned generic Markdown policy
+  steering/                       # Project-owned generic Markdown guidance
   project/                        # Project-specific Markdown guidance
 
 .specle/
@@ -18,8 +19,8 @@ Specle separates stable, human-maintained guidance from agent-managed runtime st
 ```
 
 The Specle distribution inventory lives in `src/specle/blueprints/skills/` and
-`src/specle/blueprints/steering/`. Installation copies those inventories into the target project's
-`.agents/` directory; it does not replace `.agents/project/`.
+`src/specle/blueprints/policies/`. Installation copies those inventories into the target project's
+`.agents/` directory; it does not replace `.agents/steering/` or `.agents/project/`.
 
 Each skill blueprint declares a human-facing `specle_group`, concise `description`, detailed `usage`, and optional direct `requires` dependencies in its frontmatter. A non-empty `specle_group` is the single marker that identifies a Specle skill and supplies its inventory group. Specle validates declared dependencies and manages only the distributed inventory; unrelated installed skills are left untouched. The `specle` guide uses the generated installed inventory's group, description, and usage metadata to present available skills. See [FRONTMATTER.md](FRONTMATTER.md) for the complete metadata contract.
 
@@ -28,7 +29,8 @@ Each skill blueprint declares a human-facing `specle_group`, concise `descriptio
 Guidance in `.agents/` is Markdown and remains human-maintained. The generated `skills/specle/index.json` resource is the deliberate machine-readable exception.
 
 - `.agents/skills/` is the core skill inventory distributed and updated by Specle.
-- `.agents/steering/` contains generic steering documents distributed and updated by Specle.
+- `.agents/policies/` contains package-owned generic policy distributed and updated by Specle.
+- `.agents/steering/` contains project-owned generic steering. Specle does not install, update, or remove it.
 - `.agents/project/` contains project-specific documents referenced by skills. The onboarding skill creates or updates this directory; users manage it thereafter. Specle distribution updates must leave it untouched.
 
 ## `.specle/`
@@ -37,7 +39,7 @@ Guidance in `.agents/` is Markdown and remains human-maintained. The generated `
 
 Every spec directory owns a versioned `status.json`. It records its `kind` separately from lifecycle status. The initial kinds are `change`, `bugfix`, `refactor`, `spike`, `docs`, and `release`; unknown non-empty kebab-case kinds are preserved. Directory name is the stable identity; active versus archived location is the durable classification.
 
-`.specle/current-spec` is an ignored, one-line worktree-local selector. It is absent in a fresh clone until `activate` selects a normal spec. It is never committed, copied, or synchronised between worktrees. `context.json` is an optional ignored agent cache only; it has no Specle contract or lifecycle authority.
+`.specle/current-spec` is an ignored, one-line worktree-local selector. It is absent in a fresh clone until `activate` selects a normal spec or spike. It is never committed, copied, or synchronised between worktrees. `context.json` is an optional ignored agent cache only; it has no Specle contract or lifecycle authority.
 
 ## JSON contracts
 
@@ -113,7 +115,7 @@ An active spike is a `kind: "spike"` work item that records a bounded investigat
 }
 ```
 
-`effort` is an S/M/L/XL research budget, not a delivery estimate or due date. `outcome_spec` is the path of a resulting normal spec, bugfix, or refactor when one exists.
+`effort` is an S/M/L/XL research budget, not a delivery estimate or due date. `outcome_spec` is the stable name of a resulting normal spec, bugfix, or refactor when one exists.
 
 ## Completed-work summaries
 

@@ -32,7 +32,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
 3. Read the relevant authoritative `.agents/project/` documents and the codebase to understand the
    current state, project constraints, and blast radius.
 4. Skim relevant archived specs under `.specle/archive/` for similar efforts.
-5. Read `.agents/steering/lifecycle.md` before recording state.
+5. Read `.agents/policies/lifecycle.md` and any applicable `.agents/steering/` override before recording state.
 
 ## Output
 

@@ -1,16 +1,16 @@
 from pathlib import Path
 
-from specle.inventory import discover_skills, discover_steering
+from specle.inventory import discover_policies, discover_skills
 
 BLUEPRINTS = Path(__file__).parents[1] / "src" / "specle" / "blueprints"
 
 
 def test_distribution_includes_delivery_and_automation_policy() -> None:
-    steering = discover_steering(BLUEPRINTS / "steering")
+    policies = discover_policies(BLUEPRINTS / "policies")
     skills = discover_skills(BLUEPRINTS / "skills")
 
-    assert "delivery.md" in [path.name for path in steering]
-    assert "automation.md" in [path.name for path in steering]
+    assert "delivery.md" in [path.name for path in policies]
+    assert "automation.md" in [path.name for path in policies]
     assert {
         (skill.name, skill.specle_group)
         for skill in skills
@@ -20,9 +20,9 @@ def test_distribution_includes_delivery_and_automation_policy() -> None:
 
 
 def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
-    delivery = (BLUEPRINTS / "steering" / "delivery.md").read_text()
+    delivery = (BLUEPRINTS / "policies" / "delivery.md").read_text()
     onboard = (BLUEPRINTS / "skills" / "onboard" / "SKILL.md").read_text()
-    lifecycle = (BLUEPRINTS / "steering" / "lifecycle.md").read_text()
+    lifecycle = (BLUEPRINTS / "policies" / "lifecycle.md").read_text()
     triage = (BLUEPRINTS / "skills" / "triage" / "SKILL.md").read_text()
     resolve = (BLUEPRINTS / "skills" / "resolve" / "SKILL.md").read_text()
     verify = (BLUEPRINTS / "skills" / "verify" / "SKILL.md").read_text()
@@ -90,7 +90,7 @@ def test_root_references_match_the_delivery_workflow() -> None:
     assert "review approves| approved" in lifecycle
     assert "resolve: local all no-action| approved" in lifecycle
     assert "resolve: external all no-action| committed" in lifecycle
-    assert "creates queued normal work" in lifecycle
+    assert "creates unselected normal work" in lifecycle
     assert "src/specle/blueprints/skills/" in schema
     assert "skills/specle/index.json" in schema
     assert "delivery evidence" in schema

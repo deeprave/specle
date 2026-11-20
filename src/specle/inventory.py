@@ -172,18 +172,18 @@ def packaged_skills_root() -> Traversable:
 
 
 def packaged_distribution_root() -> Traversable:
-    """Return the packaged root containing both Specle inventories."""
+    """Return the packaged root containing skills and package policy."""
     root = files("specle").joinpath("blueprints")
-    if not root.joinpath("skills").is_dir() or not root.joinpath("steering").is_dir():
+    if not root.joinpath("skills").is_dir() or not root.joinpath("policies").is_dir():
         raise SkillMetadataError("the packaged Specle distribution is unavailable")
     return root
 
 
-def packaged_steering_root() -> Traversable:
-    """Return the packaged root directory for Specle steering documents."""
-    root = files("specle").joinpath("blueprints", "steering")
+def packaged_policies_root() -> Traversable:
+    """Return the packaged root directory for Specle policy documents."""
+    root = files("specle").joinpath("blueprints", "policies")
     if not root.is_dir():
-        raise SkillMetadataError("the packaged steering inventory is unavailable")
+        raise SkillMetadataError("the packaged policy inventory is unavailable")
     return root
 
 
@@ -277,16 +277,16 @@ def discover_installed_specle_skills(
     return discovered
 
 
-def discover_steering(source_root: Path) -> tuple[Path, ...]:
-    """Discover packaged steering Markdown documents in stable name order."""
+def discover_policies(source_root: Path) -> tuple[Path, ...]:
+    """Discover packaged policy Markdown documents in stable name order."""
     if not source_root.is_dir():
         raise SkillMetadataError(
-            f"the steering inventory is unavailable at {source_root}"
+            f"the policy inventory is unavailable at {source_root}"
         )
-    steering = tuple(sorted(source_root.glob("*.md")))
-    if not steering:
-        raise SkillMetadataError(f"the steering inventory is empty at {source_root}")
-    return steering
+    policies = tuple(sorted(source_root.glob("*.md")))
+    if not policies:
+        raise SkillMetadataError(f"the policy inventory is empty at {source_root}")
+    return policies
 
 
 def build_skill_index(
@@ -322,7 +322,7 @@ def build_skill_index(
 def initialise_distribution(
     source_root: Path, target_directory: Path, *, force: bool = False
 ) -> tuple[Path, ...]:
-    """Install the packaged skills and steering documents at an explicit target."""
+    """Install the packaged skills and policy documents at an explicit target."""
     target_directory = target_directory.expanduser().resolve()
     if not target_directory.is_dir():
         raise SkillInstallationError(
@@ -331,36 +331,34 @@ def initialise_distribution(
 
     source_root = source_root.expanduser().resolve()
     skills = discover_skills(source_root / "skills")
-    steering = discover_steering(source_root / "steering")
+    policies = discover_policies(source_root / "policies")
     _validate_skill_dependencies(skills)
     if not any(skill.name == "specle" for skill in skills):
         raise SkillMetadataError("the packaged skill inventory has no 'specle' skill")
 
     agents_root = target_directory / ".agents"
     skills_root = agents_root / "skills"
-    steering_root = agents_root / "steering"
+    policies_root = agents_root / "policies"
     skill_destinations = [
         (skill.path.parent, skills_root / skill.name) for skill in skills
     ]
-    steering_destinations = [
-        (source, steering_root / source.name) for source in steering
-    ]
+    policy_destinations = [(source, policies_root / source.name) for source in policies]
     index_destination = skills_root / "specle" / "index.json"
     destinations = [
         *(skills_root / skill.name for skill in skills),
-        *(destination for _, destination in steering_destinations),
+        *(destination for _, destination in policy_destinations),
         index_destination,
     ]
     obsolete_skills = _discover_obsolete_managed_skills(
         skills_root, {skill.name for skill in skills}
     )
-    obsolete_steering = _discover_obsolete_steering(
-        steering_root, {source.name for source in steering}
+    obsolete_policies = _discover_obsolete_policies(
+        policies_root, {source.name for source in policies}
     )
     collisions = [
         *(destination for destination in destinations if destination.exists()),
         *obsolete_skills,
-        *obsolete_steering,
+        *obsolete_policies,
     ]
     if collisions and not force:
         raise SkillInstallationError(
@@ -370,14 +368,16 @@ def initialise_distribution(
 
     staged: list[tuple[Path, Path]] = []
     index_temporary: Path | None = None
+    ignore_temporary: Path | None = None
+    ignore_destination = target_directory / ".specle" / ".gitignore"
     try:
         skills_root.mkdir(parents=True, exist_ok=True)
-        steering_root.mkdir(parents=True, exist_ok=True)
+        policies_root.mkdir(parents=True, exist_ok=True)
         for source, destination in skill_destinations:
             temporary = _temporary_sibling(destination)
             shutil.copytree(source, temporary)
             staged.append((temporary, destination))
-        for source, destination in steering_destinations:
+        for source, destination in policy_destinations:
             temporary = _temporary_sibling(destination)
             shutil.copy2(source, temporary)
             staged.append((temporary, destination))
@@ -386,8 +386,15 @@ def initialise_distribution(
         index_temporary.write_text(
             json.dumps(build_skill_index(skills, skills_root), indent=2) + "\n"
         )
+        ignore_contents = _local_runtime_ignore_contents(ignore_destination)
+        if ignore_contents is not None:
+            ignore_destination.parent.mkdir(parents=True, exist_ok=True)
+            ignore_temporary = _temporary_sibling(ignore_destination)
+            ignore_temporary.write_text(ignore_contents)
     except (OSError, TypeError, ValueError) as error:
-        _clean_up_temporary([temporary for temporary, _ in staged], index_temporary)
+        _clean_up_temporary(
+            [temporary for temporary, _ in staged], index_temporary, ignore_temporary
+        )
         raise SkillInstallationError(
             "unable to stage the Specle distribution"
         ) from error
@@ -398,7 +405,7 @@ def initialise_distribution(
     try:
         for destination in obsolete_skills:
             _backup_existing_destination(destination, backups)
-        for destination in obsolete_steering:
+        for destination in obsolete_policies:
             _backup_existing_destination(destination, backups)
         for temporary, destination in staged:
             if _replace_staged_destination(temporary, destination, backups):
@@ -406,10 +413,18 @@ def initialise_distribution(
         destination = index_destination
         if _replace_staged_destination(index_temporary, index_destination, backups):
             created_destinations.append(index_destination)
+        if ignore_temporary is not None:
+            destination = ignore_destination
+            if _replace_staged_destination(
+                ignore_temporary, ignore_destination, backups
+            ):
+                created_destinations.append(ignore_destination)
     except OSError as error:
         _clean_up_temporary(created_destinations, None)
         unrestored = _restore_backups(backups)
-        _clean_up_temporary([temporary for temporary, _ in staged], index_temporary)
+        _clean_up_temporary(
+            [temporary for temporary, _ in staged], index_temporary, ignore_temporary
+        )
         recovery = ""
         if unrestored:
             recovery = "; retained recovery backup(s): " + ", ".join(
@@ -542,17 +557,33 @@ def _discover_obsolete_managed_skills(
     return tuple(obsolete)
 
 
-def _discover_obsolete_steering(
-    steering_root: Path, incoming_names: set[str]
+def _discover_obsolete_policies(
+    policies_root: Path, incoming_names: set[str]
 ) -> tuple[Path, ...]:
-    """Return distributed steering files absent from the incoming inventory."""
-    if not steering_root.is_dir():
+    """Return owned policy files absent from the incoming inventory."""
+    if not policies_root.is_dir():
         return ()
     return tuple(
         path
-        for path in sorted(steering_root.glob("*.md"))
+        for path in sorted(policies_root.glob("*.md"))
         if path.name not in incoming_names
     )
+
+
+def _local_runtime_ignore_contents(destination: Path) -> str | None:
+    """Return merged local-runtime ignore content, or None when already current."""
+    required = ("/current-spec", "/context.json")
+    try:
+        existing = destination.read_text()
+    except FileNotFoundError:
+        return "\n".join(required) + "\n"
+
+    lines = existing.splitlines()
+    missing = [entry for entry in required if entry not in lines]
+    if not missing:
+        return None
+    separator = "" if not existing or existing.endswith("\n") else "\n"
+    return existing + separator + "\n".join(missing) + "\n"
 
 
 def _has_specle_group(path: Path) -> bool:
@@ -604,9 +635,13 @@ def _restore_backups(backups: list[tuple[Path, Path]]) -> tuple[Path, ...]:
     return tuple(unrestored)
 
 
-def _clean_up_temporary(staged: list[Path], index_temporary: Path | None) -> None:
+def _clean_up_temporary(
+    staged: list[Path],
+    index_temporary: Path | None,
+    ignore_temporary: Path | None = None,
+) -> None:
     """Remove staging paths after a preparation failure."""
-    for temporary in (*staged, index_temporary):
+    for temporary in (*staged, index_temporary, ignore_temporary):
         if temporary is None:
             continue
         try:

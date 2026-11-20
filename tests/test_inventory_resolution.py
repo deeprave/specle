@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from specle.inventory import (
-    discover_steering,
+    discover_policies,
     packaged_distribution_root,
     packaged_skills_root,
 )
@@ -13,23 +13,23 @@ def test_locates_packaged_skill_inventory() -> None:
     assert root.joinpath("spec", "SKILL.md").is_file()
 
 
-def test_packaged_distribution_exposes_skills_and_steering() -> None:
+def test_packaged_distribution_exposes_skills_and_policies() -> None:
     root = packaged_distribution_root()
 
     assert root.name == "blueprints"
     assert root.joinpath("AGENTS.md").is_file()
     assert root.joinpath("skills", "spec", "SKILL.md").is_file()
-    assert root.joinpath("steering", "testing.md").is_file()
+    assert root.joinpath("policies", "testing.md").is_file()
 
 
-def test_discovers_packaged_steering_documents() -> None:
-    steering_root = (
-        Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "steering"
+def test_discovers_packaged_policy_documents() -> None:
+    policies_root = (
+        Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "policies"
     )
 
-    steering = discover_steering(steering_root)
+    policies = discover_policies(policies_root)
 
-    assert [path.name for path in steering] == [
+    assert [path.name for path in policies] == [
         "automation.md",
         "delivery.md",
         "lifecycle.md",

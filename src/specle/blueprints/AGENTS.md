@@ -2,13 +2,14 @@
 
 This is the portable entrypoint for the repository's spec-driven workflow. A repository-root `AGENTS.md` should direct agents here while retaining only genuinely local execution or tool instructions.
 
-Specle initialisation distributes reusable `skills/` and `steering/` only. It does not install this entrypoint, `.agents/project/`, `.specle/`, a root `AGENTS.md`, or a launcher; those remain project or future-client concerns. This portable entrypoint and both distributed inventories are the source blueprints under `src/specle/blueprints/`.
+Specle initialisation distributes reusable `skills/` and `policies/` only. It does not install this entrypoint, `.agents/steering/`, `.agents/project/`, `.specle/`, a root `AGENTS.md`, or a launcher; those remain project or future-client concerns. This portable entrypoint and both distributed inventories are the source blueprints under `src/specle/blueprints/`.
 
 ## Start here
 
-1. Read `.agents/steering/*.md`. These are reusable policy: context state, lifecycle, and testing principles.
-2. If `.agents/project/README.md` is absent, use the `onboard` skill before relying on project architecture, commands, security rules, API conventions, or tracker configuration.
-3. If the project overlay exists, treat `.agents/project/*.md` as the authoritative project-specific facts. Read its README and only the documents relevant to the task.
+1. Read `.agents/policies/*.md`. These are reusable Specle policy: lifecycle, delivery, review, and testing principles.
+2. Read `.agents/steering/*.md` next. These are project-owned generic overrides.
+3. If `.agents/project/README.md` is absent, use the `onboard` skill before relying on project architecture, commands, security rules, API conventions, or tracker configuration.
+4. If the project overlay exists, treat `.agents/project/*.md` as the authoritative project-specific facts. Read its README and only the documents relevant to the task.
 4. Read the matching skill in `.agents/skills/` before performing a workflow stage.
 5. For spec work, read the selected spec from `.specle/current-spec` when it exists and use the target's `status.json` as the durable lifecycle record. A missing selector means no work is selected in this checkout.
 

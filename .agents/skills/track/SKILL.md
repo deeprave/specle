@@ -44,6 +44,6 @@ When the configured connection supports the requested operation:
 
 - Do not write to a source. Do not write to a destination without explicit user authorisation.
 - Do not configure or infer external systems; project tracking guidance is authoritative.
-- Do not attach a source or destination link to a queued bugfix or refactor unless the user explicitly names that target.
+- Do not attach a source or destination link to an unselected bugfix or refactor unless the user explicitly names that target.
 - Preserve source and destination links in the per-spec JSON record; do not use a shared runtime cache or invent generic identifiers.
 - Use `spec` to establish a new import target, `revise` for confirmed changes to an existing normal spec, and `verify` after implementation.

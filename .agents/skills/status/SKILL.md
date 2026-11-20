@@ -4,7 +4,7 @@ specle_group: Coordination
 description: >-
   List pending and active Specle work with next stages.
 usage: >-
-  Use to inventory unfinished, active, queued, or dependent work and report its recorded next step; it never changes lifecycle state.
+  Use to inventory unfinished, selected, unselected, or dependent work and report its recorded next step; it never changes lifecycle state.
 ---
 
 # List pending specs
@@ -14,9 +14,9 @@ Produce a read-only inventory of actionable specs under `.specle/specs/`. Do not
 
 ## Workflow
 
-1. Read `.specle/current-spec` when present and `.agents/steering/lifecycle.md` first.
+1. Read `.specle/current-spec` when present and `.agents/policies/lifecycle.md` first, then any applicable steering override.
    Include the selected spec whenever its recorded lifecycle status is not `complete`.
-2. Enumerate immediate directories under `.specle/specs/`, ordered by their directory name, and read each `status.json`.
+2. Enumerate immediate directories under `.specle/specs/`, ordered by their directory name, and read each `status.json`. Exclude a record already marked `complete` from pending output unless it is explicit dependency context; archive finalisation owns moving it out of the active location.
 3. For each spec, inspect `tasks.md` when present. Count Markdown task boxes at any indentation
    level:
    - no `tasks.md` — report its recorded lifecycle state when available, otherwise **defined**;

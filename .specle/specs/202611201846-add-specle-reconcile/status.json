@@ -1,0 +1,11 @@
+{
+  "$schema": "https://github.com/deeprave/specle/schemas/spec-status/1.0",
+  "kind": "change",
+  "status": "defined",
+  "progress": {},
+  "verification": {"status": "not-run"},
+  "review": {"status": "not-run", "findings": 0},
+  "delivery": null,
+  "relationships": [],
+  "dependencies": []
+}

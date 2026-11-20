@@ -1,6 +1,6 @@
 # Specle project guidance
 
-This directory records the project-specific guidance for Specle. These documents are authoritative for work in this repository and complement the reusable workflow in `.agents/steering/`.
+This directory records the project-specific guidance for Specle. These documents are authoritative for work in this repository and complement the package policy in `.agents/policies/` and any local `.agents/steering/` guidance.
 
 - [product.md](product.md) describes Specle's purpose and scope.
 - [tech.md](tech.md) records the Python tooling and repository conventions.

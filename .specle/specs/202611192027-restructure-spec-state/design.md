@@ -38,6 +38,8 @@ Create a small state module that is the only Python owner of state locations, lo
 - derived progress reporting and next-skill calculation from the installed lifecycle declarations; and
 - migration helpers which convert the existing context records exactly once.
 
+Ordinary resolution first checks both collections for the stable name. A duplicate is a hard error even when a caller asks only for active work, so a caller cannot accidentally choose the active copy. The later independent `add-specle-reconcile` change owns Git-aware diagnosis and recovery.
+
 `lifecycle.py` will consume this module instead of reading a context snapshot. It will validate every discovered status record, validate that a selected name exists in active specs, and apply lifecycle/evidence rules to each individual record. Runtime validation must accept a repository with no selection; a fresh clone intentionally has no current spec.
 
 ## Status contract
@@ -70,12 +72,14 @@ The context and current-issue schemas, identifiers, exports, tests, and validati
 
 ## Lifecycle and skill changes
 
-Update the lifecycle steering document, the root blueprint instructions, and every affected skill to use the same state rules:
+Move generic package policy to `.agents/policies/` and leave `.agents/steering/` fully project-owned. Update the lifecycle policy, root blueprint instructions, and every affected skill to read package policy first, then steering and project guidance. Forced installation may replace or prune owned policy files, but never steering files.
+
+Update every affected skill to use the same state rules:
 
 - `spec`, `bugfix`, `refactor`, `prepare`, and `spike` create `status.json` in their new spec directory rather than appending shared queue records.
-- `activate <name>` verifies that no unfinished selection exists in this worktree, resolves the named active normal spec, writes its name to `.specle/current-spec`, and then invokes the first missing estimate, design, or tasks stage. It never changes any other spec record.
+- `activate <name>` is the sole workflow writer of `.specle/current-spec`. It verifies that no unfinished selection exists in this worktree (while allowing a delivery-evidenced effectively complete selection), resolves a resumable normal spec or spike, then invokes the first missing normal preparation stage or the spike workflow. A fully prepared normal spec becomes `planned` before build.
 - Planning and execution skills resolve an unnamed target via `current-spec`; explicitly named non-active work resolves directly by stable name. They update only that target's `status.json`.
-- `status`, `analyse`, `summary`, `track`, `triage`, `resolve`, `review`, `commit`, and `verify` scan or resolve per-spec records as their selection rules require. Archived work is addressable only by explicit name.
+- `status`, `analyse`, `summary`, `track`, `triage`, `resolve`, `review`, `commit`, and `verify` scan or resolve per-spec records as their selection rules require. Summary writes inside the resolved active or archive target directory. Archived work is addressable only by explicit name.
 - The existing `context` skill no longer reconciles durable project state. Reframe it as optional local handoff-cache generation, or remove it from the managed inventory if it has no useful non-authoritative role; neither outcome introduces a required cache contract.
 - `next` is always derived from the lifecycle declarations and current evidence. It is never persisted in `status.json`.
 
@@ -85,14 +89,13 @@ The skill frontmatter and `LIFECYCLE.md` retain the lifecycle declaration as the
 
 `commit` records delivery evidence in the target status before delivery. For branch-and-pull-request delivery, a merged PR makes the target effectively complete even though archival has not yet been committed. This allows `activate` to select unrelated work without waiting for cleanup.
 
-`complete` handles finalisation in this order:
+`complete` handles finalisation for every delivery model in this order:
 
 1. Confirm the configured delivery final event from recorded evidence or authorised provider inspection.
 2. Generate `summary.md` while the spec is still at its active location.
-3. Move the whole directory to `.specle/archive/<name>` using a staged temporary move, preserving all artifacts.
-4. Update the archived `status.json` with durable `complete` evidence.
-5. Present the exact finalisation file list and obtain the user's delivery confirmation.
-6. Commit and deliver it according to the selected delivery model, then clear the local selector if it selected that spec.
+3. Stage the directory move, archived `status.json` update, and matching local selector removal as one recoverable operation.
+4. Present the exact finalisation file list and obtain the user's delivery confirmation before archive mutation.
+5. Commit and deliver it according to the selected delivery model.
 
 For direct-main delivery, the finalisation commit is made directly on main. For branch-and-pull-request delivery where the delivery PR has already merged, create `<delivery-branch>-completion` from the retained delivery head, commit and push the archive finalisation there, and open a PR to main. Then switch and synchronise local main so unrelated work can continue. This completion PR contains only the archived spec records; it does not absorb later main-branch work.
 
@@ -115,7 +118,7 @@ Migration verification must prove that no legacy record is silently dropped and 
 | --- | --- |
 | `current-spec` is absent | Treat as no selected work; require explicit activation for unnamed active-only commands. |
 | `current-spec` has more than one non-empty line, invalid name, or points to archive/missing directory | Report a precise local-state error; do not alter durable records. |
-| Duplicate spec name in active and archive | Fail validation and require manual resolution; never guess. |
+| Duplicate spec name in active and archive | Fail validation and every ordinary target resolution; never guess. The independent reconcile workflow owns diagnosis and recovery. |
 | Missing or malformed `status.json` | Report the spec path and schema/lifecycle diagnostic; do not infer state from Markdown artifacts. |
 | Attempt to activate while selected spec is unfinished | Preserve the local selection and stop. |
 | Completion cannot confirm delivery event | Leave active status/directory untouched and state what evidence is missing. |

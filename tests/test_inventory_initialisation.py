@@ -21,7 +21,10 @@ def test_initialises_a_fresh_project_target_and_generates_an_index(
     assert (skills_root / "spec" / "SKILL.md").is_file()
     assert (skills_root / "verify" / "SKILL.md").is_file()
     assert (skills_root / "specle" / "resource.json").is_file()
-    assert (target / ".agents" / "steering" / "testing.md").is_file()
+    assert (target / ".agents" / "policies" / "testing.md").is_file()
+    assert (
+        target / ".specle" / ".gitignore"
+    ).read_text() == "/current-spec\n/context.json\n"
     index = json.loads((skills_root / "specle" / "index.json").read_text())
     indexed_skills = [skill for group in index["groups"] for skill in group["skills"]]
     assert (
@@ -40,7 +43,7 @@ def test_initialises_a_home_like_target_without_project_state(tmp_path: Path) ->
 
     assert (home / ".agents" / "skills" / "spec" / "SKILL.md").is_file()
     assert not (home / ".agents" / "project").exists()
-    assert not (home / ".specle").exists()
+    assert (home / ".specle" / ".gitignore").is_file()
 
 
 def test_rejects_a_missing_target_without_creating_any_paths(tmp_path: Path) -> None:
@@ -74,18 +77,22 @@ def test_preserves_project_owned_content_and_unrelated_skills(tmp_path: Path) ->
     target = tmp_path / "project"
     project_document = target / ".agents" / "project" / "README.md"
     runtime_context = target / ".specle" / "context.json"
+    steering_document = target / ".agents" / "steering" / "local.md"
     external_skill = target / ".agents" / "skills" / "external" / "SKILL.md"
     project_document.parent.mkdir(parents=True)
     runtime_context.parent.mkdir(parents=True)
+    steering_document.parent.mkdir(parents=True)
     external_skill.parent.mkdir(parents=True)
     project_document.write_text("# Project guidance\n")
     runtime_context.write_text("{}\n")
+    steering_document.write_text("# Local steering\n")
     external_skill.write_text("# External skill\n")
 
     initialise_distribution(source_root, target)
 
     assert project_document.read_text() == "# Project guidance\n"
     assert runtime_context.read_text() == "{}\n"
+    assert steering_document.read_text() == "# Local steering\n"
     assert external_skill.read_text() == "# External skill\n"
 
 
@@ -101,21 +108,33 @@ def test_collision_preflight_makes_no_writes_without_force(tmp_path: Path) -> No
 
     assert existing.read_text() == "# Existing spec\n"
     assert not (target / ".agents" / "skills" / "verify").exists()
-    assert not (target / ".agents" / "steering").exists()
+    assert not (target / ".agents" / "policies").exists()
+
+
+def test_initialisation_preserves_existing_runtime_ignore_rules(tmp_path: Path) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    target = tmp_path / "project"
+    runtime_ignore = target / ".specle" / ".gitignore"
+    runtime_ignore.parent.mkdir(parents=True)
+    runtime_ignore.write_text("/agent-cache\n/current-spec\n")
+
+    initialise_distribution(source_root, target)
+
+    assert runtime_ignore.read_text() == "/agent-cache\n/current-spec\n/context.json\n"
 
 
 def test_force_replaces_only_exact_managed_destinations(tmp_path: Path) -> None:
     source_root = _write_distribution(tmp_path / "source")
     target = tmp_path / "project"
     managed_skill = target / ".agents" / "skills" / "spec" / "SKILL.md"
-    managed_steering = target / ".agents" / "steering" / "testing.md"
+    managed_policy = target / ".agents" / "policies" / "testing.md"
     old_index = target / ".agents" / "skills" / "specle" / "index.json"
     old_specle_resource = target / ".agents" / "skills" / "specle" / "resource.json"
     external_skill = target / ".agents" / "skills" / "external" / "SKILL.md"
     project_document = target / ".agents" / "project" / "README.md"
     for path, contents in (
         (managed_skill, "# Old spec\n"),
-        (managed_steering, "# Old testing\n"),
+        (managed_policy, "# Old testing\n"),
         (old_index, "{}\n"),
         (old_specle_resource, '{"version": "old"}\n'),
         (external_skill, "# External skill\n"),
@@ -134,8 +153,8 @@ def test_force_replaces_only_exact_managed_destinations(tmp_path: Path) -> None:
         == (source_root / "skills" / "spec" / "SKILL.md").read_text()
     )
     assert (
-        managed_steering.read_text()
-        == (source_root / "steering" / "testing.md").read_text()
+        managed_policy.read_text()
+        == (source_root / "policies" / "testing.md").read_text()
     )
     assert old_index.read_text() != "{}\n"
     assert old_specle_resource.read_text() == '{"version": "new"}\n'
@@ -181,12 +200,12 @@ def test_force_prunes_an_obsolete_skill_with_legacy_flow_style_metadata(
     assert not obsolete.exists()
 
 
-def test_force_prunes_obsolete_distributed_steering(tmp_path: Path) -> None:
+def test_force_prunes_obsolete_distributed_policies(tmp_path: Path) -> None:
     source_root = _write_distribution(tmp_path / "source")
     target = tmp_path / "project"
     target.mkdir()
     initialise_distribution(source_root, target)
-    retired = target / ".agents" / "steering" / "retired.md"
+    retired = target / ".agents" / "policies" / "retired.md"
     retired.write_text("# Retired guidance\n")
 
     with pytest.raises(SkillInstallationError, match="retired.md"):
@@ -325,11 +344,11 @@ def test_rollback_failure_retains_and_reports_the_recovery_backup(
     previous_index = '{"previous": true}\n'
     (specle_directory / "resource.json").write_text(previous_specle_resource)
     index_path.write_text(previous_index)
-    steering_path = target / ".agents" / "steering" / "testing.md"
+    policy_path = target / ".agents" / "policies" / "testing.md"
     original_replace = Path.replace
 
     def fail_replacement_and_restore(path: Path, destination: Path) -> Path:
-        if destination == steering_path and path.name.startswith(
+        if destination == policy_path and path.name.startswith(
             ".specle-tmp-testing.md-"
         ):
             raise OSError("replacement failed")
@@ -357,19 +376,19 @@ def test_replacement_failure_removes_new_managed_destinations_before_retry(
     source_root = _write_distribution(tmp_path / "source")
     target = tmp_path / "project"
     target.mkdir()
-    steering_path = target / ".agents" / "steering" / "testing.md"
+    policy_path = target / ".agents" / "policies" / "testing.md"
     original_replace = Path.replace
 
-    def fail_steering_replacement(path: Path, destination: Path) -> Path:
-        if destination == steering_path and path.name.startswith(
+    def fail_policy_replacement(path: Path, destination: Path) -> Path:
+        if destination == policy_path and path.name.startswith(
             ".specle-tmp-testing.md-"
         ):
             raise OSError("replacement failed")
         return original_replace(path, destination)
 
-    monkeypatch.setattr(Path, "replace", fail_steering_replacement)
+    monkeypatch.setattr(Path, "replace", fail_policy_replacement)
 
-    with pytest.raises(SkillInstallationError, match=r"destination.*steering/testing"):
+    with pytest.raises(SkillInstallationError, match=r"destination.*policies/testing"):
         initialise_distribution(source_root, target, force=True)
 
     skills_root = target / ".agents" / "skills"
@@ -388,9 +407,9 @@ def _write_distribution(root: Path) -> Path:
     _write_skill(root / "skills", "spec", "Planning")
     _write_skill(root / "skills", "specle", "Reference")
     _write_skill(root / "skills", "verify", "Quality")
-    steering = root / "steering"
-    steering.mkdir(parents=True)
-    (steering / "testing.md").write_text("# Testing\n")
+    policies = root / "policies"
+    policies.mkdir(parents=True)
+    (policies / "testing.md").write_text("# Testing\n")
     return root
 
 

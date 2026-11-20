@@ -29,7 +29,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
 
 1. Read `.specle/current-spec` when present and the target `status.json` to locate the selected spec. A named unselected normal spec is also valid for explicit planning; it must remain unselected.
 2. Read `requirements.md` and `spec.md` from that folder.
-3. Read `.agents/steering/*.md` and the authoritative `.agents/project/` documents relevant to the change so the design
+3. Read `.agents/policies/*.md`, `.agents/steering/*.md`, and the authoritative `.agents/project/` documents relevant to the change so the design
    follows the repository's architecture, API, security, and testing conventions.
 4. Write `design.md` in the spec folder with:
    - **Overview** — what changes, at a glance.

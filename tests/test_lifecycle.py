@@ -160,6 +160,37 @@ def test_reports_invalid_status_and_archived_non_completion(tmp_path: Path) -> N
     assert {"invalid-status", "archived-not-complete"} <= codes
 
 
+def test_reports_an_implementation_status_for_a_spike(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "202611200001-example", status="building", kind="spike")
+    skills = (
+        _skill(
+            "spike",
+            LifecycleDeclaration(
+                accepts=("defined", "spiking"),
+                creates=("defined",),
+                transitions=(
+                    LifecycleTransition(
+                        LifecycleState("defined", kind="spike"),
+                        LifecycleState("spiking", kind="spike"),
+                        "spike",
+                    ),
+                    LifecycleTransition(
+                        LifecycleState("spiking", kind="spike"),
+                        LifecycleState("complete", kind="spike"),
+                        None,
+                    ),
+                ),
+                terminal=("complete",),
+            ),
+        ),
+    )
+
+    diagnostics = validate_runtime_records(target, skills)
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-status"}
+
+
 def test_reports_malformed_status_and_invalid_local_selector(tmp_path: Path) -> None:
     target = tmp_path / "project"
     directory = target / ".specle" / "specs" / "202611200001-example"
@@ -193,7 +224,12 @@ def _runtime_skills() -> tuple[SkillMetadata, ...]:
 
 
 def _write_status(
-    target: Path, name: str, *, status: str, archived: bool = False
+    target: Path,
+    name: str,
+    *,
+    status: str,
+    archived: bool = False,
+    kind: str = "change",
 ) -> None:
     root = "archive" if archived else "specs"
     directory = target / ".specle" / root / name
@@ -202,7 +238,7 @@ def _write_status(
         json.dumps(
             {
                 "$schema": SCHEMA_IDENTIFIERS["spec-status"],
-                "kind": "change",
+                "kind": kind,
                 "status": status,
                 "progress": {},
                 "verification": {"status": "not-run"},

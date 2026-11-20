@@ -22,7 +22,7 @@ Changes are independent by default. A queued or future change must not create a 
 
 Before creating or recording lifecycle state, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.agents/steering/*.md`, especially `lifecycle.md`, then read the authoritative `.agents/project/*.md` documents relevant to the requested change.
+1. Read `.agents/policies/*.md`, especially `lifecycle.md`, then `.agents/steering/*.md` and the authoritative `.agents/project/*.md` documents relevant to the requested change.
 2. Ask (or infer) the intent of the feature. If it is underspecified, ask 2–4 targeted clarifying questions before writing — propose sensible defaults so the user can confirm quickly.
 3. Create the spec folder: `.specle/specs/YYYYMMDDHHMM-{feature-slug}/` (today's date/time, a 2–4 word slug).
 4. Write `requirements.md` with:
@@ -40,4 +40,4 @@ Do not replace an unfinished local selection in `.specle/current-spec`.
 
 ## Next
 
-- `activate <spec-name>` — explicitly commence the queued normal spec.
+- `activate <spec-name>` — explicitly commence the unselected normal spec.

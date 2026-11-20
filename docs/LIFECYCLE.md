@@ -1,6 +1,6 @@
 # Spec lifecycle
 
-This is the lifecycle implemented by Specle today. It is a reference for the workflow skills and the per-spec state recorded in `.specle/specs/<name>/status.json` or `.specle/archive/<name>/status.json`; `.agents/steering/lifecycle.md` remains the authoritative policy.
+This is the lifecycle implemented by Specle today. It is a reference for the workflow skills and the per-spec state recorded in `.specle/specs/<name>/status.json` or `.specle/archive/<name>/status.json`; `.agents/policies/lifecycle.md` remains the authoritative package policy and project steering may refine it.
 
 Local approval and final delivery are distinct. `approved` records a passing local review; the selected project delivery policy determines whether `commit` completes the work directly or creates a submitted `committed` delivery for `complete` to finalise.
 
@@ -28,21 +28,21 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 | Workflow command | Status transition |
 | --- | --- |
 | `spec` | Creates an unselected normal spec as `defined`; it does not select or commence it. |
-| `activate` | Writes the named normal spec to ignored local `current-spec`, then fills the required estimate → design → tasks preparation chain before build. |
+| `activate` | The sole workflow writer of ignored local `current-spec`. It selects a resumable normal spec or a spike, fills a normal spec's required estimate → design → tasks preparation chain before build, and invokes a selected spike. |
 | `estimate` | Marks the selected target `estimated`; selected normal work continues to design, while a named unselected target writes only its advisory estimate and remains unselected. |
-| `design` | Marks the active normal spec `designed`; a named queued target writes only its design and remains queued. |
-| `tasks` | Requires a design. Marks the active normal spec `planned`; a named queued target writes only its task plan and remains queued. |
-| `build` | Marks the active normal spec `building` while completing its tasks. A named committed normal target may be built in place without replacing the active issue. |
-| `verify` | Sets a passing target `verified`; a failed target is `building`. A named committed normal target or queued abbreviated target changes only its own record. |
+| `design` | Marks the selected normal spec `designed`; a named unselected target writes only its design and remains unselected. |
+| `tasks` | Requires a design. Marks the selected normal spec `planned`; a named unselected target writes only its task plan and remains unselected. |
+| `build` | Marks the selected normal spec `building` while completing its tasks. A named committed normal target may be built in place without replacing the local selection. |
+| `verify` | Sets a passing target `verified`; a failed target is `building`. A named committed normal target or unselected abbreviated target changes only its own record. |
 | `review` | On approval, sets the selected target `approved` with next `commit`. On findings, sets the selected target `review-findings`. |
-| `commit` | Applies the selected delivery model: local-only and direct delivery may complete; branch-and-pull-request delivery becomes `committed`. |
-| `complete` | Confirms the configured final event for committed branch-and-pull-request delivery. |
+| `commit` | Applies the selected delivery model: local-only and direct delivery record their final event; branch-and-pull-request delivery becomes `committed`. Every final event proceeds to archive finalisation. |
+| `complete` | Confirms the configured final event when necessary, then performs the authorised recoverable archive finalisation for every delivery model. |
 | `triage` | Sets a fully decided target `triaged`. |
 | `resolve` | Reconciles previously dispatched accepted work, then dispatches any pending accepted follow-up. It reports `resolve <target>` as the later reconciliation step for incomplete follow-ups. A local no-action outcome returns to `approved`; a previously committed no-action outcome returns to `committed`. An independent-spec hand-off creates unselected normal work and preserves the origin for its own delivery. |
-| `revise` | Reconciles accepted feedback and returns an active normal spec to the earliest viable planning state; a named committed normal target becomes `planned` with `next: "build"`, and a named abbreviated item becomes queued `planned` with its owning next skill. |
-| `prepare` | Creates a queued bugfix or refactor as `planned` with its owning next skill. |
+| `revise` | Reconciles accepted feedback and returns a selected normal spec to the earliest viable planning state; a named committed normal target becomes `planned` with `next: "build"`, and a named abbreviated item becomes unselected `planned` with its owning next skill. |
+| `prepare` | Creates an unselected bugfix or refactor as `planned` with its owning next skill. |
 | `bugfix` / `refactor` | When executed, move only the named abbreviated item to `building`; when called through `prepare`, they create artefacts without executing them. |
-| `spike` | Moves an active spike through `defined` → `spiking` → `complete`. |
+| `spike` | Creates an unselected spike or, when invoked by `activate`, moves it through `defined` → `spiking` → `complete` while recording durable findings and a stable outcome-spec name. |
 
 `analyse`, `specle`, `status`, `summary`, and `track` do not themselves transition lifecycle status. `summary` requires a completed target but does not alter it.
 
@@ -55,14 +55,14 @@ Every non-terminal state has an owning workflow command and a valid next transit
 | `defined` | `activate <spec-name>` commences an unselected normal change; the named abbreviated owner or `spike` establishes the other paths. | Has an exit. |
 | `estimated` | `design` or, for sufficiently small understood work, `tasks`. | Has an exit. |
 | `designed` | `tasks`. | Has an exit. |
-| `planned` | `build` for active normal work or named `bugfix` / `refactor` for queued abbreviated work. | Has an exit. |
+| `planned` | `build` for selected normal work or named `bugfix` / `refactor` for unselected abbreviated work. | Has an exit. |
 | `building` | Further build work or `verify`. | Has an exit. |
 | `spiking` | `spike` records findings and completes the investigation. | Has an exit. |
 | `verified` | `review` either approves or creates review findings. | Has an exit. |
 | `approved` | `commit` applies the selected delivery policy. | Has an exit. |
 | `committed` | `complete` confirms delivery, or named `triage` handles external feedback. | Has an exit. |
 | `review-findings` | `triage` records decisions. | Has an exit. |
-| `triaged` | `resolve` dispatches pending actions, waits for incomplete follow-ups, creates queued independent work where required, restores a local no-action result to `approved`, or restores a submitted no-action result to `committed`. | Has an exit; no-action review and hand-off do not bypass delivery. |
+| `triaged` | `resolve` dispatches pending actions, waits for incomplete follow-ups, creates unselected independent work where required, restores a local no-action result to `approved`, or restores a submitted no-action result to `committed`. | Has an exit; no-action review and hand-off do not bypass delivery. |
 | `complete` | Terminal. | Intentional terminal state. |
 
 ## Current flows
@@ -71,7 +71,7 @@ Every non-terminal state has an owning workflow command and a valid next transit
 
 ```mermaid
 flowchart TB
-  queued_defined[queued defined] -->|activate| defined
+  unselected_defined[unselected defined] -->|activate| defined
   defined -->|estimate| estimated
   estimated -->|design| designed
   estimated -->|tasks| planned
@@ -94,10 +94,10 @@ flowchart TB
   triaged -->|resolve: external all no-action| committed
   triaged -->|resolve: independent hand-off after local review| approved
   triaged -->|resolve: independent hand-off after external feedback| committed
-  triaged -.->|creates queued normal work| queued_defined[defined: independent spec]
+  triaged -.->|creates unselected normal work| unselected_defined[defined: independent spec]
 ```
 
-### Queued abbreviated work: bugfix or refactor
+### Unselected abbreviated work: bugfix or refactor
 
 ```mermaid
 flowchart TB
@@ -120,7 +120,7 @@ flowchart TB
   triaged -->|resolve: external all no-action| committed
   triaged -->|resolve: independent hand-off after local review| approved
   triaged -->|resolve: independent hand-off after external feedback| committed
-  triaged -.->|creates queued normal work| queued_defined[defined: independent spec]
+  triaged -.->|creates unselected normal work| unselected_defined[defined: independent spec]
 ```
 
 ### Active spike

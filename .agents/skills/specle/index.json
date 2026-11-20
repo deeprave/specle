@@ -32,7 +32,7 @@
           "name": "status",
           "specle_group": "Coordination",
           "description": "List pending and active Specle work with next stages.",
-          "usage": "Use to inventory unfinished, active, queued, or dependent work and report its recorded next step; it never changes lifecycle state.",
+          "usage": "Use to inventory unfinished, selected, unselected, or dependent work and report its recorded next step; it never changes lifecycle state.",
           "resource": "file:///Users/davidn/Code/specle/.agents/skills/status/SKILL.md"
         }
       ]
@@ -188,7 +188,7 @@
           "name": "prepare",
           "specle_group": "Alternatives",
           "description": "Prepare non-active bugfixes or refactors for later work.",
-          "usage": "Use to create an explicitly named queued repair or behaviour-preserving restructure without implementation changes.",
+          "usage": "Use to create an explicitly named unselected repair or behaviour-preserving restructure without implementation changes.",
           "resource": "file:///Users/davidn/Code/specle/.agents/skills/prepare/SKILL.md"
         },
         {
