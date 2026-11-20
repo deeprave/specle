@@ -9,7 +9,7 @@ usage: >-
 
 # Summarise completed work
 
-Produce `summary.md` as a useful human account of completed work. It is a communication artefact, not an AI verification record and not an external publication.
+Produce `summary.md` as a concise human account of completed work. It is a communication artefact, not an AI verification record, delivery log, or external publication.
 
 ## Workflow
 
@@ -19,25 +19,23 @@ Produce `summary.md` as a useful human account of completed work. It is a commun
    - For normal work, read its requirements, design, task plan, verification evidence, review outcome, and the relevant implementation.
    - For a bugfix or refactor, read its abbreviated `spec.md`, task plan, verification evidence, review outcome, and the relevant implementation.
    - For a spike, read `findings.json`, including recommendations, risks, and `outcome_spec`.
-4. Write `summary.md` inside the target's resolved active or archived directory. Make it stand on its own for people who have not followed the workflow. Use this structure, omitting sections that do not apply:
+4. Write `summary.md` inside the target's resolved active or archived directory. Make it stand on its own for people who have not followed the workflow. Use this concise structure, omitting sections that do not apply:
 
    ```md
    # Summary: <plain-language title>
+
+   ## Summary
 
    ## Outcome
 
    ## What changed
 
-   ## Evidence
-
    ## Key decisions and limits
-
-   ## Recommendation and follow-up
-
-   ## Copy-ready update
    ```
 
-   Explain what was delivered or learned in clear language. For implementation work, include only evidenced verification and review results; do not claim that a quality gate passed without the recorded evidence. For a spike, foreground the recommendation and link its outcome spec when one exists. The copy-ready update should be a short standalone paragraph suitable for a Jira comment, pull-request description, release note, or similar channel.
+   `Summary` comes first and is a short standalone, copy-ready paragraph suitable for a Jira comment, release note, or similar update. `Outcome` and `What changed` should explain only the user-meaningful result and delivered behaviour. `Key decisions and limits` is optional: include it only when a choice, deliberate exclusion, or lasting limitation matters to a reader.
+
+   Do not include test counts, pass/fail results, CI or pull-request activity, commit references, routine verification, workflow mechanics, generic recommendations, or future-work boilerplate. Refer to evidence only when it explains a material result or limitation. For a spike, foreground the finding and recommendation in `Summary` and `Outcome`.
 5. Preserve every context, lifecycle, tracker, and review record. Do not post or publish the summary. External publication remains an explicit `track` operation when a project has a configured destination and the user authorises it.
 
 ## Next
