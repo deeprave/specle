@@ -5,8 +5,8 @@
     "name": "202611172043-versioned-json-schemas",
     "path": ".specle/specs/202611172043-versioned-json-schemas",
     "kind": "change",
-    "status": "approved",
-    "next": "commit",
+    "status": "committed",
+    "next": "complete",
     "progress": {
       "tasks_completed": 9,
       "tasks_total": 9
@@ -26,12 +26,12 @@
       "status": "pass",
       "findings": 0
     },
-    "revision_note": "Accepted PR #7 review corrections reopened task 9; existing delivery reference is retained.",
+    "revision_note": "PR #7 updated with accepted schema review corrections.",
     "delivery": {
       "reference": "https://github.com/deeprave/specle/pull/7",
       "head_branch": "feature/versioned-json-schemas",
       "target_branch": "main",
-      "commit": "860ca6f",
+      "commit": "19b73a3",
       "final_event": null
     }
   },
