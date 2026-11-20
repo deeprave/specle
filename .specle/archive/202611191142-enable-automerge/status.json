@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/spec-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "complete",
   "progress": {"tasks_completed": 4, "tasks_total": 4},
   "verification": {"status": "pass"},
   "review": {"status": "pass", "last_run": "2026-11-20T22:13:52+1100", "findings": 0},
@@ -9,8 +9,8 @@
     "reference": "https://github.com/deeprave/specle/pull/10",
     "head_branch": "feature/enable-automerge",
     "target_branch": "main",
-    "commit": "18b2ddd306aa9759e4348ce3e440fd3c23315b7f",
-    "event": "pull-request-updated"
+    "commit": "2e0020fb8757bbf3c09e0134c913239cfb281635",
+    "event": "pull-request-merged"
   },
   "relationships": [],
   "dependencies": []
