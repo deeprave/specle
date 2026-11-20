@@ -40,6 +40,21 @@
       "kind": "local-review",
       "revision": "sha256:e413f5f9629fc7bdf8a256db06fbe81098ba8399401f3474cee627ee8ecf000a",
       "outcome": "approve"
+    },
+    {
+      "id": "sourcery-pr17-20261120",
+      "system": "sourcery-ai",
+      "kind": "pull-request-review",
+      "reference": "https://github.com/deeprave/specle/pull/17",
+      "revision": "review:5993336913; original:124e9949ccaf45537b4a3ccd8bb0b9d7e6ab4782",
+      "outcome": "commented"
+    },
+    {
+      "id": "local-review-20261121-pr-feedback",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "sha256:2d8525711aca0998d4eae89fb45f05fe0d43bd1a82254dfce473769d59ef9d22",
+      "outcome": "approve"
     }
   ],
   "findings": [
@@ -59,7 +74,7 @@
     },
     {
       "id": "github-actions-pr17-lifecycle-1",
-      "source_ids": ["github-actions-pr17-lifecycle"],
+      "source_ids": ["github-actions-pr17-lifecycle", "sourcery-pr17-20261120"],
       "severity": "P2",
       "description": "The generated skill index embeds workstation-specific resource URIs and fails lifecycle validation in CI.",
       "evidence": ".agents/skills/specle/index.json resource entries; GitHub Actions lifecycle job 136310567557",
@@ -68,6 +83,62 @@
       "state": "resolved",
       "decision": "accept",
       "rationale": "The index is an inventory resource, not a filesystem resolver; absolute locations and duplicated grouping provide no required information.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "sourcery-pr17-1",
+      "source_ids": ["sourcery-pr17-20261120"],
+      "severity": "P2",
+      "description": "The lifecycle job grants checks-write permission while synchronising and running pull-request-controlled project code.",
+      "evidence": ".github/workflows/document-validation.yml:6-8, 47-50; discussion_r4642922064",
+      "analysis": "The workflow-level permission grants every job Checks API write access. The lifecycle job runs uv sync and the local CLI from the pull request checkout, so it does not need that permission and should not receive it.",
+      "recommendation": "Set workflow permissions to contents read only and grant checks write only to the Vale reporting job.",
+      "state": "resolved",
+      "decision": "accept",
+      "rationale": "Only the Vale reporter needs Checks API write access; lifecycle validation should remain read-only.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "sourcery-pr17-3",
+      "source_ids": ["sourcery-pr17-20261120"],
+      "severity": "P2",
+      "description": "Local Vale suggestions may block validation despite the configured advisory policy.",
+      "evidence": ".pre-commit-config.yaml:42-46, .vale.ini:2, document-validation SKILL.md:28; discussion_r4642922082",
+      "analysis": "The project policy calls local Vale findings advisory, but the hook and documented command currently rely on Vale's normal exit behaviour at suggestion level.",
+      "recommendation": "Configure local Vale invocations and the pre-commit hook to report suggestions while returning success; retain the CI Vale step's non-zero result for suggestions.",
+      "state": "resolved",
+      "decision": "accept",
+      "rationale": "Local suggestions are advisory by policy; CI should still expose them as a non-required failing check.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "sourcery-pr17-4",
+      "source_ids": ["sourcery-pr17-20261120"],
+      "severity": "P2",
+      "description": "The Vale GitHub check reporter may not publish reports for fork-originated pull requests.",
+      "evidence": ".github/workflows/document-validation.yml:57-64; discussion_r4642922092",
+      "analysis": "Fork pull-request tokens are read-only, so a reporter requiring Checks API write access cannot publish its annotations in that context.",
+      "recommendation": "Use a fork-safe reporting path or conditionally skip the check reporter for fork pull requests.",
+      "state": "resolved",
+      "decision": "accept",
+      "rationale": "Fork pull requests must not fail solely because GitHub withholds Checks API write permission.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "sourcery-pr17-5",
+      "source_ids": ["sourcery-pr17-20261120"],
+      "severity": "P2",
+      "description": "The documented local Markdownlint command passes docs as a directory rather than the workflow's explicit Markdown glob.",
+      "evidence": "src/specle/blueprints/skills/document-validation/SKILL.md:26; discussion_r4642922101",
+      "analysis": "The CI workflow explicitly targets docs/**/*.md, while the local skill passes docs. Using the same explicit glob makes the documented inventory unambiguous.",
+      "recommendation": "Change the local command to docs/**/*.md and synchronise the installed skill.",
+      "state": "resolved",
+      "decision": "accept",
+      "rationale": "Local and CI validation should use the same explicit source-documentation scope.",
       "route": "revise",
       "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
     }

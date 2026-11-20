@@ -23,9 +23,9 @@ Do not validate installed `.agents/` copies, `.specle/` runtime artefacts, or ar
 2. For a full run, execute:
 
    ```console
-   markdownlint-cli2 README.md docs 'src/specle/blueprints/**/*.md'
+   markdownlint-cli2 README.md 'docs/**/*.md' 'src/specle/blueprints/**/*.md'
    cspell lint README.md docs 'src/specle/blueprints/**/*.md' --no-progress
-   vale README.md docs src/specle/blueprints
+   vale --no-exit README.md docs src/specle/blueprints
    uv run --frozen specle validate . --verbose
    ```
 

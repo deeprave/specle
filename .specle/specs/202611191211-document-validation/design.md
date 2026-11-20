@@ -62,6 +62,8 @@ The `document-validation` skill:
 
 The workflow runs only for pull-request events. It invokes the same source-documentation inventory and repository-owned configuration as the local skill. Markdownlint, CSpell, and lifecycle diagnostics fail their steps. Vale emits advisory output and a non-zero step result when it finds suggestions; the resulting workflow check remains non-required by repository rules and separate from `Verify`.
 
+Workflow-level permissions are `contents: read`. Only the same-repository Vale reporting job receives `checks: write`; Markdownlint, CSpell, and lifecycle validation run with read-only permissions. For a fork-originated pull request, Vale runs without a Checks API reporter so lack of write permission cannot turn reporting into a validation failure. The local full-inventory Markdownlint command uses the same explicit `README.md`, `docs/**/*.md`, and blueprint glob paths as the workflow.
+
 ## Language guidance
 
 Add `language.md` to the project overlay and onboarding inventory. It records the repository's established UK/AU spelling and accepted software terminology. The document-validation configuration uses that policy but remains source-controlled and reusable without reading a target project's overlay.
@@ -80,6 +82,7 @@ Add `language.md` to the project overlay and onboarding inventory. It records th
 | Pre-commit Vale finding | Display the suggestion without blocking the commit. |
 | Pre-commit lifecycle finding | Fail the commit with the inventory-wide diagnostic; do not infer safety from the changed-file list. |
 | Generated index contains an installation-specific location or redundant group field | Fail lifecycle validation with an index diagnostic; regenerate the portable index from the installed inventory. |
+| Fork PR cannot write check annotations | Run Vale without a Checks API reporter; preserve its diagnostic output and non-required workflow result. |
 
 ## Test strategy
 
@@ -91,4 +94,5 @@ Add `language.md` to the project overlay and onboarding inventory. It records th
 - Confirm the pull-request workflow runs read-only checks using the same configuration and paths, remains separate from `Verify`, and is non-required by repository rules.
 - Confirm pre-commit restricts prose checks to staged source-inventory files, reuses the repository configuration, preserves advisory Vale behaviour, and runs lifecycle validation without file arguments.
 - Confirm an index generated for one target validates from another target location and contains only the agreed group and entry fields.
+- Confirm only the same-repository Vale job receives Checks API write permission, fork PRs do not require it to run Vale, and local Vale suggestions return success while CI suggestions retain their non-required failing signal.
 - Run the project quality gates through `uv`: pytest, Ruff check, Ruff format check, and Ty check.

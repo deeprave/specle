@@ -19,12 +19,13 @@ Add a local document-validation skill and a separate pull-request workflow for t
 - Add project-owned language guidance and onboarding support; language choices no longer belong in `AGENTS.md`.
 - Add a pull-request-only document-validation workflow that uses the same source scope and repository-owned configuration as the local skill.
 - Add changed-file pre-commit hooks for Markdownlint, CSpell, and advisory Vale, plus an inventory-wide `specle validate` hook.
+- Limit Checks API write permission to same-repository Vale reporting, preserve fork PR validation without write-dependent reporting, and use the same explicit Markdown paths locally and in CI.
 - Keep document validation separate from the main `Verify` aggregate and non-required by repository rules.
 
 ## Constraints
 
-Do not lint installed `.agents/` copies or `.specle/` runtime artefacts. Validate `README.md` and `docs/**/*.md` alongside the blueprint package. Use the already installed local tools for the skill and workflow-provided tools for CI; do not add project dependencies. All validation runs must be read-only: they report findings without changing documents. Configure tools for intentional repository conventions rather than disabling broad classes of checks or rewriting valid content to suit generic defaults. Do not require an AI service for deterministic validation. Keep prose-style findings advisory and non-required by repository rules.
+Do not lint installed `.agents/` copies or `.specle/` runtime artefacts. Validate `README.md` and `docs/**/*.md` alongside the blueprint package. Use the already installed local tools for the skill and workflow-provided tools for CI; do not add project dependencies. All validation runs must be read-only: they report findings without changing documents. Give PR-controlled jobs only the permissions they need. Configure tools for intentional repository conventions rather than disabling broad classes of checks or rewriting valid content to suit generic defaults. Do not require an AI service for deterministic validation. Keep prose-style findings advisory locally and non-required by repository rules in CI.
 
 ## Verification
 
-Verify source-only scope, UK/AU spelling configuration, a portable minimal skill index, expected Markdown and lifecycle failures, advisory Vale output, changed-file pre-commit behaviour, PR-only workflow triggering, read-only execution, and independence from the main `Verify` gate.
+Verify source-only scope, UK/AU spelling configuration, a portable minimal skill index, expected Markdown and lifecycle failures, advisory Vale output, changed-file pre-commit behaviour, least-privilege and fork-safe PR reporting, PR-only workflow triggering, read-only execution, and independence from the main `Verify` gate.

@@ -42,3 +42,10 @@
   - [x] 9.1 Remove installation-specific resource URIs and redundant per-entry group fields from the index builder, model, and JSON Schema.
   - [x] 9.2 Update focused index and initialisation tests to assert the portable group-and-entry contract across different installation locations.
   - [x] 9.3 Regenerate the managed active index and confirm local and CI-equivalent lifecycle validation pass from distinct checkout paths.
+
+- [x] 10. Reconcile pull-request validation with review findings
+  - [x] 10.1 Restrict Checks API write permission to same-repository Vale reporting and preserve read-only lifecycle validation.
+  - [x] 10.2 Keep local Vale and its pre-commit hook advisory while retaining CI's non-required failing signal for suggestions.
+  - [x] 10.3 Run Vale safely for fork-originated pull requests without a write-dependent check reporter.
+  - [x] 10.4 Align the local Markdownlint command with CI's explicit source-documentation glob and synchronise the active skill.
+  - [x] 10.5 Exercise the workflow and hook configuration, then re-run document validation and project quality gates.

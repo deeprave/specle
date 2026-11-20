@@ -5,7 +5,6 @@ on:
 
 permissions:
   contents: read
-  checks: write
 
 jobs:
   markdownlint:
@@ -50,7 +49,11 @@ jobs:
         run: uv run --frozen specle validate . --verbose
 
   vale:
+    if: github.event.pull_request.head.repo.fork == false
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
       - name: Report advisory prose findings
@@ -60,5 +63,22 @@ jobs:
           config: .vale.ini
           files: README.md,docs,src/specle/blueprints
           reporter: github-pr-check
+          min_alert_level: suggestion
+          fail_level: any
+
+  vale-fork:
+    if: github.event.pull_request.head.repo.fork
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.0
+      - name: Report advisory prose findings
+        uses: errata-ai/vale-action@518a9136acc6e6668ce7c00d367051e0941e87ff # v3.0.0
+        with:
+          version: 3.27.0
+          config: .vale.ini
+          files: README.md,docs,src/specle/blueprints
+          reporter: github-pr-annotations
           min_alert_level: suggestion
           fail_level: any

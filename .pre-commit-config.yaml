@@ -40,6 +40,7 @@ repos:
     rev: v3.28.1
     hooks:
       - id: vale
+        args: [--no-exit]
         files: ^(README\.md|docs/.*\.md|src/specle/blueprints/.*\.md)$
 
   - repo: local

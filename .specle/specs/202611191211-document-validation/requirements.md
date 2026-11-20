@@ -48,6 +48,7 @@ The Markdown blueprints distributed by Specle are both human guidance and operat
 3. Vale findings SHALL be advisory: they SHALL not make the local validation fail or block the main `Verify` gate.
 4. THE initial rules SHALL document their intent and SHALL not silently adopt a broad external editorial style guide as project policy.
 5. THE Vale configuration and rules SHALL fit the concise instructional Markdown used by skills and policies, rather than imposing generic prose conventions that conflict with established repository style.
+6. Local Vale invocations and the Vale pre-commit hook SHALL display suggestion-level findings while returning success.
 
 ### Requirement 4: Validate lifecycle logic deterministically
 
@@ -86,6 +87,8 @@ The Markdown blueprints distributed by Specle are both human guidance and operat
 4. Markdownlint, CSpell, and lifecycle violations SHALL fail their workflow steps with actionable diagnostics.
 5. Vale SHALL display advisory findings and return a non-zero result for suggestions, while its workflow check remains non-required by repository rules.
 6. Every validation step SHALL be read-only and SHALL NOT format, fix, or otherwise modify documentation.
+7. The workflow SHALL use least-privilege permissions: only the job that publishes same-repository Vale check annotations may receive Checks API write permission.
+8. Fork-originated pull requests SHALL still run Vale without failing because a check-reporting permission is unavailable.
 
 ### Requirement 7: Support local document-validation feedback
 
@@ -124,6 +127,7 @@ The Markdown blueprints distributed by Specle are both human guidance and operat
 4. THE repository SHALL add a local `specle validate` pre-commit hook that runs without file arguments whenever hooks execute, because lifecycle validation is inventory-wide.
 5. THE hooks SHALL be read-only and SHALL NOT format, fix, or otherwise modify staged documentation.
 6. THE pre-commit configuration SHALL use maintained upstream hooks where available and a narrow local system hook only for the repository's own `specle validate` command.
+7. The documented local Markdownlint invocation SHALL use the same explicit Markdown paths as CI.
 
 ## Non-Functional Requirements
 
