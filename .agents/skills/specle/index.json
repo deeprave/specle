@@ -5,6 +5,13 @@
       "name": "Reference",
       "skills": [
         {
+          "name": "explain",
+          "specle_group": "Reference",
+          "description": "Explain a Specle change's purpose, requirements, approach, and current lifecycle state.",
+          "usage": "Use with a named spec when a user wants to understand its intent, implementation direction, kind, status, and next action without changing it.",
+          "resource": "file:///Users/davidn/Code/specle/.agents/skills/explain/SKILL.md"
+        },
+        {
           "name": "specle",
           "specle_group": "Reference",
           "description": "Describe the installed Specle workflow and skill inventory.",
