@@ -1,20 +1,25 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
   "kind": "change",
-  "status": "defined",
+  "status": "committed",
   "progress": {
-    "tasks_completed": 0,
-    "tasks_total": 0
+    "tasks_completed": 7,
+    "tasks_total": 7
   },
   "verification": {
-    "status": "not-run"
+    "status": "pass"
   },
   "review": {
-    "status": "not-run"
+    "status": "pass"
   },
-  "delivery": null,
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/27",
+    "head_branch": "feature/add-specle-manifest",
+    "target_branch": "main",
+    "event": "pull-request-updated"
+  },
   "relationships": [],
   "dependencies": [],
   "created_at": 1795245120,
-  "activated_at": null
+  "activated_at": 1795260825
 }

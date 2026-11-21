@@ -74,6 +74,33 @@ def test_parser_accepts_schema_export_destination_and_force() -> None:
     assert args.force is True
 
 
+def test_parser_accepts_manifest_output() -> None:
+    args = build_parser().parse_args(["manifest", "/work/manifest"])
+
+    assert args.command == "manifest"
+    assert args.output == "/work/manifest"
+
+
+def test_manifest_writes_an_explicit_output(tmp_path, capsys) -> None:
+    output = tmp_path / "manifest"
+
+    anyio.run(main, ["manifest", str(output)])
+
+    assert output.is_file()
+    assert "appended" in capsys.readouterr().out
+
+
+def test_manifest_uses_package_version(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    output = tmp_path / "manifest"
+    monkeypatch.setattr("specle.main.__version__", "9.8.7")
+
+    anyio.run(main, ["manifest", str(output)])
+
+    assert output.read_text().startswith("9.8.7:")
+
+
 def test_init_uses_the_explicit_target(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -86,6 +113,7 @@ def test_init_uses_the_explicit_target(
     anyio.run(main, ["init", str(target)])
 
     assert (target / ".agents" / "skills" / "define" / "SKILL.md").is_file()
+    assert not (target / ".agents" / "manifest").exists()
     assert not (current_directory / ".agents").exists()
 
 

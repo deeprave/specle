@@ -10,6 +10,7 @@ from pathlib import Path
 
 import anyio
 
+from specle import __version__
 from specle.file_reading import read_regular_text
 from specle.inventory import (
     ManagedInventory,
@@ -26,6 +27,7 @@ from specle.lifecycle import (
     read_runtime_snapshot,
     validate_runtime_records,
 )
+from specle.manifest import ManifestError, append_manifest
 from specle.schema_registry import (
     SchemaRegistryError,
     export_schemas,
@@ -61,6 +63,10 @@ def build_parser() -> argparse.ArgumentParser:
         nargs="?",
         help="Existing directory containing the Specle runtime to validate.",
     )
+    manifest = commands.add_parser(
+        "manifest", help="Append release provenance lines to a manifest output."
+    )
+    manifest.add_argument("output", help="Manifest file to create or append.")
     validate.add_argument(
         "--blueprint",
         action="store_true",
@@ -93,6 +99,19 @@ async def main(args: list[str] | None = None) -> None:
     """Run the asynchronous Specle command-line application."""
     parser = build_parser()
     parsed = parser.parse_args(args)
+
+    if parsed.command == "manifest":
+        try:
+            version = __version__
+            with as_file(packaged_distribution_root()) as source_root:
+                inventory = scan_managed_inventory(source_root)
+                appended = await anyio.to_thread.run_sync(
+                    partial(append_manifest, Path(parsed.output), inventory, version)
+                )
+        except (ManifestError, SkillMetadataError) as error:
+            raise SystemExit(str(error)) from error
+        print(f"appended {appended} manifest line(s) for {version}: {parsed.output}")
+        return
 
     if parsed.command == "validate":
         if parsed.blueprint == (parsed.target_directory is not None):

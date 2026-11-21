@@ -6,12 +6,12 @@ The skill index is a lean agent-discovery resource and cannot identify which com
 
 ## Goal
 
-Create, distribute, and validate a separate versioned blueprint manifest containing current managed-resource checksums and historical package-generation records.
+Create an append-only, versioned text manifest containing complete released managed-resource checksum inventories, with a source-only CLI command and documentation for release preparation.
 
 ## Direction
 
-Generate the current record from the shared managed inventory and `pyproject.toml` version whenever managed blueprints change. Preserve complete prior-version checksum maps so file introduction, change, and removal can be derived. Keep the manifest separate from `index.json`, validate it against live scans, and distribute it through init's transactional managed-content path.
+Use `specle.__version__`, resolved through `importlib.metadata`, when `specle manifest <output>` is run during release preparation. Create the initial output or append one complete immutable inventory for the new version. Keep the manifest separate from `index.json`, `.agents/`, installed-target validation, and runtime state.
 
 ## Verification
 
-Test deterministic current-manifest generation, stale-manifest detection, version-history preservation, path-introduction history, install/update distribution, and live-file drift validation. Run the repository quality gates.
+Test deterministic manifest-line generation, generated-index exclusion, append-only history behaviour, conflicting-entry rejection, CLI version loading, and the source-only boundary. Run the repository quality gates.
