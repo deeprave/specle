@@ -1,3 +1,7 @@
+---
+specle_policy: true
+---
+
 # Delivery policy
 
 Specle separates local implementation quality from the event that delivers work to a shared repository or its users. This document describes portable delivery models; `.agents/project/delivery.md` selects a model and records that project's conventions.

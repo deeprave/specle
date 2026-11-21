@@ -140,6 +140,23 @@ def test_compares_an_installed_distribution_to_its_package_source(
     assert compare_installed_distribution(source_root, target) == ()
 
 
+def test_reports_each_missing_skill_for_an_empty_installed_inventory(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    target = tmp_path / "project"
+    (target / ".agents" / "skills").mkdir(parents=True)
+
+    diagnostics = compare_installed_distribution(source_root, target)
+
+    assert diagnostics == (
+        "missing managed resource (requires update): policies/testing.md",
+        "missing managed skill (requires update): spec",
+        "missing managed skill (requires update): specle",
+        "missing managed skill (requires update): verify",
+    )
+
+
 def test_scans_package_and_installed_roots_into_matching_records(
     tmp_path: Path,
 ) -> None:
@@ -170,6 +187,21 @@ def test_inventory_scan_returns_lifecycle_analysis(tmp_path: Path) -> None:
     }
 
 
+def test_inventory_scan_returns_package_completeness_diagnostics(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    shutil.rmtree(source_root / "skills" / "specle")
+    (source_root / "policies" / "testing.md").unlink()
+
+    inventory = scan_managed_inventory(source_root)
+
+    assert inventory.package_diagnostics == (
+        "the packaged skill inventory has no 'specle' skill",
+        f"the policy inventory is empty at {source_root / 'policies'}",
+    )
+
+
 @pytest.mark.parametrize(
     ("relative_path", "expected"),
     [
@@ -191,7 +223,10 @@ def test_reports_missing_or_modified_managed_resources(
     if expected.startswith("missing"):
         target_path.unlink()
     else:
-        target_path.write_text("modified\n")
+        if target_path.suffix == ".md":
+            target_path.write_text("---\nspecle_policy: true\n---\n\nmodified\n")
+        else:
+            target_path.write_text("modified\n")
 
     diagnostics = compare_installed_distribution(source_root, target)
 
@@ -326,7 +361,7 @@ def test_force_prunes_obsolete_distributed_policies(tmp_path: Path) -> None:
     target.mkdir()
     initialise_distribution(source_root, target)
     retired = target / ".agents" / "policies" / "retired.md"
-    retired.write_text("# Retired guidance\n")
+    retired.write_text("---\nspecle_policy: true\n---\n\n# Retired guidance\n")
 
     with pytest.raises(SkillInstallationError, match="retired.md"):
         initialise_distribution(source_root, target)
@@ -529,7 +564,7 @@ def _write_distribution(root: Path) -> Path:
     _write_skill(root / "skills", "verify", "Quality")
     policies = root / "policies"
     policies.mkdir(parents=True)
-    (policies / "testing.md").write_text("# Testing\n")
+    (policies / "testing.md").write_text("---\nspecle_policy: true\n---\n\n# Testing\n")
     return root
 
 

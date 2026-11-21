@@ -1,12 +1,12 @@
 from pathlib import Path
 
-from specle.inventory import discover_policies, discover_skills
+from specle.inventory import discover_skills
 
 BLUEPRINTS = Path(__file__).parents[1] / "src" / "specle" / "blueprints"
 
 
 def test_distribution_includes_delivery_and_automation_policy() -> None:
-    policies = discover_policies(BLUEPRINTS / "policies")
+    policies = tuple(sorted((BLUEPRINTS / "policies").glob("*.md")))
     skills = discover_skills(BLUEPRINTS / "skills")
 
     assert "delivery.md" in [path.name for path in policies]

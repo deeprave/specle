@@ -100,15 +100,23 @@ async def main(args: list[str] | None = None) -> None:
                 "validate requires exactly one of TARGET_DIRECTORY or --blueprint"
             )
         if parsed.blueprint:
-            with as_file(packaged_distribution_root()) as source_root:
-                inventory = scan_managed_inventory(source_root)
-                skills = tuple(record.metadata for record in inventory.skills)
-                diagnostics = list(inventory.lifecycle.diagnostics)
-                index = build_skill_index(skills)
-                diagnostics.extend(
-                    _diagnostic(f"unmanaged package skill: {path}")
-                    for path in inventory.unmanaged_skill_files
-                )
+            try:
+                with as_file(packaged_distribution_root()) as source_root:
+                    inventory = scan_managed_inventory(source_root)
+                    skills = tuple(record.metadata for record in inventory.skills)
+                    diagnostics = list(inventory.lifecycle.diagnostics)
+                    diagnostics.extend(
+                        _diagnostic(message)
+                        for message in inventory.package_diagnostics
+                    )
+                    index = build_skill_index(skills)
+                    diagnostics.extend(
+                        _diagnostic(f"unmanaged package skill: {path}")
+                        for path in inventory.unmanaged_skill_files
+                    )
+            except SkillMetadataError as error:
+                print(_diagnostic(str(error)).message)
+                raise SystemExit(1) from error
             try:
                 validate_instance(index)
             except SchemaRegistryError as error:

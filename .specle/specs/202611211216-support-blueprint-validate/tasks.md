@@ -27,3 +27,13 @@
   - [x] 7.1 Make one inventory operation own traversal, metadata parsing, dependency validation, resource checksums, and lifecycle analysis.
   - [x] 7.2 Rewire init, validation, index generation, and compatibility helpers to consume its result rather than rediscovering skills.
   - [x] 7.3 Preserve a reusable lifecycle graph in the inventory result for later rendering or planning commands, then re-run complete verification and review.
+
+- [x] 8. Reconcile external-review corrections to shared inventory semantics.
+  - [x] 8.1 Make the shared inventory result own package-completeness and top-level marker-owned policy analysis; remove standalone policy discovery.
+  - [x] 8.2 Permit an empty installed managed inventory for comparison while retaining package completeness requirements and preserving user policy files during init.
+  - [x] 8.3 Make both CLI validation modes report inspection failures consistently without tracebacks.
+  - [x] 8.4 Add focused production-code coverage for the accepted behaviours, then run complete verification and review.
+
+- [x] 9. Move package-completeness analysis into the inventory result.
+  - [x] 9.1 Return completeness diagnostics from the shared scan and remove the standalone completeness helper.
+  - [x] 9.2 Rewire init and blueprint validation to consume that result, with focused production-code coverage.

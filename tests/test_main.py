@@ -1,6 +1,7 @@
 import anyio
 import pytest
 
+from specle.inventory import SkillMetadataError
 from specle.main import build_parser, main
 
 
@@ -43,6 +44,20 @@ def test_validate_blueprint_mode_requires_no_installed_target(capsys) -> None:
     anyio.run(main, ["validate", "--blueprint"])
 
     assert "validated blueprint" in capsys.readouterr().out
+
+
+def test_validate_reports_blueprint_inspection_errors_without_a_traceback(
+    monkeypatch: pytest.MonkeyPatch, capsys
+) -> None:
+    def fail_scan(*_args: object) -> None:
+        raise SkillMetadataError("invalid packaged blueprint")
+
+    monkeypatch.setattr("specle.main.scan_managed_inventory", fail_scan)
+
+    with pytest.raises(SystemExit, match="1"):
+        anyio.run(main, ["validate", "--blueprint"])
+
+    assert capsys.readouterr().out == "invalid packaged blueprint\n"
 
 
 def test_validate_rejects_combined_modes() -> None:
@@ -113,7 +128,9 @@ def test_validate_reports_managed_inventory_drift(tmp_path, capsys) -> None:
     target = tmp_path / "target"
     target.mkdir()
     anyio.run(main, ["init", str(target)])
-    (target / ".agents" / "policies" / "testing.md").write_text("modified\n")
+    (target / ".agents" / "policies" / "testing.md").write_text(
+        "---\nspecle_policy: true\n---\n\nmodified\n"
+    )
 
     with pytest.raises(SystemExit, match="1"):
         anyio.run(main, ["validate", str(target)])

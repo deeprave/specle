@@ -129,6 +129,7 @@ class ManagedInventory:
     resources: tuple[ResourceChecksum, ...]
     unmanaged_skill_files: tuple[Path, ...]
     lifecycle: LifecycleAnalysis
+    package_diagnostics: tuple[str, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -283,19 +284,6 @@ def discover_installed_specle_skills(
         target_directory.expanduser().resolve() / ".agents"
     )
     return tuple(record.metadata for record in inventory.skills)
-
-
-def discover_policies(source_root: Path) -> tuple[Path, ...]:
-    """Compatibility view of policy documents from one inventory inspection."""
-    inventory = scan_managed_inventory(source_root.expanduser().resolve().parent)
-    policies = tuple(
-        inventory.root / resource.path
-        for resource in inventory.resources
-        if resource.path.suffix == ".md"
-    )
-    if not policies:
-        raise SkillMetadataError(f"the policy inventory is empty at {source_root}")
-    return policies
 
 
 def build_skill_index(skills: tuple[SkillMetadata, ...]) -> SkillIndex:
@@ -500,17 +488,33 @@ def scan_managed_inventory(distribution_root: Path) -> ManagedInventory:
                 ),
             )
         )
-    if not skills:
-        raise SkillMetadataError(f"the skill inventory is empty at {skills_root}")
     metadata = tuple(record.metadata for record in skills)
     _validate_skill_dependencies(metadata)
+    policy_resources = _scan_managed_policies(root)
     return ManagedInventory(
         root,
         tuple(skills),
-        _checksum_resources(root / "policies", Path("policies")),
+        policy_resources,
         tuple(unmanaged),
         analyse_lifecycle(metadata),
+        _package_completeness_diagnostics(root, tuple(skills), policy_resources),
     )
+
+
+def _package_completeness_diagnostics(
+    root: Path,
+    skills: tuple[ManagedSkillInventory, ...],
+    resources: tuple[ResourceChecksum, ...],
+) -> tuple[str, ...]:
+    """Derive package completeness diagnostics during inventory inspection."""
+    diagnostics: list[str] = []
+    if not skills:
+        diagnostics.append("the packaged managed skill inventory is empty")
+    elif not any(record.metadata.name == "specle" for record in skills):
+        diagnostics.append("the packaged skill inventory has no 'specle' skill")
+    if not resources:
+        diagnostics.append(f"the policy inventory is empty at {root / 'policies'}")
+    return tuple(diagnostics)
 
 
 def compare_managed_inventories(
@@ -574,6 +578,33 @@ def _checksum_resources(
     return tuple(resources)
 
 
+def _scan_managed_policies(root: Path) -> tuple[ResourceChecksum, ...]:
+    """Return checksums for marker-owned top-level Markdown policy documents."""
+    policies_root = root / "policies"
+    if not policies_root.is_dir():
+        return ()
+    resources: list[ResourceChecksum] = []
+    for path in sorted(policies_root.glob("*.md")):
+        try:
+            contents = read_regular_text(path)
+        except (FileNotFoundError, OSError) as error:
+            raise SkillMetadataError(f"unable to read {path}: {error}") from error
+        if not _has_specle_policy_text(contents):
+            continue
+        resources.append(
+            ResourceChecksum(Path("policies") / path.name, _checksum_path(path))
+        )
+    return tuple(resources)
+
+
+def _checksum_path(path: Path) -> str:
+    """Return the SHA-256 checksum of one already-classified regular file."""
+    try:
+        return hashlib.sha256(read_regular_bytes(path)).hexdigest()
+    except OSError as error:
+        raise SkillMetadataError(f"unable to read {path}: {error}") from error
+
+
 def _compare_resources(
     expected: tuple[ResourceChecksum, ...],
     actual: tuple[ResourceChecksum, ...],
@@ -635,18 +666,10 @@ def initialise_distribution(
 
     source_root = source_root.expanduser().resolve()
     inventory = scan_managed_inventory(source_root)
+    if inventory.package_diagnostics:
+        raise SkillMetadataError(inventory.package_diagnostics[0])
     skills = tuple(record.metadata for record in inventory.skills)
-    policies = tuple(
-        source_root / resource.path
-        for resource in inventory.resources
-        if resource.path.suffix == ".md"
-    )
-    if not policies:
-        raise SkillMetadataError(
-            f"the policy inventory is empty at {source_root / 'policies'}"
-        )
-    if not any(skill.name == "specle" for skill in skills):
-        raise SkillMetadataError("the packaged skill inventory has no 'specle' skill")
+    policies = tuple(source_root / resource.path for resource in inventory.resources)
 
     agents_root = target_directory / ".agents"
     skills_root = agents_root / "skills"
@@ -654,7 +677,9 @@ def initialise_distribution(
     skill_destinations = [
         (skill.path.parent, skills_root / skill.name) for skill in skills
     ]
-    policy_destinations = [(source, policies_root / source.name) for source in policies]
+    policy_destinations = [
+        (source, agents_root / source.relative_to(source_root)) for source in policies
+    ]
     index_destination = skills_root / "specle" / "index.json"
     destinations = [
         *(skills_root / skill.name for skill in skills),
@@ -878,7 +903,7 @@ def _discover_obsolete_policies(
     return tuple(
         path
         for path in sorted(policies_root.glob("*.md"))
-        if path.name not in incoming_names
+        if path.name not in incoming_names and _has_specle_policy(path)
     )
 
 
@@ -916,6 +941,27 @@ def _has_specle_group_text(contents: str) -> bool:
         if line == "---":
             break
         if line.startswith("specle_group:"):
+            return True
+    return False
+
+
+def _has_specle_policy(path: Path) -> bool:
+    """Return whether a policy frontmatter block declares Specle ownership."""
+    try:
+        return _has_specle_policy_text(read_regular_text(path))
+    except (FileNotFoundError, OSError):
+        return False
+
+
+def _has_specle_policy_text(contents: str) -> bool:
+    """Classify a buffered policy document by its ownership marker."""
+    lines = contents.splitlines()
+    if not lines or lines[0] != "---":
+        return False
+    for line in lines[1:]:
+        if line == "---":
+            break
+        if line == "specle_policy: true":
             return True
     return False
 

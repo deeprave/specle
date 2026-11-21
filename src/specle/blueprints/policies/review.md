@@ -1,3 +1,7 @@
+---
+specle_policy: true
+---
+
 # Review Severity
 
 Use P1 through P6 for review findings, in priority order:

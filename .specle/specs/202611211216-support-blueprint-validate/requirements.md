@@ -26,6 +26,7 @@ Specle needs an explicit blueprint-validation mode so source workflow declaratio
 3. The command SHALL compare installed and packaged inventory records, and SHALL fail with an actionable diagnostic for a missing, modified, or unexpected managed skill or resource.
 4. Skills without `specle_group` SHALL remain outside managed-inventory comparison and SHALL not cause validation failure.
 5. The command SHALL identify an installed inventory originating from a different Specle version as requiring an update or validation with its matching package version.
+6. An installed target with zero managed skills SHALL remain inspectable so comparison reports every expected managed skill as missing; a package blueprint SHALL still require its complete managed inventory.
 
 ### Requirement 2: Add explicit blueprint validation
 
@@ -38,8 +39,22 @@ Specle needs an explicit blueprint-validation mode so source workflow declaratio
 3. Blueprint validation SHALL not perform installed-target checksum or content-drift comparison.
 4. The command-line interface SHALL reject ambiguous invocation that combines blueprint mode with an installed target directory.
 5. Verbose output SHALL identify whether installed-target or blueprint validation ran and report the validated inventory summary.
+6. Blueprint validation SHALL reject an incomplete package distribution using package-completeness diagnostics returned by the shared inventory result, including the required `specle` skill and package policy inventory.
+7. Inspection failures in either validation mode SHALL be reported as concise validation diagnostics without a traceback.
 
-### Requirement 3: Run the appropriate validation in CI
+### Requirement 3: Preserve explicit policy ownership
+
+**User Story:** As a project owner, I want package policy updates to preserve my own policy files, so Specle never deletes documents it does not own.
+
+#### Acceptance Criteria
+
+1. Package policies SHALL remain top-level Markdown documents; nested and binary policy resources are outside the managed distribution contract.
+2. Every package-owned policy document SHALL declare a standard YAML-frontmatter ownership marker.
+3. Init and validation SHALL use the same top-level Markdown and ownership-marker rule when inspecting package policies.
+4. Init SHALL remove only obsolete policy documents carrying the Specle ownership marker and SHALL never remove user-added policy files.
+5. The obsolete standalone `discover_policies` compatibility helper and its test-only callers SHALL be removed; policy information shall be consumed through the shared inventory result.
+
+### Requirement 4: Run the appropriate validation in CI
 
 **User Story:** As a maintainer, I want the required test workflow to validate source lifecycle declarations, so broken blueprint transitions cannot pass Verify.
 
@@ -54,6 +69,7 @@ Specle needs an explicit blueprint-validation mode so source workflow declaratio
 - One authoritative inventory operation must perform the only managed-skill traversal for each root. It must parse metadata, validate direct dependencies, calculate checksums, derive lifecycle graph analysis and diagnostics, and return all of those results together.
 - Initialisation, index construction, installed-target validation, update/reconciliation planning, and future lifecycle rendering must consume that result rather than independently rediscovering or reparsing skills.
 - Blueprint and installed-target modes may differ only in the root directory supplied and whether their resulting records are compared or runtime state is inspected.
+- The shared inventory operation SHALL return package-completeness diagnostics alongside its managed-policy ownership analysis; callers must consume those diagnostics directly and must not replicate or separately invoke those rules.
 - The two modes must have explicit, non-overlapping command syntax and diagnostics.
 - Installed-target validation must remain read-only.
 - This change is independent of `address-security-findings`; it may be implemented or delivered separately.
