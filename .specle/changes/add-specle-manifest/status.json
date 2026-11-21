@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
   "kind": "change",
-  "status": "approved",
+  "status": "committed",
   "progress": {
     "tasks_completed": 7,
     "tasks_total": 7
@@ -16,7 +16,7 @@
     "reference": "https://github.com/deeprave/specle/pull/27",
     "head_branch": "feature/add-specle-manifest",
     "target_branch": "main",
-    "event": "pull-request-opened"
+    "event": "pull-request-updated"
   },
   "relationships": [],
   "dependencies": [],
