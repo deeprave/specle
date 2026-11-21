@@ -1,8 +1,8 @@
 # Tasks: add Specle manifest
 
 - [x] 1. Define text-manifest lines and package-version ownership.
-  - [x] 1.1 Add focused failing production tests for `version:skill/<skill>/<path>:<checksum>` and `version:policies/<document>:<checksum>` output, stable ordering, and the package `__version__` source.
-  - [x] 1.2 Add the package version export plus text-manifest line parsing and construction from one supplied `ManagedInventory`.
+  - [x] 1.1 Add focused failing production tests for `version:skill/<skill>/<path>:<checksum>` and `version:policies/<document>:<checksum>` output, stable ordering, and the distribution metadata version source.
+  - [x] 1.2 Add text-manifest line parsing and construction from one supplied `ManagedInventory`.
 
 - [x] 2. Implement append-only release generation.
   - [x] 2.1 Add failing production tests for initial output creation, append of missing lines to a valid existing manifest, repeated-entry no-op behaviour, conflicting-checksum and duplicate-identity rejection, malformed-line rejection, and preservation of prior lines.
@@ -20,3 +20,10 @@
   - [x] 5.1 Add production tests that init and installed-target validation do not copy, require, or consume a manifest.
   - [x] 5.2 Run `uv run pytest`, `uv run ruff check .`, `uv run ruff format --check .`, `uv run ty check`, blueprint validation, installed-target validation, and pre-commit.
   - [x] 5.3 Correct the generated-index exclusion assertion so it rejects a manifest entry for `skills/specle/index.json`, then rerun the affected checks.
+
+- [x] 6. Resolve the package version through `importlib.metadata`.
+  - [x] 6.1 Define `specle.__version__` from installed distribution metadata, use that single value in the CLI, and add observable coverage of both the resolution and consumer path.
+
+- [x] 7. Preserve manifest-file error boundaries.
+  - [x] 7.1 Create output temporaries exclusively with unique sibling paths, preserving any pre-existing temporary path.
+  - [x] 7.2 Convert invalid UTF-8 manifest input to a concise `ManifestError` and cover both behaviours with production tests.

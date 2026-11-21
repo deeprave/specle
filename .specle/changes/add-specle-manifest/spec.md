@@ -10,7 +10,7 @@ Create an append-only, versioned text manifest containing complete released mana
 
 ## Direction
 
-Use `specle.__version__`, obtained through `importlib`, when `specle manifest <output>` is run during release preparation. Create the initial output or append one complete immutable inventory for the new version. Keep the manifest separate from `index.json`, `.agents/`, installed-target validation, and runtime state.
+Use `specle.__version__`, resolved through `importlib.metadata`, when `specle manifest <output>` is run during release preparation. Create the initial output or append one complete immutable inventory for the new version. Keep the manifest separate from `index.json`, `.agents/`, installed-target validation, and runtime state.
 
 ## Verification
 

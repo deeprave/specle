@@ -21,6 +21,22 @@
       "reference": null,
       "revision": "working-tree-after-coverage-revisions",
       "outcome": "approve"
+    },
+    {
+      "id": "sourcery-pr-27-8faf787",
+      "system": "sourcery-ai",
+      "kind": "pull-request-review",
+      "reference": "https://github.com/deeprave/specle/pull/27",
+      "revision": "8faf7879644433adfb473593f9616659ad740819",
+      "findings": 10
+    },
+    {
+      "id": "local-review-20261121-manifest-pr-revisions",
+      "system": "specle",
+      "kind": "local-review",
+      "reference": null,
+      "revision": "working-tree-after-pr-review-resolutions",
+      "outcome": "approve"
     }
   ],
   "items": [
@@ -107,6 +123,154 @@
         "resulting_change": "add-specle-manifest"
       },
       "state": "resolved"
+    },
+    {
+      "id": "sourcery-pr-27-predictable-temporary-path",
+      "source_ids": ["sourcery-pr-27-8faf787"],
+      "severity": "P2",
+      "description": "Manifest generation can overwrite an existing predictable temporary path.",
+      "evidence": "src/specle/manifest.py:54-57 writes directly to .<output-name>.tmp before replacing the output.",
+      "analysis": "An existing file is truncated, and an existing symlink is followed, before atomic replacement. This can alter unrelated user data selected only by a temporary-name collision.",
+      "recommendation": "Create a unique temporary file securely in the output directory before replacement.",
+      "decision": "accept",
+      "decision_rationale": "Use exclusive creation for a unique temporary file in the output directory so no pre-existing path is overwritten.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-manifest"
+      },
+      "state": "resolved"
+    },
+    {
+      "id": "sourcery-pr-27-concurrent-append",
+      "source_ids": ["sourcery-pr-27-8faf787"],
+      "severity": "P3",
+      "description": "Concurrent manifest generation can lose appended inventory records.",
+      "evidence": "src/specle/manifest.py:42-57 performs an unlocked read-modify-write operation.",
+      "analysis": "Separate processes can read the same prior contents then replace the output independently, leaving only one set of additions.",
+      "recommendation": "Serialize each output's read-modify-write operation and use a unique temporary file.",
+      "state": "decided",
+      "decision": "decline",
+      "decision_rationale": "Concurrent manifest generation is outside the intended release-preparation workflow.",
+      "route": null
+    },
+    {
+      "id": "sourcery-pr-27-incomplete-inventory",
+      "source_ids": ["sourcery-pr-27-8faf787"],
+      "severity": "P2",
+      "description": "Manifest generation accepts a packaged inventory with completeness diagnostics.",
+      "evidence": "src/specle/main.py:107-110 scans the package then calls append_manifest without checking inventory.package_diagnostics.",
+      "analysis": "A package missing required managed content could produce incomplete release provenance while the command reports success.",
+      "recommendation": "Reject inventory package diagnostics before generating a manifest.",
+      "state": "decided",
+      "decision": "decline",
+      "decision_rationale": "The command is intentionally a simple maintainer release-preparation tool; this additional completeness gate is not required.",
+      "route": null
+    },
+    {
+      "id": "sourcery-pr-27-stale-current-version-entries",
+      "source_ids": ["sourcery-pr-27-8faf787"],
+      "severity": "P2",
+      "description": "Existing current-version entries for removed resources are not detected.",
+      "evidence": "src/specle/manifest.py:45-51 checks generated identities against existing entries but does not compare existing current-version paths to the current inventory.",
+      "analysis": "A manifest generated before a resource removal can retain that resource for the same version, so its version-filtered entries no longer reconstruct the intended inventory.",
+      "recommendation": "Reject current-version entries that are absent from the supplied inventory.",
+      "state": "decided",
+      "decision": "decline",
+      "decision_rationale": "Release entries are append-only; generation does not reinterpret or remove recorded current-version paths.",
+      "route": null
+    },
+    {
+      "id": "sourcery-pr-27-output-inside-resource-tree",
+      "source_ids": ["sourcery-pr-27-8faf787"],
+      "severity": "P3",
+      "description": "A manifest output inside a managed skill resource tree can create a checksum cycle.",
+      "evidence": "src/specle/main.py:107-110 scans all managed skill resources before writing the user-selected output path.",
+      "analysis": "A later scan includes the generated manifest as a managed resource, making its own checksum unstable and conflicting with its recorded entry.",
+      "recommendation": "Reject outputs within scanned managed resource trees.",
+      "state": "decided",
+      "decision": "decline",
+      "decision_rationale": "Output placement is an explicit maintainer choice; this command will not impose an additional path restriction.",
+      "route": null
+    },
+    {
+      "id": "sourcery-pr-27-invalid-utf8",
+      "source_ids": ["sourcery-pr-27-8faf787"],
+      "severity": "P4",
+      "description": "Invalid UTF-8 in an existing manifest escapes as an unhandled traceback.",
+      "evidence": "src/specle/manifest.py:67 reads text but catches OSError only.",
+      "analysis": "UnicodeDecodeError is not converted to the command's documented ManifestError path.",
+      "recommendation": "Catch UnicodeDecodeError and raise a path-specific ManifestError.",
+      "decision": "accept",
+      "decision_rationale": "Manifest documents are expected to be valid UTF-8, but an invalid file should produce a concise path-specific command error rather than a traceback.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-manifest"
+      },
+      "state": "resolved"
+    },
+    {
+      "id": "sourcery-pr-27-noncanonical-paths",
+      "source_ids": ["sourcery-pr-27-8faf787"],
+      "severity": "P4",
+      "description": "The manifest parser accepts non-canonical resource paths.",
+      "evidence": "src/specle/manifest.py:11-15 accepts arbitrary non-colon path components after a skill or policies prefix.",
+      "analysis": "Traversal or malformed components can remain as provenance identities and distort comparison or query results.",
+      "recommendation": "Validate canonical blueprint-relative paths before accepting existing entries.",
+      "state": "decided",
+      "decision": "decline",
+      "decision_rationale": "No additional path-normalisation layer is needed for this simple line-oriented release record.",
+      "route": null
+    },
+    {
+      "id": "sourcery-pr-27-symlink-output",
+      "source_ids": ["sourcery-pr-27-8faf787"],
+      "severity": "P3",
+      "description": "Manifest generation replaces an output symlink rather than updating its target.",
+      "evidence": "src/specle/manifest.py:67 reads through an output symlink, while line 57 replaces the symlink path itself.",
+      "analysis": "The command can report success while the original target stays stale, contrary to the behaviour a user selecting that symlink path would ordinarily expect.",
+      "recommendation": "Resolve the output path before reading and replacement, or preserve the symlink while updating its target.",
+      "state": "decided",
+      "decision": "decline",
+      "decision_rationale": "The explicit output path is replaced as selected; symlink-preservation semantics are not needed for this command.",
+      "route": null
+    },
+    {
+      "id": "sourcery-pr-27-hardcoded-version",
+      "source_ids": ["sourcery-pr-27-8faf787"],
+      "severity": "P2",
+      "description": "Manifest generation reads a separately hard-coded package version.",
+      "evidence": "src/specle/__init__.py:3 defines __version__ = '0.1.0'; src/specle/main.py:105-106 uses it for manifest entries.",
+      "analysis": "A release version bump can leave the literal stale, misattributing immutable provenance entries to the wrong version.",
+      "recommendation": "Use distribution metadata as the sole version source.",
+      "decision": "accept",
+      "decision_rationale": "The hard-coded version is a real defect and must be replaced with the installed distribution metadata source.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-manifest"
+      },
+      "state": "resolved"
+    },
+    {
+      "id": "sourcery-pr-27-complete-inventory-coverage",
+      "source_ids": ["sourcery-pr-27-8faf787"],
+      "severity": "P3",
+      "description": "Tests do not prove generated manifest lines cover the complete supplied inventory.",
+      "evidence": "tests/test_manifest.py:17-24 checks two sample lines; tests/test_main.py:84-90 checks only file creation and output wording.",
+      "analysis": "A line-builder omission for another resource could pass the current tests, despite the manifest contract requiring a complete inventory.",
+      "recommendation": "Assert generated paths exactly equal all skill and policy resource paths in the supplied inventory, and verify CLI output against that complete set.",
+      "state": "decided",
+      "decision": "decline",
+      "decision_rationale": "Representative production checks are sufficient for this simple release-preparation command; exhaustive inventory duplication is not required.",
+      "route": null
     }
   ]
 }

@@ -1,10 +1,10 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "approved",
   "progress": {
-    "tasks_completed": 5,
-    "tasks_total": 5
+    "tasks_completed": 7,
+    "tasks_total": 7
   },
   "verification": {
     "status": "pass"

@@ -90,6 +90,17 @@ def test_manifest_writes_an_explicit_output(tmp_path, capsys) -> None:
     assert "appended" in capsys.readouterr().out
 
 
+def test_manifest_uses_package_version(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    output = tmp_path / "manifest"
+    monkeypatch.setattr("specle.main.__version__", "9.8.7")
+
+    anyio.run(main, ["manifest", str(output)])
+
+    assert output.read_text().startswith("9.8.7:")
+
+
 def test_init_uses_the_explicit_target(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -19,7 +19,7 @@ The generated skill index is intentionally an agent-facing discovery resource, n
 
 #### Acceptance Criteria
 
-1. `specle manifest <output>` SHALL append package-owned blueprint manifest lines from the shared managed-inventory result and the package version exposed by `specle.__version__`, loaded through `importlib`.
+1. `specle manifest <output>` SHALL append package-owned blueprint manifest lines from the shared managed-inventory result and `specle.__version__`, which SHALL resolve the installed distribution version through `importlib.metadata`.
 2. The appended lines SHALL include every managed skill resource as `version:skill/<skill>/<path>:checksum` and every package-owned policy as `version:policies/<document>:checksum`.
 3. The manifest SHALL exclude itself and generated resources whose inclusion would create a checksum cycle.
 4. Manifest generation SHALL be a release-preparation action. It SHALL create the initial manifest when the output is absent and append only resource entries whose `(version, path)` identity is not already recorded.
@@ -53,5 +53,5 @@ The generated skill index is intentionally an agent-facing discovery resource, n
 - The manifest format must be line-oriented, versioned, and safely parseable without JSON or YAML.
 - Manifest creation must consume the shared inventory result rather than reparsing blueprint files.
 - Historical records are release provenance, not user-project state or development-state inventory.
-- The package SHALL expose `__version__` from `specle.__init__`; manifest generation reads it through `importlib` rather than accepting a version argument.
+- `specle.__version__` SHALL resolve the installed distribution version through `importlib.metadata`; manifest generation and all other consumers SHALL use that single value rather than accepting a version argument or maintaining another version literal.
 - This change is an explicit prerequisite for `add-specle-update`; update will use the manifest for generation reporting but will still perform live inventory comparison.

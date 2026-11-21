@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import importlib
 import json
 from functools import partial
 from importlib.resources import as_file
@@ -11,6 +10,7 @@ from pathlib import Path
 
 import anyio
 
+from specle import __version__
 from specle.file_reading import read_regular_text
 from specle.inventory import (
     ManagedInventory,
@@ -102,14 +102,13 @@ async def main(args: list[str] | None = None) -> None:
 
     if parsed.command == "manifest":
         try:
-            package = importlib.import_module("specle")
-            version = package.__version__
+            version = __version__
             with as_file(packaged_distribution_root()) as source_root:
                 inventory = scan_managed_inventory(source_root)
                 appended = await anyio.to_thread.run_sync(
                     partial(append_manifest, Path(parsed.output), inventory, version)
                 )
-        except (AttributeError, ManifestError, SkillMetadataError) as error:
+        except (ManifestError, SkillMetadataError) as error:
             raise SystemExit(str(error)) from error
         print(f"appended {appended} manifest line(s) for {version}: {parsed.output}")
         return

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import re
+from contextlib import suppress
 from pathlib import Path
+from uuid import uuid4
 
 from specle.inventory import ManagedInventory
 
@@ -51,11 +53,25 @@ def append_manifest(output: Path, inventory: ManagedInventory, version: str) -> 
             raise ManifestError(f"conflicting checksum for manifest entry {identity}")
     if not additions:
         return 0
-    temporary = output.with_name(f".{output.name}.tmp")
+    temporary: Path | None = None
     try:
-        temporary.write_text("\n".join((*existing, *additions)) + "\n")
+        for _ in range(10):
+            candidate = output.with_name(f".{output.name}.{uuid4().hex}.tmp")
+            temporary = candidate
+            try:
+                with candidate.open("x", encoding="utf-8") as handle:
+                    handle.write("\n".join((*existing, *additions)) + "\n")
+            except FileExistsError:
+                temporary = None
+                continue
+            break
+        else:
+            raise ManifestError(f"unable to create temporary manifest: {output}")
         temporary.replace(output)
     except OSError as error:
+        if temporary is not None:
+            with suppress(OSError):
+                temporary.unlink()
         raise ManifestError(f"unable to write manifest: {output}") from error
     return len(additions)
 
@@ -65,7 +81,7 @@ def _read_manifest_lines(path: Path) -> tuple[str, ...]:
         return ()
     try:
         lines = tuple(line for line in path.read_text().splitlines() if line)
-    except OSError as error:
+    except (OSError, UnicodeDecodeError) as error:
         raise ManifestError(f"unable to read manifest: {path}") from error
     identities: set[tuple[str, str]] = set()
     for line in lines:

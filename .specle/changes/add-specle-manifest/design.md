@@ -8,10 +8,10 @@ Add an append-only text manifest that records every managed blueprint resource i
 
 ```text
 shared managed-inventory scan ─> manifest line builder ─> explicit output path
-importlib.import_module("specle").__version__ ─> release version
+importlib.metadata.version("specle") ─> specle.__version__ ─> release version
 ```
 
-The manifest module receives one already-scanned `ManagedInventory` and the package version loaded through `importlib`. It converts skill resources and package policies into stable text lines, so it never performs a second blueprint-tree traversal. The generated skill index is already absent from the inventory resource set and is never represented in the manifest.
+The manifest module receives one already-scanned `ManagedInventory` and `specle.__version__`. The package initialiser resolves that single version value through `importlib.metadata`, so the CLI and every other consumer avoid separate version lookups or literals. The manifest module converts skill resources and package policies into stable text lines, so it never performs a second blueprint-tree traversal. The generated skill index is already absent from the inventory resource set and is never represented in the manifest.
 
 `specle manifest <output>` reads the explicit output if it exists, validates its lines, derives the current release inventory, appends only missing resource lines, and atomically replaces the output. It does not inspect, create, copy to, or validate `.agents/`.
 
@@ -24,15 +24,16 @@ Each non-empty line has one of these forms:
 <version>:policies/<document>:<sha256>
 ```
 
-`<version>` is the package `__version__`. `<sha256>` is a lowercase 64-character digest. The line identity is `(version, path)`; an identical existing line is retained without a duplicate, while a different checksum for the same identity is a failure. Filtering all lines by `<version>` reconstructs that release's complete inventory. Comparing paths across versions reveals first appearance and retirement; comparing their checksums reveals changes.
+`<version>` is the installed distribution version. `<sha256>` is a lowercase 64-character digest. The line identity is `(version, path)`; an identical existing line is retained without a duplicate, while a different checksum for the same identity is a failure. Filtering all lines by `<version>` reconstructs that release's complete inventory. Comparing paths across versions reveals first appearance and retirement; comparing their checksums reveals changes.
 
 The source repository seeds `src/specle/blueprints/manifest` with the current release inventory. New releases run the CLI as release preparation and commit the appended lines with the version change.
 
 ## Error handling
 
-- Fail generation when an existing line is malformed, a resource identity is duplicated, a checksum is invalid, or the same `(version, path)` has a conflicting checksum.
+- Fail generation when an existing line is malformed or not valid UTF-8, a resource identity is duplicated, a checksum is invalid, or the same `(version, path)` has a conflicting checksum.
 - On failure, leave the existing output unchanged.
 - An absent output creates a new manifest. An existing identical line is a no-op and is never rewritten.
+- Use exclusive creation for a unique sibling temporary file before replacement, so an unrelated temporary path is never overwritten.
 - Do not alter init, installed-target validation, user-owned `.agents/project/`, steering content, or any installed target.
 
 ## Report/output rendering

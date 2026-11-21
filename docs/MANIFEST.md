@@ -21,7 +21,7 @@ After changing the package version, generate release entries with:
 uv run specle manifest src/specle/blueprints/manifest
 ```
 
-The command reads `specle.__version__`, scans the packaged managed inventory, and appends only entries absent from the manifest. Commit the version update and generated manifest together before releasing.
+The command reads `specle.__version__`, which resolves the installed distribution version through `importlib.metadata`, scans the packaged managed inventory, and appends only entries absent from the manifest. Commit the version update and generated manifest together before releasing.
 
 ## Provenance queries
 
