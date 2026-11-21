@@ -100,11 +100,6 @@
       "name": "Quality",
       "skills": [
         {
-          "name": "document-validation",
-          "description": "Validate Specle source documentation for Markdown structure, spelling, style, and lifecycle consistency.",
-          "usage": "Use when checking or tuning README, docs, or blueprint Markdown locally; it validates only the source documentation inventory and does not change lifecycle state or CI."
-        },
-        {
           "name": "resolve",
           "description": "Dispatch accepted review decisions to follow-up workflows.",
           "usage": "Use only after triage has recorded decisions for all current findings; route accepted work without implementing it directly."
