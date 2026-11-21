@@ -1,11 +1,17 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/spec-status/1.0",
   "kind": "bugfix",
-  "status": "approved",
+  "status": "committed",
   "progress": {"tasks_completed": 3, "tasks_total": 3},
   "verification": {"status": "pass"},
   "review": {"status": "pass", "findings": 0},
-  "delivery": null,
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/21",
+    "head_branch": "bugfix/fix-workflow-vale",
+    "target_branch": "main",
+    "commit": "0bbc2f7",
+    "event": "pull-request-open"
+  },
   "relationships": [],
   "dependencies": []
 }
