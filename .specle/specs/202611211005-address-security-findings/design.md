@@ -21,7 +21,7 @@ specle validate <target>
 
 The workflow job will grant the ordinary token only read scopes needed by metadata and check polling. `dependabot/fetch-metadata` supports its default `github.token` when alert and compatibility lookup are disabled. The final App-token step will continue to use the existing secret and is the only step receiving it.
 
-A small shared text-reading helper will check `Path.is_file(follow_symlinks=True)` before calling `read_text()`. It will allow a symlink resolving to a regular file and reject a directory, device, FIFO, broken link, or other non-regular target with a path-specific error. It will be used by installed-skill discovery, runtime state reading, and generated-index loading; package-resource reads and installation writes remain out of scope.
+A small shared text-reading helper will check `Path.is_file(follow_symlinks=True)` before calling `read_text()`. It will allow a symlink resolving to a regular file and reject a directory, device, FIFO, broken link, or other non-regular target with a path-specific error. Installed-skill discovery will distinguish an absent `SKILL.md`, which keeps a user/client directory outside Specle management, from an existing or broken-link `SKILL.md` that fails the regular-file check. The helper will be used by installed-skill discovery, runtime state reading, and generated-index loading; package-resource reads and installation writes remain out of scope.
 
 ## API and data
 
@@ -36,13 +36,15 @@ No public CLI syntax or JSON record shape changes.
 | Condition | Behaviour |
 | --- | --- |
 | Validation input resolves to a non-regular file | Do not read it; emit a path-specific validation diagnostic and fail validation. |
+| Candidate skill directory has no `SKILL.md` | Ignore it as an unmarked user/client directory. |
+| Candidate `SKILL.md` exists or is a broken link but is not regular | Emit a path-specific installed-inventory diagnostic and fail validation. |
 | Regular-file read fails after the type check | Preserve existing path-specific unreadable-input diagnostic behaviour. |
 | Metadata/check polling fails with the ordinary token | Fail the workflow; do not create an App token or enable auto-merge. |
 | Required checks fail | Fail the workflow; do not create an App token or enable auto-merge. |
 
 ## Test strategy
 
-- Add focused tests for a symlink to a regular file being accepted and a symlink to a non-regular target being rejected without reading it.
+- Add focused tests for a symlink to a regular file being accepted, a symlink to a non-regular target being rejected without reading it, and candidate installed skill files that are non-regular or broken links.
 - Cover runtime records, installed skill reading, and generated-index validation through their public validation paths.
-- Inspect the workflow to prove the secret is referenced only by the final App-token step, while metadata and check polling use the ordinary token and retain the existing eligibility conditions.
+- Inspect the workflow directly to prove the secret is referenced only by the final App-token step, while metadata and check polling use the ordinary token and retain the existing eligibility conditions. Do not add workflow tests.
 - Run `uv run pytest`, `uv run ruff check .`, `uv run ruff format --check .`, `uv run ty check`, and `uv run --frozen specle validate . --verbose`.

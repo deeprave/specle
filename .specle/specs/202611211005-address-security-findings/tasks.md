@@ -8,8 +8,10 @@
   - [x] 2.1 Add a narrow helper that accepts regular resolved files and reports a path-specific failure for every other type. Touch `src/specle/` validation modules.
   - [x] 2.2 Route installed-skill discovery, runtime state, and generated-index reads through the helper while preserving existing malformed/unreadable diagnostics. Touch `src/specle/inventory.py`, `src/specle/spec_state.py`, and `src/specle/main.py`.
   - [x] 2.3 Distinguish an absent optional file from a broken symlink that does not resolve to a regular file. Touch `src/specle/file_reading.py`.
-- [x] 3. Add workflow assertions for credential timing
-  - [x] 3.1 Extend workflow-focused tests to require ordinary-token metadata and required-check polling, unchanged eligibility conditions, and secret use only by the final App-token step. Touch `tests/test_delivery_blueprints.py`.
+  - [x] 2.4 Add a production-code regression test for a candidate installed `SKILL.md` that is non-regular or a broken link. Touch `tests/test_inventory_metadata.py`.
+  - [x] 2.5 Branch installed-skill discovery so an absent `SKILL.md` remains ignored but an existing or broken-link non-regular `SKILL.md` fails validation with a diagnostic. Touch `src/specle/inventory.py`.
+- [x] 3. Inspect workflow credential timing
+  - [x] 3.1 Inspect the workflow to confirm ordinary-token metadata and required-check polling, unchanged eligibility conditions, and secret use only by the final App-token step. Do not add a workflow test.
 - [x] 4. Defer the App token to the final merge action
   - [x] 4.1 Give the ordinary workflow token only the required read scopes and use it for metadata and `gh pr checks`. Touch `.github/workflows/dependabot-automerge.yml`.
   - [x] 4.2 Create and use the GitHub App token only in the eligible, passing auto-merge step, retaining merge-commit auto-merge and all established eligibility conditions. Touch `.github/workflows/dependabot-automerge.yml`.

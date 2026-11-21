@@ -107,23 +107,3 @@ def test_planning_skills_keep_changes_independent_by_default() -> None:
         assert "independent by default" in content
         assert "explicit user decision" in content
         assert "must not create a dependency" in content
-
-
-def test_dependabot_automerge_defers_the_app_token_until_merge() -> None:
-    workflow = (
-        Path(__file__).parents[1] / ".github" / "workflows" / "dependabot-automerge.yml"
-    ).read_text()
-
-    assert "contents: read" in workflow
-    assert "pull-requests: read" in workflow
-    assert "checks: read" in workflow
-    assert "statuses: read" in workflow
-    assert "github-token: ${{ github.token }}" in workflow
-    assert "GH_TOKEN: ${{ github.token }}" in workflow
-    assert (
-        workflow.index("- name: Fetch Dependabot metadata")
-        < workflow.index("- name: Wait for required checks")
-        < workflow.index("- name: Create GitHub App token for merge")
-        < workflow.index("- name: Enable merge-commit auto-merge")
-    )
-    assert workflow.count("private-key: ${{ secrets.AUTOMERGE_APP_PRIVATE_KEY }}") == 1

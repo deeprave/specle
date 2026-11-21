@@ -30,6 +30,7 @@ The assessment’s remaining proposals are intentionally out of scope: install-l
 2. A symlink that resolves to a regular file SHALL remain valid input.
 3. A non-regular resolved target, including a device or directory, SHALL fail validation with a clear path-specific diagnostic before its content is read.
 4. The check SHALL apply to every file read by installed-target validation, including skill files, generated indexes, runtime selectors, and status records.
+5. Installed-skill discovery SHALL ignore a directory with no `SKILL.md`, but SHALL fail validation when an existing or broken-link `SKILL.md` does not resolve to a regular file.
 
 ## Non-Functional Requirements
 

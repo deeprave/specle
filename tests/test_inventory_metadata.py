@@ -173,6 +173,33 @@ specle_group: Planning
     assert [skill.name for skill in skills] == ["managed"]
 
 
+@pytest.mark.parametrize("target_name", ("directory", "missing"))
+def test_rejects_a_non_regular_candidate_installed_skill_file(
+    tmp_path: Path, target_name: str
+) -> None:
+    target = tmp_path / "project"
+    valid = target / ".agents" / "skills" / "managed" / "SKILL.md"
+    invalid = target / ".agents" / "skills" / "invalid" / "SKILL.md"
+    valid.parent.mkdir(parents=True)
+    invalid.parent.mkdir(parents=True)
+    valid.write_text(
+        """---
+name: managed
+description: Managed test skill.
+usage: Use for installed inventory tests.
+specle_group: Planning
+---
+"""
+    )
+    target_path = tmp_path / target_name
+    if target_name == "directory":
+        target_path.mkdir()
+    invalid.symlink_to(target_path, target_is_directory=True)
+
+    with pytest.raises(SkillMetadataError, match="not a regular file"):
+        discover_installed_specle_skills(target)
+
+
 def test_rejects_invalid_marked_installed_skill(tmp_path: Path) -> None:
     target = tmp_path / "project"
     skill = target / ".agents" / "skills" / "managed" / "SKILL.md"

@@ -6,7 +6,141 @@
       "kind": "local-review",
       "revision": "working-tree",
       "outcome": "approve"
+    },
+    {
+      "id": "sourcery-pr19-20261121",
+      "system": "sourcery-ai",
+      "kind": "pull-request-review",
+      "reference": "https://github.com/deeprave/specle/pull/19",
+      "revision": "review:PRR_kwDOVw8giM8AAAABZcm7NQ; head:44e57aba006d8e3d447bef606d55f8b59f35a4b1",
+      "outcome": "commented"
+    },
+    {
+      "id": "sourcery-pr19-20261121-approval",
+      "system": "sourcery-ai",
+      "kind": "pull-request-review",
+      "reference": "https://github.com/deeprave/specle/pull/19",
+      "revision": "review:PRR_kwDOVw8giM8AAAABZcmiOA; head:9e6daecda7ea95bb5a3d589c2cb32a71813847fb",
+      "outcome": "approve"
+    },
+    {
+      "id": "local-review-20261121-address-security-findings-followup",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-followup",
+      "outcome": "approve"
     }
   ],
-  "findings": []
+  "findings": [
+    {
+      "id": "sourcery-pr19-1",
+      "source_ids": ["sourcery-pr19-20261121"],
+      "severity": "P2",
+      "description": "A Dependabot head update between required-check polling and auto-merge enablement may be merged without checks for the new head.",
+      "evidence": ".github/workflows/dependabot-automerge.yml:41-67",
+      "analysis": "The proposed race is a small timing window in a single-user repository. It is not material enough to justify additional workflow complexity.",
+      "recommendation": "Retain the existing required-check flow.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The repository's single-user operating model makes this theoretical window immaterial.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr19-2",
+      "source_ids": ["sourcery-pr19-20261121"],
+      "severity": "P3",
+      "description": "A file replacement between pathname type check and read may allow a special file to block validation.",
+      "evidence": "src/specle/file_reading.py:10-16",
+      "analysis": "Exploitation requires a concurrent local writer replacing a validation input after the type check. This does not match the repository's practical validation threat model.",
+      "recommendation": "Retain the resolved-regular-file check.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Disproportionate hardening for an inapplicable concurrent local attack.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr19-3",
+      "source_ids": ["sourcery-pr19-20261121"],
+      "severity": "P3",
+      "description": "A non-regular installed SKILL.md can be skipped before the regular-file reader reports it.",
+      "evidence": "src/specle/inventory.py:254-261",
+      "analysis": "A genuinely absent SKILL.md remains a valid unmarked user/client directory. A present or broken-link SKILL.md that fails the regular-file check must instead produce a path-specific validation diagnostic.",
+      "recommendation": "Branch on absent versus non-regular candidate SKILL.md files and fail validation for the latter.",
+      "state": "dispatched",
+      "decision": "vary",
+      "rationale": "Validation must surface a non-regular candidate file without imposing requirements on directories that contain no skill file.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "outcome": "Installed-skill discovery now fails for existing or broken-link non-regular SKILL.md candidates while directories with no SKILL.md remain ignored."
+      }
+    },
+    {
+      "id": "sourcery-pr19-4",
+      "source_ids": ["sourcery-pr19-20261121"],
+      "severity": "P4",
+      "description": "A filesystem error from Path.exists() could make an unreadable selector look absent.",
+      "evidence": "src/specle/file_reading.py:10-14",
+      "analysis": "The selector is optional and local. Distinguishing every platform-specific lookup failure from absence adds defensive complexity without a material repository risk.",
+      "recommendation": "Retain the current optional-selector behaviour.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Disproportionate handling for a hypothetical failure of an optional local file.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr19-5",
+      "source_ids": ["sourcery-pr19-20261121"],
+      "severity": "P4",
+      "description": "The ordinary token may lack permissions for default Dependabot alert or compatibility lookup.",
+      "evidence": ".github/workflows/dependabot-automerge.yml:23-27",
+      "analysis": "dependabot/fetch-metadata defaults alert-lookup and compat-lookup to false. Neither optional lookup is enabled, so the documented ordinary github.token path applies.",
+      "recommendation": "Retain the existing metadata step.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The finding assumes default optional lookups that the action documentation states are disabled.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr19-6",
+      "source_ids": ["sourcery-pr19-20261121"],
+      "severity": "P4",
+      "description": "The workflow-order test does not prove the App-token step retains its eligibility condition.",
+      "evidence": "tests/test_delivery_blueprints.py:123-129",
+      "analysis": "GitHub workflow configuration is reviewed directly and is not production Python code. Workflow-specific tests are outside the repository's test policy.",
+      "recommendation": "Remove the workflow-specific test; inspect workflow semantics during review instead.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Tests are reserved for production code, not declarative workflow configuration.",
+      "route": "applied"
+    },
+    {
+      "id": "sourcery-pr19-7",
+      "source_ids": ["sourcery-pr19-20261121"],
+      "severity": "P4",
+      "description": "The regular-status-symlink test does not prove runtime discovery loaded the linked record.",
+      "evidence": "tests/test_lifecycle.py:207-217",
+      "analysis": "The regression coverage is intentionally limited to non-regular-file detection. Symlink discovery behaviour is not the subject of this change.",
+      "recommendation": "Retain the current focused test.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The proposed assertion tests behaviour outside the intended regression boundary.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr19-8",
+      "source_ids": ["sourcery-pr19-20261121"],
+      "severity": "P4",
+      "description": "The workflow-order test does not bind ordinary-token assertions to the metadata and check-polling steps.",
+      "evidence": "tests/test_delivery_blueprints.py:117-129",
+      "analysis": "The workflow-specific test has been removed under the cross-project policy that tests cover production code only.",
+      "recommendation": "Inspect declarative workflow semantics directly during review.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Workflow configuration is not production code and is not covered by Python tests.",
+      "route": "applied"
+    }
+  ]
 }

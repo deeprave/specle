@@ -252,9 +252,13 @@ def discover_installed_specle_skills(
     skills: list[SkillMetadata] = []
     names: set[str] = set()
     for directory in sorted(skills_root.iterdir()):
-        skill_file = directory / "SKILL.md"
-        if not directory.is_dir() or not skill_file.is_file():
+        if not directory.is_dir():
             continue
+        skill_file = directory / "SKILL.md"
+        if not skill_file.exists() and not skill_file.is_symlink():
+            continue
+        if not skill_file.is_file(follow_symlinks=True):
+            raise SkillMetadataError(f"{skill_file}: not a regular file")
         try:
             contents = read_regular_text(skill_file)
         except OSError as error:

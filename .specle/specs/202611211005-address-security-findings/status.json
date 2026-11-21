@@ -10,7 +10,7 @@
     "head_branch": "feature/address-security-findings",
     "target_branch": "main",
     "commit": "44e57ab",
-    "event": "pull-request-open"
+    "event": "pull-request-updated"
   },
   "relationships": [],
   "dependencies": []
