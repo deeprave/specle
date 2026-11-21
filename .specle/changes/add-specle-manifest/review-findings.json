@@ -1,0 +1,112 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261121-manifest",
+      "system": "specle",
+      "kind": "local-review",
+      "reference": null,
+      "revision": "working-tree"
+    },
+    {
+      "id": "local-review-20261121-manifest-recheck",
+      "system": "specle",
+      "kind": "local-review",
+      "reference": null,
+      "revision": "working-tree-after-resolve"
+    },
+    {
+      "id": "local-review-20261121-manifest-final",
+      "system": "specle",
+      "kind": "local-review",
+      "reference": null,
+      "revision": "working-tree-after-coverage-revisions",
+      "outcome": "approve"
+    }
+  ],
+  "items": [
+    {
+      "id": "local-review-manifest-index-exclusion-test",
+      "source_ids": [
+        "local-review-20261121-manifest"
+      ],
+      "severity": "P4",
+      "description": "The generated-index exclusion assertion cannot detect an index manifest entry.",
+      "evidence": "tests/test_manifest.py:24 checks line.endswith('/index.json'), but every manifest line ends with its SHA-256 checksum.",
+      "analysis": "The assertion always passes for a syntactically valid manifest line, including a line for skills/specle/index.json. It therefore does not demonstrate Requirement 1.3's generated-resource exclusion.",
+      "recommendation": "Assert that no generated-index path is present in the generated lines, such as '/index.json:' not occurring in any line.",
+      "decision": "accept",
+      "decision_rationale": "The manifest must exclude the generated index, and the test should demonstrate that boundary.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-manifest"
+      },
+      "state": "resolved"
+    },
+    {
+      "id": "local-review-manifest-verification-scope",
+      "source_ids": [
+        "local-review-20261121-manifest"
+      ],
+      "severity": "P4",
+      "description": "The change brief's verification section still describes removed installed-manifest work.",
+      "evidence": ".specle/changes/add-specle-manifest/spec.md:13 requires stale-manifest detection, installation/update distribution, and live-file drift validation.",
+      "analysis": "The approved requirements deliberately make the manifest release-only and exclude it from init, installed-target validation, and update implementation. The brief should not describe verification for work this change explicitly excludes.",
+      "recommendation": "Replace the stale verification list with the release-only command, append-only history, boundary, and quality-gate checks already specified by the requirements and design.",
+      "decision": "accept",
+      "decision_rationale": "The brief must match the approved release-only boundary and current requirements.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-manifest"
+      },
+      "state": "resolved"
+    },
+    {
+      "id": "local-review-manifest-append-coverage",
+      "source_ids": [
+        "local-review-20261121-manifest-recheck"
+      ],
+      "severity": "P4",
+      "description": "The manifest tests do not exercise appending missing entries to an existing valid manifest.",
+      "evidence": "tests/test_manifest.py:27-37 creates an absent output, then reruns with the same complete inventory; it never starts from a valid partial or prior-version manifest.",
+      "analysis": "Requirement 2.4 requires preserving existing history while appending only missing identities. The current test covers creation and a no-op, but not the production append path that rewrites an existing manifest with retained and new entries.",
+      "recommendation": "Seed a valid manifest with one existing entry, invoke generation, and assert the original line remains exactly once while all missing current-version entries are appended.",
+      "decision": "accept",
+      "decision_rationale": "Append-only generation must preserve prior valid entries while adding missing inventory records.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-manifest"
+      },
+      "state": "resolved"
+    },
+    {
+      "id": "local-review-manifest-duplicate-coverage",
+      "source_ids": [
+        "local-review-20261121-manifest-recheck"
+      ],
+      "severity": "P4",
+      "description": "The manifest tests do not demonstrate rejection of duplicate valid resource identities.",
+      "evidence": "tests/test_manifest.py:40-61 exercises conflicting and malformed entries only; there is no valid duplicate `(version, path)` fixture.",
+      "analysis": "Requirement 3.2 explicitly requires duplicate resource identities to be rejected before output replacement. The implementation has a duplicate check, but the specified externally observable failure behaviour is not covered.",
+      "recommendation": "Seed two identical valid entries, assert ManifestError for a duplicate identity, and assert the manifest remains unchanged.",
+      "decision": "accept",
+      "decision_rationale": "Duplicate identity rejection is an explicit manifest contract and needs observable production coverage.",
+      "route": "revise",
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-manifest"
+      },
+      "state": "resolved"
+    }
+  ]
+}
