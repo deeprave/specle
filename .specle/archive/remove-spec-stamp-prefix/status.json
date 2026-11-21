@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "complete",
   "progress": {
     "tasks_completed": 10,
     "tasks_total": 10
@@ -17,7 +17,8 @@
     "reference": "https://github.com/deeprave/specle/pull/25",
     "head_branch": "feature/remove-spec-stamp-prefix",
     "target_branch": "main",
-    "event": "pull-request-updated"
+    "event": "pull-request-merged",
+    "merged_commit": "6f0d3fc3dae908e74a3bafbebf86118de6e30424"
   },
   "relationships": [],
   "dependencies": [],
