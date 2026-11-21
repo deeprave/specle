@@ -62,7 +62,7 @@ jobs:
           version: 3.27.0
           config: .vale.ini
           files: README.md,docs,src/specle/blueprints
-          reporter: github-pr-check
+          reporter: github-pr-annotations
           min_alert_level: suggestion
           fail_level: any
 

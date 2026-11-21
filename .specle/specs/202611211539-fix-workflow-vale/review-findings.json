@@ -1,0 +1,12 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261121-fix-workflow-vale",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree",
+      "outcome": "approve"
+    }
+  ],
+  "findings": []
+}
