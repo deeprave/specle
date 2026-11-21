@@ -73,6 +73,22 @@ def test_validate_reports_an_invalid_target_without_writing(
     assert not (target / ".agents").exists()
 
 
+def test_validate_rejects_a_non_regular_generated_index(
+    tmp_path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+    anyio.run(main, ["init", str(target)])
+    index = target / ".agents" / "skills" / "specle" / "index.json"
+    index.unlink()
+    index.symlink_to(tmp_path, target_is_directory=True)
+
+    with pytest.raises(SystemExit, match="1"):
+        anyio.run(main, ["validate", str(target)])
+
+    assert "not a regular file" in capsys.readouterr().out
+
+
 def test_schema_export_uses_the_explicit_destination(tmp_path, capsys) -> None:
     destination = tmp_path / "schemas"
 

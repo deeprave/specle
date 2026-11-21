@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from specle.file_reading import read_regular_text
 from specle.schema_registry import (
     SCHEMA_IDENTIFIERS,
     SchemaRegistryError,
@@ -108,7 +109,7 @@ def _read_spec_collection(
 
 def _read_status(path: Path, diagnostics: list[str]) -> dict[str, object] | None:
     try:
-        value = json.loads(path.read_text())
+        value = json.loads(read_regular_text(path))
     except FileNotFoundError:
         diagnostics.append(f"missing {path}")
         return None
@@ -135,7 +136,7 @@ def _read_status(path: Path, diagnostics: list[str]) -> dict[str, object] | None
 
 def _read_current_spec(path: Path, diagnostics: list[str]) -> str | None:
     try:
-        contents = path.read_text()
+        contents = read_regular_text(path)
     except FileNotFoundError:
         return None
     except (OSError, UnicodeDecodeError) as error:
