@@ -1,3 +1,7 @@
+---
+specle_policy: true
+---
+
 # Testing Principles
 
 ## Approach

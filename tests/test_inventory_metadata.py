@@ -124,8 +124,9 @@ specle_group: Planning
 def test_discovers_every_valid_skill_and_rejects_mismatched_names(
     tmp_path: Path,
 ) -> None:
-    valid = tmp_path / "valid" / "SKILL.md"
-    valid.parent.mkdir()
+    skills_root = tmp_path / "skills"
+    valid = skills_root / "valid" / "SKILL.md"
+    valid.parent.mkdir(parents=True)
     valid.write_text(
         """---
 name: valid
@@ -135,7 +136,7 @@ specle_group: Planning
 ---
 """
     )
-    invalid = tmp_path / "wrong-name" / "SKILL.md"
+    invalid = skills_root / "wrong-name" / "SKILL.md"
     invalid.parent.mkdir()
     invalid.write_text(
         """---
@@ -148,7 +149,7 @@ specle_group: Planning
     )
 
     with pytest.raises(SkillMetadataError, match="does not match"):
-        discover_skills(tmp_path)
+        discover_skills(skills_root)
 
 
 def test_discovers_only_marked_installed_skills(tmp_path: Path) -> None:

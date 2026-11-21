@@ -12,17 +12,18 @@ import anyio
 
 from specle.file_reading import read_regular_text
 from specle.inventory import (
+    ManagedInventory,
     SkillInstallationError,
     SkillMetadataError,
     build_skill_index,
-    discover_installed_specle_skills,
+    compare_managed_inventories,
     initialise_distribution,
     packaged_distribution_root,
+    scan_managed_inventory,
 )
 from specle.lifecycle import (
     LifecycleDiagnostic,
     read_runtime_snapshot,
-    validate_installed_skill_inventory,
     validate_runtime_records,
 )
 from specle.schema_registry import (
@@ -52,11 +53,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Replace existing distribution-managed destinations.",
     )
     validate = commands.add_parser(
-        "validate", help="Validate an installed Specle target without changing it."
+        "validate",
+        help="Validate a Specle target or packaged blueprints without changing it.",
     )
     validate.add_argument(
         "target_directory",
+        nargs="?",
         help="Existing directory containing the Specle runtime to validate.",
+    )
+    validate.add_argument(
+        "--blueprint",
+        action="store_true",
+        help="Validate the packaged blueprint inventory instead of an installed target.",
     )
     validate.add_argument(
         "--verbose",
@@ -83,18 +91,67 @@ def build_parser() -> argparse.ArgumentParser:
 
 async def main(args: list[str] | None = None) -> None:
     """Run the asynchronous Specle command-line application."""
-    parsed = build_parser().parse_args(args)
+    parser = build_parser()
+    parsed = parser.parse_args(args)
 
     if parsed.command == "validate":
+        if parsed.blueprint == (parsed.target_directory is not None):
+            parser.error(
+                "validate requires exactly one of TARGET_DIRECTORY or --blueprint"
+            )
+        if parsed.blueprint:
+            try:
+                with as_file(packaged_distribution_root()) as source_root:
+                    inventory = scan_managed_inventory(source_root)
+                    skills = tuple(record.metadata for record in inventory.skills)
+                    diagnostics = list(inventory.lifecycle.diagnostics)
+                    diagnostics.extend(
+                        _diagnostic(message)
+                        for message in inventory.package_diagnostics
+                    )
+                    index = build_skill_index(skills)
+                    diagnostics.extend(
+                        _diagnostic(f"unmanaged package skill: {path}")
+                        for path in inventory.unmanaged_skill_files
+                    )
+            except SkillMetadataError as error:
+                print(_diagnostic(str(error)).message)
+                raise SystemExit(1) from error
+            try:
+                validate_instance(index)
+            except SchemaRegistryError as error:
+                diagnostics.append(
+                    _diagnostic(f"invalid generated skill index: {error}")
+                )
+            if diagnostics:
+                for diagnostic in diagnostics:
+                    print(diagnostic.message)
+                raise SystemExit(1)
+            if parsed.verbose:
+                _report_validation_summary(inventory, index_path=None)
+                print("validated mode: blueprint")
+            print("validated blueprint")
+            return
         target = Path(parsed.target_directory)
-        diagnostics = list(validate_installed_skill_inventory(target))
-        try:
-            skills = discover_installed_specle_skills(target)
-        except SkillMetadataError:
-            skills = ()
-        else:
-            runtime = read_runtime_snapshot(target)
-            diagnostics.extend(validate_runtime_records(target, skills, runtime))
+        diagnostics: list[LifecycleDiagnostic] = []
+        with as_file(packaged_distribution_root()) as source_root:
+            try:
+                blueprint = scan_managed_inventory(source_root)
+                installed = scan_managed_inventory(
+                    target.expanduser().resolve() / ".agents"
+                )
+            except SkillMetadataError as error:
+                diagnostics.append(_diagnostic(str(error)))
+                skills = ()
+            else:
+                skills = tuple(record.metadata for record in installed.skills)
+                diagnostics.extend(installed.lifecycle.diagnostics)
+                diagnostics.extend(
+                    _diagnostic(message)
+                    for message in compare_managed_inventories(blueprint, installed)
+                )
+                runtime = read_runtime_snapshot(target)
+                diagnostics.extend(validate_runtime_records(target, skills, runtime))
         resolved_target = target.expanduser().resolve()
         index_path = resolved_target / ".agents" / "skills" / "specle" / "index.json"
         try:
@@ -128,24 +185,8 @@ async def main(args: list[str] | None = None) -> None:
                 print(diagnostic.message)
             raise SystemExit(1)
         if parsed.verbose:
-            statuses = {
-                transition.target.status
-                for skill in skills
-                if skill.lifecycle is not None
-                for transition in skill.lifecycle.transitions
-            }
-            terminal = {
-                status
-                for skill in skills
-                if skill.lifecycle is not None
-                for status in skill.lifecycle.terminal
-            }
+            _report_validation_summary(installed, index_path=index_path)
             selected = runtime.state.selected_name or "none"
-            print(f"validated managed skills: {len(skills)}")
-            print(
-                f"validated lifecycle graph: {len(statuses)} statuses, {len(terminal)} terminal"
-            )
-            print(f"validated skill index: {index_path}")
             print(f"validated active specs: {len(runtime.state.active)}")
             print(f"validated archived specs: {len(runtime.state.archived)}")
             print(f"validated local selection: {selected}")
@@ -181,6 +222,22 @@ async def main(args: list[str] | None = None) -> None:
 
 def _diagnostic(message: str) -> LifecycleDiagnostic:
     return LifecycleDiagnostic("invalid-index", message)
+
+
+def _report_validation_summary(
+    inventory: ManagedInventory, *, index_path: Path | None
+) -> None:
+    """Print stable verbose summaries shared by validation modes."""
+    print(f"validated managed skills: {len(inventory.skills)}")
+    print(
+        "validated lifecycle graph: "
+        f"{len(inventory.lifecycle.statuses)} statuses, "
+        f"{len(inventory.lifecycle.terminal)} terminal"
+    )
+    if index_path is None:
+        print("validated generated skill index model")
+    else:
+        print(f"validated skill index: {index_path}")
 
 
 def run() -> None:

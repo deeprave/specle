@@ -5,7 +5,12 @@ from pathlib import Path
 import pytest
 
 from specle import inventory
-from specle.inventory import SkillInstallationError, initialise_distribution
+from specle.inventory import (
+    SkillInstallationError,
+    compare_installed_distribution,
+    initialise_distribution,
+    scan_managed_inventory,
+)
 
 
 def test_initialises_a_fresh_project_target_and_generates_an_index(
@@ -124,6 +129,155 @@ def test_initialisation_preserves_existing_runtime_ignore_rules(tmp_path: Path) 
     assert runtime_ignore.read_text() == "/agent-cache\n/current-spec\n/context.json\n"
 
 
+def test_compares_an_installed_distribution_to_its_package_source(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+
+    assert compare_installed_distribution(source_root, target) == ()
+
+
+def test_reports_each_missing_skill_for_an_empty_installed_inventory(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    target = tmp_path / "project"
+    (target / ".agents" / "skills").mkdir(parents=True)
+
+    diagnostics = compare_installed_distribution(source_root, target)
+
+    assert diagnostics == (
+        "missing managed resource (requires update): policies/testing.md",
+        "missing managed skill (requires update): spec",
+        "missing managed skill (requires update): specle",
+        "missing managed skill (requires update): verify",
+    )
+
+
+def test_scans_package_and_installed_roots_into_matching_records(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+
+    blueprint = scan_managed_inventory(source_root)
+    installed = scan_managed_inventory(target / ".agents")
+
+    assert [record.metadata.name for record in installed.skills] == [
+        record.metadata.name for record in blueprint.skills
+    ]
+    assert [record.resources for record in installed.skills] == [
+        record.resources for record in blueprint.skills
+    ]
+    assert installed.resources == blueprint.resources
+
+
+def test_inventory_scan_returns_lifecycle_analysis(tmp_path: Path) -> None:
+    inventory = scan_managed_inventory(_write_distribution(tmp_path / "source"))
+
+    assert "defined" not in inventory.lifecycle.statuses
+    assert {diagnostic.code for diagnostic in inventory.lifecycle.diagnostics} == {
+        "missing-created-status",
+        "missing-terminal",
+    }
+
+
+def test_inventory_scan_returns_package_completeness_diagnostics(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    shutil.rmtree(source_root / "skills" / "specle")
+    (source_root / "policies" / "testing.md").unlink()
+
+    inventory = scan_managed_inventory(source_root)
+
+    assert inventory.package_diagnostics == (
+        "the packaged skill inventory has no 'specle' skill",
+        f"the policy inventory is empty at {source_root / 'policies'}",
+    )
+
+
+@pytest.mark.parametrize(
+    ("relative_path", "expected"),
+    [
+        (("skills", "spec", "resource.json"), "modified managed resource"),
+        (("skills", "spec", "resource.json"), "missing managed resource"),
+        (("policies", "testing.md"), "modified managed resource"),
+    ],
+)
+def test_reports_missing_or_modified_managed_resources(
+    tmp_path: Path, relative_path: tuple[str, ...], expected: str
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    target_path = target / ".agents" / relative_path[0] / relative_path[1]
+    if len(relative_path) == 3:
+        target_path /= relative_path[2]
+    if expected.startswith("missing"):
+        target_path.unlink()
+    else:
+        if target_path.suffix == ".md":
+            target_path.write_text("---\nspecle_policy: true\n---\n\nmodified\n")
+        else:
+            target_path.write_text("modified\n")
+
+    diagnostics = compare_installed_distribution(source_root, target)
+
+    assert any(expected in diagnostic for diagnostic in diagnostics)
+
+
+def test_reports_unexpected_managed_resources_but_ignores_unmarked_skills(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    unexpected = target / ".agents" / "skills" / "spec" / "extra.json"
+    unmarked = target / ".agents" / "skills" / "external" / "SKILL.md"
+    unexpected.write_text("{}\n")
+    unmarked.parent.mkdir()
+    unmarked.write_text("# Local skill\n")
+
+    diagnostics = compare_installed_distribution(source_root, target)
+
+    assert any(
+        "unexpected managed resource" in diagnostic for diagnostic in diagnostics
+    )
+    assert all("external" not in diagnostic for diagnostic in diagnostics)
+
+
+def test_reports_a_marker_stripped_expected_skill(tmp_path: Path) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    skill_file = target / ".agents" / "skills" / "spec" / "SKILL.md"
+    skill_file.write_text("---\nname: spec\n---\n")
+
+    diagnostics = compare_installed_distribution(source_root, target)
+
+    assert any("missing managed skill" in diagnostic for diagnostic in diagnostics)
+
+
+def test_compares_binary_managed_resources(tmp_path: Path) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    binary_resource = source_root / "skills" / "spec" / "resource.bin"
+    binary_resource.write_bytes(b"\x00\xff")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+
+    assert compare_installed_distribution(source_root, target) == ()
+
+
 def test_force_replaces_only_exact_managed_destinations(tmp_path: Path) -> None:
     source_root = _write_distribution(tmp_path / "source")
     target = tmp_path / "project"
@@ -207,7 +361,7 @@ def test_force_prunes_obsolete_distributed_policies(tmp_path: Path) -> None:
     target.mkdir()
     initialise_distribution(source_root, target)
     retired = target / ".agents" / "policies" / "retired.md"
-    retired.write_text("# Retired guidance\n")
+    retired.write_text("---\nspecle_policy: true\n---\n\n# Retired guidance\n")
 
     with pytest.raises(SkillInstallationError, match="retired.md"):
         initialise_distribution(source_root, target)
@@ -410,7 +564,7 @@ def _write_distribution(root: Path) -> Path:
     _write_skill(root / "skills", "verify", "Quality")
     policies = root / "policies"
     policies.mkdir(parents=True)
-    (policies / "testing.md").write_text("# Testing\n")
+    (policies / "testing.md").write_text("---\nspecle_policy: true\n---\n\n# Testing\n")
     return root
 
 

@@ -1,3 +1,7 @@
+---
+specle_policy: true
+---
+
 # Spec Lifecycle
 
 This document is the authoritative lifecycle policy for all specs. Each spec's versioned

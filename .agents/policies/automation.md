@@ -1,3 +1,7 @@
+---
+specle_policy: true
+---
+
 # Workflow automation
 
 Projects select progression in `.agents/project/automation.md`.

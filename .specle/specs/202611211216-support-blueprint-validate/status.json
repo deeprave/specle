@@ -1,0 +1,16 @@
+{
+  "$schema": "https://github.com/deeprave/specle/schemas/spec-status/1.0",
+  "kind": "change",
+  "status": "committed",
+  "progress": {"tasks_completed": 9, "tasks_total": 9},
+  "verification": {"status": "pass"},
+  "review": {"status": "pass", "findings": 0},
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/23",
+    "head_branch": "feature/support-blueprint-validate",
+    "target_branch": "main",
+    "commit": "713e79e"
+  },
+  "relationships": [],
+  "dependencies": []
+}
