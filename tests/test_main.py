@@ -25,9 +25,29 @@ def test_parser_accepts_an_explicit_validate_target() -> None:
     assert args.verbose is True
 
 
-def test_parser_requires_an_explicit_validate_target() -> None:
+def test_parser_accepts_blueprint_validate_mode() -> None:
+    args = build_parser().parse_args(["validate", "--blueprint", "--verbose"])
+
+    assert args.command == "validate"
+    assert args.target_directory is None
+    assert args.blueprint is True
+    assert args.verbose is True
+
+
+def test_validate_requires_an_explicit_mode() -> None:
     with pytest.raises(SystemExit):
-        build_parser().parse_args(["validate"])
+        anyio.run(main, ["validate"])
+
+
+def test_validate_blueprint_mode_requires_no_installed_target(capsys) -> None:
+    anyio.run(main, ["validate", "--blueprint"])
+
+    assert "validated blueprint" in capsys.readouterr().out
+
+
+def test_validate_rejects_combined_modes() -> None:
+    with pytest.raises(SystemExit):
+        anyio.run(main, ["validate", "--blueprint", "/work/example"])
 
 
 def test_parser_accepts_schema_export_destination_and_force() -> None:
@@ -87,6 +107,18 @@ def test_validate_rejects_a_non_regular_generated_index(
         anyio.run(main, ["validate", str(target)])
 
     assert "not a regular file" in capsys.readouterr().out
+
+
+def test_validate_reports_managed_inventory_drift(tmp_path, capsys) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+    anyio.run(main, ["init", str(target)])
+    (target / ".agents" / "policies" / "testing.md").write_text("modified\n")
+
+    with pytest.raises(SystemExit, match="1"):
+        anyio.run(main, ["validate", str(target)])
+
+    assert "modified managed resource" in capsys.readouterr().out
 
 
 def test_schema_export_uses_the_explicit_destination(tmp_path, capsys) -> None:

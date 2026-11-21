@@ -1,0 +1,26 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261121-support-blueprint-validate",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree",
+      "outcome": "approve"
+    },
+    {
+      "id": "local-review-20261121-support-blueprint-validate-shared-inventory",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-shared-inventory",
+      "outcome": "approve"
+    },
+    {
+      "id": "local-review-20261121-support-blueprint-validate-consolidated-inventory",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-consolidated-inventory",
+      "outcome": "approve"
+    }
+  ],
+  "findings": []
+}

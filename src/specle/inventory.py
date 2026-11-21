@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import shutil
 import uuid
+from collections import defaultdict, deque
 from dataclasses import dataclass
 from importlib.resources import files
 from importlib.resources.abc import Traversable
@@ -15,7 +17,7 @@ from typing import NotRequired, TypedDict
 from strictyaml import Enum, Map, Optional, Seq, Str, load
 from strictyaml.exceptions import StrictYAMLError
 
-from specle.file_reading import read_regular_text
+from specle.file_reading import read_regular_bytes, read_regular_text
 from specle.schema_registry import SCHEMA_IDENTIFIERS
 
 _SKILL_NAME = re.compile(r"[a-z][a-z0-9-]*")
@@ -103,6 +105,33 @@ class SkillMetadata:
 
 
 @dataclass(frozen=True, slots=True)
+class ResourceChecksum:
+    """One package-owned resource identified by a stable relative path and digest."""
+
+    path: Path
+    checksum: str
+
+
+@dataclass(frozen=True, slots=True)
+class ManagedSkillInventory:
+    """One scanned managed skill with its parsed metadata and resource checksums."""
+
+    metadata: SkillMetadata
+    resources: tuple[ResourceChecksum, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class ManagedInventory:
+    """A scanned distribution root with managed skills and shared resources."""
+
+    root: Path
+    skills: tuple[ManagedSkillInventory, ...]
+    resources: tuple[ResourceChecksum, ...]
+    unmanaged_skill_files: tuple[Path, ...]
+    lifecycle: LifecycleAnalysis
+
+
+@dataclass(frozen=True, slots=True)
 class LifecycleTransition:
     """One declared lifecycle edge owned by a skill."""
 
@@ -128,6 +157,25 @@ class LifecycleDeclaration:
     creates: tuple[str, ...]
     transitions: tuple[LifecycleTransition, ...]
     terminal: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class LifecycleDiagnostic:
+    """One lifecycle-contract inconsistency found during inventory inspection."""
+
+    code: str
+    message: str
+
+
+@dataclass(frozen=True, slots=True)
+class LifecycleAnalysis:
+    """The reusable lifecycle graph derived from one managed inventory."""
+
+    statuses: frozenset[str]
+    created: frozenset[str]
+    terminal: frozenset[str]
+    edges: tuple[tuple[str, str], ...]
+    diagnostics: tuple[LifecycleDiagnostic, ...]
 
 
 class SkillIndexEntry(TypedDict):
@@ -218,79 +266,33 @@ def _read_skill_metadata(path: Path, contents: str) -> SkillMetadata:
 
 
 def discover_skills(source_root: Path) -> tuple[SkillMetadata, ...]:
-    """Discover and validate every packaged skill in stable name order."""
-    if not source_root.is_dir():
-        raise SkillMetadataError(f"the skill inventory is unavailable at {source_root}")
-
-    skills: list[SkillMetadata] = []
-    for path in sorted(source_root.glob("*/SKILL.md")):
-        metadata = read_skill_metadata(path)
-        if metadata.name != path.parent.name:
-            raise SkillMetadataError(f"{path} does not match its directory name")
-        skills.append(metadata)
-
-    if not skills:
-        raise SkillMetadataError(f"the skill inventory is empty at {source_root}")
-    return tuple(skills)
+    """Compatibility view of the one inventory inspection for a skills root."""
+    return tuple(
+        record.metadata
+        for record in scan_managed_inventory(
+            source_root.expanduser().resolve().parent
+        ).skills
+    )
 
 
 def discover_installed_specle_skills(
     target_directory: Path,
 ) -> tuple[SkillMetadata, ...]:
-    """Discover marked Specle skills in an installed target inventory.
-
-    Unmarked client or user skills are intentionally outside Specle's managed
-    inventory and are ignored. Marked skills must conform to the full package
-    frontmatter contract.
-    """
-    skills_root = target_directory.expanduser().resolve() / ".agents" / "skills"
-    if not skills_root.is_dir():
-        raise SkillMetadataError(
-            f"the installed skill inventory is unavailable at {skills_root}"
-        )
-
-    skills: list[SkillMetadata] = []
-    names: set[str] = set()
-    for directory in sorted(skills_root.iterdir()):
-        if not directory.is_dir():
-            continue
-        skill_file = directory / "SKILL.md"
-        if not skill_file.exists() and not skill_file.is_symlink():
-            continue
-        if not skill_file.is_file(follow_symlinks=True):
-            raise SkillMetadataError(f"{skill_file}: not a regular file")
-        try:
-            contents = read_regular_text(skill_file)
-        except OSError as error:
-            raise SkillMetadataError(f"unable to read {skill_file}: {error}") from error
-        if not _has_specle_group_text(contents):
-            continue
-        metadata = _read_skill_metadata(skill_file, contents)
-        if metadata.name != directory.name:
-            raise SkillMetadataError(f"{skill_file} does not match its directory name")
-        if metadata.name in names:
-            raise SkillMetadataError(
-                f"{skill_file} duplicates installed skill {metadata.name!r}"
-            )
-        names.add(metadata.name)
-        skills.append(metadata)
-
-    if not skills:
-        raise SkillMetadataError(
-            f"the installed skill inventory is empty at {skills_root}"
-        )
-    discovered = tuple(skills)
-    _validate_skill_dependencies(discovered)
-    return discovered
+    """Compatibility view of one installed-inventory inspection."""
+    inventory = scan_managed_inventory(
+        target_directory.expanduser().resolve() / ".agents"
+    )
+    return tuple(record.metadata for record in inventory.skills)
 
 
 def discover_policies(source_root: Path) -> tuple[Path, ...]:
-    """Discover packaged policy Markdown documents in stable name order."""
-    if not source_root.is_dir():
-        raise SkillMetadataError(
-            f"the policy inventory is unavailable at {source_root}"
-        )
-    policies = tuple(sorted(source_root.glob("*.md")))
+    """Compatibility view of policy documents from one inventory inspection."""
+    inventory = scan_managed_inventory(source_root.expanduser().resolve().parent)
+    policies = tuple(
+        inventory.root / resource.path
+        for resource in inventory.resources
+        if resource.path.suffix == ".md"
+    )
     if not policies:
         raise SkillMetadataError(f"the policy inventory is empty at {source_root}")
     return policies
@@ -320,6 +322,307 @@ def build_skill_index(skills: tuple[SkillMetadata, ...]) -> SkillIndex:
     return {"$schema": SCHEMA_IDENTIFIERS["skill-index"], "groups": groups}
 
 
+def analyse_lifecycle(skills: tuple[SkillMetadata, ...]) -> LifecycleAnalysis:
+    """Derive the lifecycle graph and all contract diagnostics from one inventory."""
+    names = {skill.name for skill in skills}
+    owners = tuple(skill for skill in skills if skill.lifecycle is not None)
+    diagnostics: list[LifecycleDiagnostic] = []
+    statuses: set[str] = set()
+    created: set[str] = set()
+    terminal: set[str] = set()
+    edges: dict[str, set[str]] = defaultdict(set)
+    next_by_edge: dict[tuple[LifecycleState, LifecycleState], set[str | None]] = (
+        defaultdict(set)
+    )
+
+    for skill in owners:
+        assert skill.lifecycle is not None
+        terminal.update(skill.lifecycle.terminal)
+
+    for skill in owners:
+        declaration = skill.lifecycle
+        assert declaration is not None
+        statuses.update(declaration.accepts)
+        statuses.update(declaration.creates)
+        statuses.update(declaration.terminal)
+        created.update(declaration.creates)
+
+        for transition in declaration.transitions:
+            source = transition.source.status
+            target = transition.target.status
+            statuses.update((source, target))
+            edges[source].add(target)
+            next_by_edge[transition.source, transition.target].add(
+                transition.next_skill
+            )
+            if source not in declaration.accepts:
+                diagnostics.append(
+                    LifecycleDiagnostic(
+                        "unaccepted-transition-source",
+                        f"{skill.path}: transition from {source!r} is not declared in accepts",
+                    )
+                )
+            if transition.next_skill is not None and transition.next_skill not in names:
+                diagnostics.append(
+                    LifecycleDiagnostic(
+                        "missing-next-skill",
+                        f"{skill.path}: transition from {source!r} names unavailable skill {transition.next_skill!r}",
+                    )
+                )
+            if target in terminal and transition.next_skill is not None:
+                diagnostics.append(
+                    LifecycleDiagnostic(
+                        "terminal-transition-has-next",
+                        f"terminal transition to {target!r} must not name a next skill",
+                    )
+                )
+            if target not in terminal and transition.next_skill is None:
+                diagnostics.append(
+                    LifecycleDiagnostic(
+                        "non-terminal-transition-missing-next",
+                        f"non-terminal transition to {target!r} must name a next skill",
+                    )
+                )
+
+    if not terminal:
+        diagnostics.append(
+            LifecycleDiagnostic(
+                "missing-terminal", "no terminal lifecycle status is declared"
+            )
+        )
+    if not created:
+        diagnostics.append(
+            LifecycleDiagnostic(
+                "missing-created-status", "no lifecycle status is created"
+            )
+        )
+
+    for (source, target), next_skills in sorted(
+        next_by_edge.items(), key=lambda entry: (entry[0][0].status, entry[0][1].status)
+    ):
+        if len(next_skills) > 1:
+            diagnostics.append(
+                LifecycleDiagnostic(
+                    "contradictory-transition",
+                    "transitions from "
+                    f"{source.status!r} to {target.status!r} name conflicting next skills",
+                )
+            )
+
+    for status in sorted(terminal):
+        if edges.get(status):
+            diagnostics.append(
+                LifecycleDiagnostic(
+                    "terminal-has-outgoing-transition",
+                    f"terminal status {status!r} has an outgoing transition",
+                )
+            )
+
+    reachable = _reachable_statuses(created, edges)
+    for status in sorted(statuses - reachable):
+        diagnostics.append(
+            LifecycleDiagnostic(
+                "unreachable-status",
+                f"lifecycle status {status!r} cannot be reached from a created status",
+            )
+        )
+
+    for status in sorted(statuses - terminal):
+        if not edges.get(status):
+            diagnostics.append(
+                LifecycleDiagnostic(
+                    "dead-end-status",
+                    f"non-terminal lifecycle status {status!r} has no outgoing transition",
+                )
+            )
+        elif not _can_reach_terminal(status, terminal, edges):
+            diagnostics.append(
+                LifecycleDiagnostic(
+                    "no-terminal-path",
+                    f"non-terminal lifecycle status {status!r} cannot reach a terminal status",
+                )
+            )
+
+    return LifecycleAnalysis(
+        frozenset(statuses),
+        frozenset(created),
+        frozenset(terminal),
+        tuple(
+            (source, target)
+            for source in sorted(edges)
+            for target in sorted(edges[source])
+        ),
+        tuple(diagnostics),
+    )
+
+
+def scan_managed_inventory(distribution_root: Path) -> ManagedInventory:
+    """Scan one blueprint or installed `.agents` root into managed inventory records."""
+    root = distribution_root.expanduser().resolve()
+    skills_root = root / "skills"
+    if not skills_root.is_dir():
+        label = (
+            "installed skill inventory" if root.name == ".agents" else "skill inventory"
+        )
+        raise SkillMetadataError(f"the {label} is unavailable at {skills_root}")
+
+    skills: list[ManagedSkillInventory] = []
+    names: set[str] = set()
+    unmanaged: list[Path] = []
+    for directory in sorted(skills_root.iterdir()):
+        if not directory.is_dir():
+            continue
+        skill_file = directory / "SKILL.md"
+        if not skill_file.exists() and not skill_file.is_symlink():
+            continue
+        try:
+            contents = read_regular_text(skill_file)
+        except (FileNotFoundError, OSError) as error:
+            raise SkillMetadataError(f"unable to read {skill_file}: {error}") from error
+        if not _has_specle_group_text(contents):
+            unmanaged.append(skill_file)
+            continue
+        metadata = _read_skill_metadata(skill_file, contents)
+        if metadata.name != directory.name:
+            raise SkillMetadataError(f"{skill_file} does not match its directory name")
+        if metadata.name in names:
+            raise SkillMetadataError(
+                f"{skill_file} duplicates managed skill {metadata.name!r}"
+            )
+        names.add(metadata.name)
+        skills.append(
+            ManagedSkillInventory(
+                metadata,
+                _checksum_resources(
+                    directory,
+                    Path("skills") / metadata.name,
+                    exclude_generated_index=True,
+                ),
+            )
+        )
+    if not skills:
+        raise SkillMetadataError(f"the skill inventory is empty at {skills_root}")
+    metadata = tuple(record.metadata for record in skills)
+    _validate_skill_dependencies(metadata)
+    return ManagedInventory(
+        root,
+        tuple(skills),
+        _checksum_resources(root / "policies", Path("policies")),
+        tuple(unmanaged),
+        analyse_lifecycle(metadata),
+    )
+
+
+def compare_managed_inventories(
+    blueprint: ManagedInventory, installed: ManagedInventory
+) -> tuple[str, ...]:
+    """Report managed skill and resource drift between scanned inventories."""
+    diagnostics: list[str] = []
+    expected_skills = {record.metadata.name: record for record in blueprint.skills}
+    installed_skills = {record.metadata.name: record for record in installed.skills}
+    for name in sorted(expected_skills.keys() - installed_skills.keys()):
+        diagnostics.append(f"missing managed skill (requires update): {name}")
+    for name in sorted(installed_skills.keys() - expected_skills.keys()):
+        diagnostics.append(f"unexpected managed skill (requires update): {name}")
+    for name in sorted(expected_skills.keys() & installed_skills.keys()):
+        diagnostics.extend(
+            _compare_resources(
+                expected_skills[name].resources,
+                installed_skills[name].resources,
+                "managed",
+            )
+        )
+    diagnostics.extend(
+        _compare_resources(blueprint.resources, installed.resources, "managed")
+    )
+    return tuple(sorted(diagnostics))
+
+
+def compare_installed_distribution(
+    source_root: Path, target_directory: Path
+) -> tuple[str, ...]:
+    """Report content drift between a package distribution and an installed target."""
+    return compare_managed_inventories(
+        scan_managed_inventory(source_root),
+        scan_managed_inventory(target_directory.expanduser().resolve() / ".agents"),
+    )
+
+
+def _checksum_resources(
+    directory: Path, prefix: Path, *, exclude_generated_index: bool = False
+) -> tuple[ResourceChecksum, ...]:
+    """Checksum every regular resource below a package-owned directory."""
+    if not directory.is_dir():
+        return ()
+    resources: list[ResourceChecksum] = []
+    for path in sorted(directory.rglob("*")):
+        if not path.is_file():
+            continue
+        relative = prefix / path.relative_to(directory)
+        if (
+            exclude_generated_index
+            and relative == Path("skills") / "specle" / "index.json"
+        ):
+            continue
+        try:
+            contents = read_regular_bytes(path)
+        except OSError as error:
+            raise SkillMetadataError(f"unable to read {path}: {error}") from error
+        resources.append(
+            ResourceChecksum(relative, hashlib.sha256(contents).hexdigest())
+        )
+    return tuple(resources)
+
+
+def _compare_resources(
+    expected: tuple[ResourceChecksum, ...],
+    actual: tuple[ResourceChecksum, ...],
+    subject: str,
+) -> tuple[str, ...]:
+    """Compare resource collections by relative path and stable checksum."""
+    expected_by_path = {resource.path: resource for resource in expected}
+    actual_by_path = {resource.path: resource for resource in actual}
+    diagnostics: list[str] = []
+    for path in sorted(expected_by_path.keys() - actual_by_path.keys()):
+        diagnostics.append(f"missing {subject} resource (requires update): {path}")
+    for path in sorted(actual_by_path.keys() - expected_by_path.keys()):
+        diagnostics.append(f"unexpected {subject} resource (requires update): {path}")
+    for path in sorted(expected_by_path.keys() & actual_by_path.keys()):
+        if expected_by_path[path].checksum != actual_by_path[path].checksum:
+            diagnostics.append(f"modified {subject} resource (requires update): {path}")
+    return tuple(diagnostics)
+
+
+def _reachable_statuses(created: set[str], edges: dict[str, set[str]]) -> set[str]:
+    """Return statuses reachable from any declared creation point."""
+    reachable = set(created)
+    pending = deque(created)
+    while pending:
+        source = pending.popleft()
+        for target in edges.get(source, ()):
+            if target not in reachable:
+                reachable.add(target)
+                pending.append(target)
+    return reachable
+
+
+def _can_reach_terminal(
+    start: str, terminal: set[str], edges: dict[str, set[str]]
+) -> bool:
+    """Return whether a status has any directed path to a terminal state."""
+    seen = {start}
+    pending = deque([start])
+    while pending:
+        source = pending.popleft()
+        for target in edges.get(source, ()):
+            if target in terminal:
+                return True
+            if target not in seen:
+                seen.add(target)
+                pending.append(target)
+    return False
+
+
 def initialise_distribution(
     source_root: Path, target_directory: Path, *, force: bool = False
 ) -> tuple[Path, ...]:
@@ -331,9 +634,17 @@ def initialise_distribution(
         )
 
     source_root = source_root.expanduser().resolve()
-    skills = discover_skills(source_root / "skills")
-    policies = discover_policies(source_root / "policies")
-    _validate_skill_dependencies(skills)
+    inventory = scan_managed_inventory(source_root)
+    skills = tuple(record.metadata for record in inventory.skills)
+    policies = tuple(
+        source_root / resource.path
+        for resource in inventory.resources
+        if resource.path.suffix == ".md"
+    )
+    if not policies:
+        raise SkillMetadataError(
+            f"the policy inventory is empty at {source_root / 'policies'}"
+        )
     if not any(skill.name == "specle" for skill in skills):
         raise SkillMetadataError("the packaged skill inventory has no 'specle' skill")
 
