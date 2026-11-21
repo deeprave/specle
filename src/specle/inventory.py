@@ -15,6 +15,7 @@ from typing import NotRequired, TypedDict
 from strictyaml import Enum, Map, Optional, Seq, Str, load
 from strictyaml.exceptions import StrictYAMLError
 
+from specle.file_reading import read_regular_text
 from specle.schema_registry import SCHEMA_IDENTIFIERS
 
 _SKILL_NAME = re.compile(r"[a-z][a-z0-9-]*")
@@ -187,7 +188,11 @@ def packaged_policies_root() -> Traversable:
 
 def read_skill_metadata(path: Path) -> SkillMetadata:
     """Read schema-validated Specle metadata from a skill frontmatter block."""
-    return _read_skill_metadata(path, path.read_text())
+    try:
+        contents = read_regular_text(path)
+    except OSError as error:
+        raise SkillMetadataError(f"unable to read {path}: {error}") from error
+    return _read_skill_metadata(path, contents)
 
 
 def _read_skill_metadata(path: Path, contents: str) -> SkillMetadata:
@@ -251,9 +256,9 @@ def discover_installed_specle_skills(
         if not directory.is_dir() or not skill_file.is_file():
             continue
         try:
-            contents = skill_file.read_text()
+            contents = read_regular_text(skill_file)
         except OSError as error:
-            raise SkillMetadataError(f"unable to read {skill_file}") from error
+            raise SkillMetadataError(f"unable to read {skill_file}: {error}") from error
         if not _has_specle_group_text(contents):
             continue
         metadata = _read_skill_metadata(skill_file, contents)

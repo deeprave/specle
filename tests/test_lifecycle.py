@@ -204,6 +204,44 @@ def test_reports_malformed_status_and_invalid_local_selector(tmp_path: Path) -> 
     assert "malformed JSON" in diagnostics[0].message
 
 
+def test_accepts_a_status_symlink_to_a_regular_file(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    name = "202611200001-example"
+    _write_status(target, name, status="defined")
+    status_path = target / ".specle" / "specs" / name / "status.json"
+    source = tmp_path / "status-source.json"
+    source.write_text(status_path.read_text())
+    status_path.unlink()
+    status_path.symlink_to(source)
+
+    assert validate_runtime_records(target, _runtime_skills()) == ()
+
+
+def test_reports_a_non_regular_status_before_reading_it(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    name = "202611200001-example"
+    directory = target / ".specle" / "specs" / name
+    directory.mkdir(parents=True)
+    (directory / "status.json").symlink_to(tmp_path, target_is_directory=True)
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
+    assert "not a regular file" in diagnostics[0].message
+
+
+def test_reports_a_broken_current_spec_symlink(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "202611200001-example", status="defined")
+    selector = target / ".specle" / "current-spec"
+    selector.symlink_to(tmp_path / "missing-current-spec")
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
+    assert "not a regular file" in diagnostics[0].message
+
+
 def _runtime_skills() -> tuple[SkillMetadata, ...]:
     return (
         _skill(

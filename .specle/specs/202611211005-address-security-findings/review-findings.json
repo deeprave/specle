@@ -1,0 +1,12 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261121-address-security-findings",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree",
+      "outcome": "approve"
+    }
+  ],
+  "findings": []
+}

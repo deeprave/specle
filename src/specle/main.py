@@ -10,6 +10,7 @@ from pathlib import Path
 
 import anyio
 
+from specle.file_reading import read_regular_text
 from specle.inventory import (
     SkillInstallationError,
     SkillMetadataError,
@@ -97,10 +98,15 @@ async def main(args: list[str] | None = None) -> None:
         resolved_target = target.expanduser().resolve()
         index_path = resolved_target / ".agents" / "skills" / "specle" / "index.json"
         try:
-            index = json.loads(index_path.read_text())
-        except (FileNotFoundError, OSError, UnicodeDecodeError, json.JSONDecodeError):
+            index = json.loads(read_regular_text(index_path))
+        except (
+            FileNotFoundError,
+            OSError,
+            UnicodeDecodeError,
+            json.JSONDecodeError,
+        ) as error:
             diagnostics.append(
-                _diagnostic(f"invalid generated skill index: {index_path}")
+                _diagnostic(f"invalid generated skill index: {index_path}: {error}")
             )
         else:
             expected_index = build_skill_index(skills)

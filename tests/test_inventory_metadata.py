@@ -39,6 +39,15 @@ requires:
     assert metadata.requires == ("onboard", "spec")
 
 
+def test_rejects_a_non_regular_skill_file_before_reading_it(tmp_path: Path) -> None:
+    skill = tmp_path / "sample" / "SKILL.md"
+    skill.parent.mkdir()
+    skill.symlink_to(tmp_path, target_is_directory=True)
+
+    with pytest.raises(SkillMetadataError, match="not a regular file"):
+        read_skill_metadata(skill)
+
+
 def test_every_packaged_skill_declares_a_specle_group() -> None:
     source_root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
 
