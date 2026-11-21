@@ -46,10 +46,10 @@ Create or refresh `.agents/project/`. These repository-local Markdown documents 
 
 - Do not invent standards, external integrations, or tracker configuration.
 - Do not alter application code, dependencies, CI, or project configuration as part of onboarding.
-- Project guidance documents describe durable repository facts; individual feature requirements belong in `.specle/specs/`.
+- Project guidance documents describe durable repository facts; individual feature requirements belong in `.specle/changes/`.
 - Preserve supported local content when refreshing an existing overlay. Do not replace established facts with generic template text.
 
 ## Next
 
 - `analyse` — compare the overlay with the codebase when conventions may have drifted.
-- `spec` — begin a feature once the project context is established.
+- `define` — describe a feature change once the project context is established.

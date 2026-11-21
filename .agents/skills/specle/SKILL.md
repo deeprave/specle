@@ -9,7 +9,7 @@ usage: >-
 
 # Describe Specle
 
-Produce a read-only presentation of the installed Specle skill index. Do not update specs, context, source files, or the index.
+Produce a read-only presentation of the installed Specle skill index. Do not update changes, context, source files, or the index.
 
 ## Workflow
 

@@ -43,7 +43,7 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
     assert "delivery.md" in onboard
     assert "one focused question at a\n   time" in onboard
     assert all(status in lifecycle for status in ("`approved`", "`committed`"))
-    assert "without replacing `.specle/current-spec`" in triage
+    assert "without replacing `.specle/current-change`" in triage
     assert (
         "returns through build, verification, review, approval, and commit" in resolve
     )
@@ -51,7 +51,7 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
     assert "previously committed target to `committed`" in resolve
     assert "unselected `defined` work" in resolve
     assert "Do not complete the origin" in resolve
-    assert {"activate", "spec"} <= {
+    assert {"activate", "define"} <= {
         skill.name for skill in discover_skills(BLUEPRINTS / "skills")
     }
     assert "committed` normal changes may be verified" in verify
@@ -64,14 +64,14 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
     assert "Do not stash, switch, merge, pull, fetch" in complete
     assert "stash that includes untracked files" in complete
     assert "retain the stash" in complete
-    assert "current-spec" in commit
+    assert "current-change" in commit
     assert "archive" in complete
     assert "branch-and-pull-request delivery" in (BLUEPRINTS / "AGENTS.md").read_text()
     assert (
         "explicitly named committed normal target"
         in (BLUEPRINTS / "skills" / "build" / "SKILL.md").read_text()
     )
-    assert '"delivery": "with-related-spec"' in bugfix
+    assert '"delivery": "with-related-change"' in bugfix
     assert "declared related sidecars" in status
     assert "related approved sidecars" in commit
     assert "unlinked abbreviated work" in bugfix
@@ -100,7 +100,7 @@ def test_root_references_match_the_delivery_workflow() -> None:
 def test_planning_skills_keep_changes_independent_by_default() -> None:
     skills = {
         name: (BLUEPRINTS / "skills" / name / "SKILL.md").read_text()
-        for name in ("spec", "estimate", "design", "tasks", "revise")
+        for name in ("define", "estimate", "design", "tasks", "revise")
     }
 
     for content in skills.values():

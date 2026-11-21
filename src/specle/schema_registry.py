@@ -17,7 +17,7 @@ from referencing import Registry, Resource
 
 SCHEMA_BASE_URI = "https://github.com/deeprave/specle/schemas"
 SCHEMA_IDENTIFIERS = {
-    "spec-status": f"{SCHEMA_BASE_URI}/spec-status/1.0",
+    "change-status": f"{SCHEMA_BASE_URI}/change-status/1.0",
     "findings": f"{SCHEMA_BASE_URI}/findings/1.0",
     "tracker-links": f"{SCHEMA_BASE_URI}/tracker-links/1.0",
     "skill-index": f"{SCHEMA_BASE_URI}/skill-index/1.0",

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
+  "kind": "change",
+  "status": "complete",
+  "progress": {
+    "tasks_completed": 5,
+    "tasks_total": 5
+  },
+  "verification": {
+    "status": "pass"
+  },
+  "review": {
+    "status": "pass",
+    "findings": 0
+  },
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/19",
+    "head_branch": "feature/address-security-findings",
+    "target_branch": "main",
+    "commit": "44e57ab",
+    "event": "pull-request-merged",
+    "merge_commit": "28fe1ea"
+  },
+  "relationships": [],
+  "dependencies": [],
+  "created_at": "2026-11-21T10:05:00+11:00",
+  "activated_at": null
+}

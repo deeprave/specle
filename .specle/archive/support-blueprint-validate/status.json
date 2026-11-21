@@ -1,0 +1,27 @@
+{
+  "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
+  "kind": "change",
+  "status": "complete",
+  "progress": {
+    "tasks_completed": 9,
+    "tasks_total": 9
+  },
+  "verification": {
+    "status": "pass"
+  },
+  "review": {
+    "status": "pass",
+    "findings": 0
+  },
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/23",
+    "head_branch": "feature/support-blueprint-validate",
+    "target_branch": "main",
+    "commit": "713e79e",
+    "merged_commit": "eb2dd70"
+  },
+  "relationships": [],
+  "dependencies": [],
+  "created_at": "2026-11-21T12:16:00+11:00",
+  "activated_at": null
+}
