@@ -38,3 +38,8 @@
   - [x] 9.1 Normalize accepted timestamp input to Unix seconds and reject date-only input; require numeric durable timestamps in the schema and reader.
   - [x] 9.2 Convert tracked status timestamps and update workflow writers in both blueprint and installed skills.
   - [x] 9.3 Cover the current timestamp contract and repeat verification and review.
+
+- [x] 10. Apply accepted follow-up review corrections.
+  - [x] 10.1 Keep timestamp normalization at explicit write boundaries and reject noncanonical durable timestamps.
+  - [x] 10.2 Require NFC names, detect case-folded collisions, and reject Windows-reserved names.
+  - [x] 10.3 Cover the corrected runtime contracts and repeat verification and review.

@@ -20,7 +20,7 @@ Specle currently prefixes every active and archived change directory with a crea
 #### Acceptance Criteria
 
 1. New active changes SHALL be created beneath `.specle/changes/<name>/` without adding an automatic datetime prefix.
-2. A change slug SHALL be unique across both `.specle/changes/` and `.specle/archive/`.
+2. A change slug SHALL be unique across both `.specle/changes/` and `.specle/archive/` after NFC normalization and Unicode case folding.
 3. IF an attempted new slug already exists in either collection, THEN creation SHALL fail with an actionable collision diagnostic.
 4. Lifecycle commands that accept a named change SHALL resolve its exact unique name without applying a timestamp-prefix convention.
 5. The active and archive collection paths SHALL be `.specle/changes/` and `.specle/archive/`.
@@ -35,7 +35,7 @@ Specle currently prefixes every active and archived change directory with a crea
 2. Timestamp input SHALL accept a full naive ISO 8601 datetime, an offset-aware ISO 8601 datetime, or an integer Unix epoch expressed in milliseconds or nanoseconds. A naive datetime SHALL be interpreted in the user's current timezone; date-only values SHALL be rejected.
 3. Accepted timestamps SHALL be normalized to Unix seconds as a JSON number before durable state is recorded. A fractional value SHALL be used only when needed for sub-second precision. `activated_at` SHALL be `null` before first activation and SHALL be set once on first successful activation using that normalized representation.
 4. Subsequent activation or continuation of a change SHALL preserve its original `activated_at` value.
-5. A custom timestamp validator and normalizer SHALL enforce the accepted input forms and durable representation.
+5. A custom timestamp normalizer SHALL convert accepted input forms to the durable representation at an explicit write boundary. Durable-record validation SHALL reject values that are not already canonical numeric Unix seconds.
 
 ### Requirement 2a: Support Unicode change names
 
@@ -43,9 +43,9 @@ Specle currently prefixes every active and archived change directory with a crea
 
 #### Acceptance Criteria
 
-1. A change name SHALL allow filesystem-compatible Unicode characters within its words.
+1. A change name SHALL allow filesystem-compatible NFC Unicode characters within its words.
 2. Multiple name words SHALL be separated only by the ASCII hyphen-minus (`-`), not an en dash or em dash.
-3. Change-name validation SHALL reject empty names, dot components, path separators, NUL, and components invalid for the target filesystem.
+3. Change-name validation SHALL reject empty names, non-NFC forms, dot components, path separators, NUL, Windows-reserved device names, and components invalid for the target filesystem.
 4. A timestamp-shaped user-supplied name SHALL remain valid when it otherwise meets the name rules.
 
 ### Requirement 3: Update the tracked repository state
@@ -94,3 +94,4 @@ Specle currently prefixes every active and archived change directory with a crea
 - Existing queued changes remain independent; this migration does not create an ordering dependency among them.
 - The change must update blueprint and active `.agents/` skills together, rebuild the generated index, and validate lifecycle and runtime state after migration.
 - Collision checks during `define` and first-activation timestamp preservation during `activate` are agent-enforced workflow responsibilities; they are not a Python runtime validation subsystem.
+- Explicit write-side callers may normalize supported timestamp input, but durable-record validation does not rewrite or reinterpret stored timestamps.

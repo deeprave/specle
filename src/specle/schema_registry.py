@@ -78,11 +78,6 @@ def validate_instance(instance: Mapping[str, object]) -> str:
     identifier = instance.get("$schema")
     if not isinstance(identifier, str):
         raise SchemaRegistryError("contract instance is missing string '$schema'")
-    if identifier == SCHEMA_IDENTIFIERS["change-status"]:
-        for field in ("created_at", "activated_at"):
-            value = instance.get(field)
-            if value is not None:
-                instance[field] = normalize_change_timestamp(value)
     schema = load_schema(identifier)
     validator = Draft202012Validator(
         schema, registry=_registry(), format_checker=FormatChecker()

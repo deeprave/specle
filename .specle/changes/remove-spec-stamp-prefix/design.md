@@ -15,9 +15,9 @@ change-state schema ─ schema registry ─ status validation
 define skill ─ creates an unselected change
 ```
 
-Rename `spec_state.py` to `change_state.py` and its public types and helpers to `ChangeRecord`, `ChangeStateSnapshot`, `read_change_state`, `resolve_change`, and `selected_change`. The reader scans `.specle/changes/` and `.specle/archive/`, validates one filesystem-compatible Unicode name component whose words are separated by ASCII hyphen-minus, and rejects duplicate names across both collections. The ignored selector becomes `.specle/current-change` and contains one active change name.
+Rename `spec_state.py` to `change_state.py` and its public types and helpers to `ChangeRecord`, `ChangeStateSnapshot`, `read_change_state`, `resolve_change`, and `selected_change`. The reader scans `.specle/changes/` and `.specle/archive/`, validates one NFC filesystem-compatible Unicode name component whose words are separated by ASCII hyphen-minus, rejects Windows-reserved device names on every host, and rejects duplicates by NFC-normalized case-folded identity across both collections. The ignored selector becomes `.specle/current-change` and contains one active change name.
 
-Rename the schema resource and registry key from `spec-status` to `change-status`. Its `status.json` contract gains required `created_at` and `activated_at` fields. A custom timestamp normalizer accepts full naive or offset-aware ISO 8601 datetimes and millisecond or nanosecond Unix epochs, then returns Unix seconds as a JSON number, using a fractional value only for sub-second precision. Workflow writers persist that canonical number; the reader also normalizes accepted input before exposing a record. Date-only input is invalid. `activated_at` is otherwise `null`. Relationship `spec` becomes `change`. The findings schema changes `outcome_spec` to `outcome_change`; structured review references become `resulting_change`.
+Rename the schema resource and registry key from `spec-status` to `change-status`. Its `status.json` contract gains required `created_at` and `activated_at` fields. A custom timestamp normalizer accepts full naive or offset-aware ISO 8601 datetimes and millisecond or nanosecond Unix epochs, then returns Unix seconds as a JSON number, using a fractional value only for sub-second precision. Explicit write-side callers use that normalizer before persisting state; the reader and validator reject a durable record that is not already numeric Unix seconds. Date-only input is invalid. `activated_at` is otherwise `null`. Relationship `spec` becomes `change`. The findings schema changes `outcome_spec` to `outcome_change`; structured review references become `resulting_change`.
 
 ## Repository update
 
@@ -27,16 +27,16 @@ Rename `src/specle/blueprints/skills/spec/` to `define/`, update frontmatter, li
 
 ## Error handling
 
-- Reject invalid active or archive change-name components with a concise runtime diagnostic.
-- Reject a duplicate name across active and archive collections; never choose one based on collection or modification time.
-- Reject status records that omit a timestamp or use an unaccepted timestamp input form, including date-only strings.
+- Reject invalid active or archive change-name components, including non-NFC and Windows-reserved names, with a concise runtime diagnostic.
+- Reject a duplicate NFC-normalized case-folded name across active and archive collections; never choose one based on collection or modification time.
+- Reject status records that omit a timestamp or do not already use canonical numeric Unix seconds.
 - `define` fails before writing when its name appears in either collection.
 - A missing `current-change` remains valid; a selector naming an archived or unknown change is invalid.
 
 ## Test strategy
 
-- Test Unicode change-name validation and duplicate-name diagnostics without asserting retired names are rejected.
-- Test custom timestamp normalization to canonical Unix seconds for naive and offset-aware ISO 8601 datetimes and millisecond/nanosecond epochs, including `activated_at: null` and rejected date-only input.
+- Test NFC Unicode change-name validation, case-folded duplicate diagnostics, and Windows-reserved-name rejection without asserting retired names are rejected.
+- Test custom timestamp normalization to canonical Unix seconds for naive and offset-aware ISO 8601 datetimes and millisecond/nanosecond epochs, including `activated_at: null` and rejected date-only input; test durable-state rejection of noncanonical input.
 - Test direct skill inventory/index output contains `define` and no `spec` skill.
 - Test repository state and schema registry validation after the tracked-directory and structured-reference update, including the project-local changelog guidance.
 - Run `pytest`, `ruff check`, `ruff format --check`, `ty`, blueprint validation, installed-target validation, and a deliberate stale-term inventory limited to work-item vocabulary.

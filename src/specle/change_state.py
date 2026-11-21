@@ -12,9 +12,17 @@ from specle.file_reading import read_regular_text
 from specle.schema_registry import (
     SCHEMA_IDENTIFIERS,
     SchemaRegistryError,
-    normalize_change_timestamp,
     validate_instance,
 )
+
+_WINDOWS_RESERVED_NAMES = {
+    "con",
+    "prn",
+    "aux",
+    "nul",
+    *(f"com{number}" for number in range(1, 10)),
+    *(f"lpt{number}" for number in range(1, 10)),
+}
 
 
 class ChangeStateError(ValueError):
@@ -131,9 +139,6 @@ def _read_status(path: Path, diagnostics: list[str]) -> dict[str, object] | None
             raise SchemaRegistryError(
                 f"expected schema {SCHEMA_IDENTIFIERS['change-status']!r}"
             )
-        for field in ("created_at", "activated_at"):
-            if value.get(field) is not None:
-                value[field] = normalize_change_timestamp(value[field])
         validate_instance(value)
     except SchemaRegistryError as error:
         diagnostics.append(f"{path}: invalid contract: {error}")
@@ -162,6 +167,10 @@ def _is_change_name(value: str) -> bool:
         return False
     if os.sep in value or (os.altsep is not None and os.altsep in value):
         return False
+    if unicodedata.normalize("NFC", value) != value:
+        return False
+    if value.casefold() in _WINDOWS_RESERVED_NAMES:
+        return False
     return all(
         part
         and all(
@@ -177,6 +186,7 @@ def _report_duplicate_names(
 ) -> None:
     seen: set[str] = set()
     for record in (*active, *archived):
-        if record.name in seen:
+        identity = unicodedata.normalize("NFC", record.name).casefold()
+        if identity in seen:
             diagnostics.append(f"duplicate change name: {record.name}")
-        seen.add(record.name)
+        seen.add(identity)

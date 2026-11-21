@@ -26,7 +26,7 @@ def test_loads_packaged_change_status_schema() -> None:
                 "$schema": SCHEMA_IDENTIFIERS["change-status"],
                 "kind": "change",
                 "status": "defined",
-                "created_at": "2026-11-21T20:14:00+11:00",
+                "created_at": 1_795_252_440,
                 "activated_at": None,
                 "progress": {},
                 "verification": {"status": "not-run"},
@@ -78,10 +78,10 @@ def test_rejects_date_only_timestamp_input() -> None:
         normalize_change_timestamp("2026-11-21")
 
 
-def test_change_status_validation_uses_the_custom_timestamp_validator() -> None:
+def test_change_status_validation_rejects_noncanonical_durable_timestamp() -> None:
     instance = _change_status(created_at="not-a-timestamp")
 
-    with pytest.raises(SchemaRegistryError, match="timestamp"):
+    with pytest.raises(SchemaRegistryError, match="failed type"):
         validate_instance(instance)
 
 

@@ -167,6 +167,20 @@ def test_reports_non_ascii_dash_in_a_change_name(tmp_path: Path) -> None:
     assert "invalid change directory name" in diagnostics[0].message
 
 
+def test_reports_noncanonical_durable_timestamp(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "example", status="defined")
+    status_path = target / ".specle" / "changes" / "example" / "status.json"
+    status = json.loads(status_path.read_text())
+    status["created_at"] = "2026-11-21T20:14:00+11:00"
+    status_path.write_text(json.dumps(status))
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
+    assert "failed type" in diagnostics[0].message
+
+
 def test_reports_invalid_status_and_archived_non_completion(tmp_path: Path) -> None:
     target = tmp_path / "project"
     _write_status(target, "example", status="unknown")
@@ -191,6 +205,32 @@ def test_reports_duplicate_change_names_across_active_and_archive(
 
     assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
     assert "duplicate change name" in diagnostics[0].message
+
+
+def test_reports_case_folded_duplicate_change_names(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "Foo", status="defined")
+    _write_status(target, "foo", status="complete", archived=True)
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
+    assert "duplicate change name" in diagnostics[0].message
+
+
+def test_reports_non_nfc_and_windows_reserved_change_names(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "cafe\u0301", status="defined")
+    _write_status(target, "CON", status="defined")
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
+    assert len(diagnostics) == 2
+    assert all(
+        "invalid change directory name" in diagnostic.message
+        for diagnostic in diagnostics
+    )
 
 
 def test_reports_an_implementation_status_for_a_spike(tmp_path: Path) -> None:

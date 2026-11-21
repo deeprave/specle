@@ -25,6 +25,25 @@
       "reviewed_at": "2026-11-21T21:53:57+11:00",
       "findings": 0,
       "outcome": "approve"
+    },
+    {
+      "id": "third-party-pr25-follow-up-20261121",
+      "system": "third-party",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/25",
+      "revision": "f6b1133",
+      "previous_revision": "171b1ee",
+      "reviewed_at": "2026-11-21T21:59:00+11:00",
+      "findings": 4
+    },
+    {
+      "id": "local-review-remove-spec-stamp-prefix-20261121-follow-up-final",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-after-follow-up-resolution",
+      "reviewed_at": "2026-11-21T22:11:16+11:00",
+      "findings": 0,
+      "outcome": "approve"
     }
   ],
   "findings": [
@@ -176,6 +195,61 @@
         "workflow": "revise",
         "execution": "in-place"
       }
+    },
+    {
+      "id": "third-party-pr25-follow-up-N1",
+      "source_ids": ["third-party-pr25-follow-up-20261121"],
+      "severity": "P2",
+      "description": "Validation does not detect non-canonical timestamps in durable state.",
+      "evidence": "src/specle/change_state.py:134; validate_instance accepted ISO strings, naive datetimes, and millisecond epochs by normalizing them before schema validation.",
+      "analysis": "The schema's numeric canonical form is bypassed by normalization in both validation and the reader. A naive value on disk can resolve differently when validated on machines in different timezones.",
+      "recommendation": "Keep normalization for write-side input, but reject durable status values that are not already canonical Unix seconds.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Durable status records must already contain canonical numeric Unix seconds; normalization remains available only at an explicit write boundary.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "third-party-pr25-follow-up-N2",
+      "source_ids": ["third-party-pr25-follow-up-20261121"],
+      "severity": "P2",
+      "description": "Unicode and case-equivalent change names are not treated as duplicates.",
+      "evidence": "src/specle/change_state.py:172; active Foo plus archived foo, and NFC café plus NFD café, produce no duplicate diagnostic.",
+      "analysis": "Exact-string comparison allows names that collide or appear indistinguishable on case-insensitive or normalization-insensitive filesystems, including default macOS and Windows configurations.",
+      "recommendation": "Compare names using NFC normalization and case folding, then either require NFC input or lowercase-only Unicode names.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Require NFC-form names and use NFC normalization plus case folding for duplicate detection so one logical name cannot collide across common filesystems.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "third-party-pr25-follow-up-N3",
+      "source_ids": ["third-party-pr25-follow-up-20261121"],
+      "severity": "P3",
+      "description": "Windows-reserved change names are accepted.",
+      "evidence": "src/specle/change_state.py:159 accepts CON, nul, and aux.",
+      "analysis": "These names cannot be created on Windows although this package declares OS independence. The requirement calls for target-filesystem-compatible names.",
+      "recommendation": "Reject Windows-reserved stems independently of the host platform; consider a UTF-8 byte-length limit separately.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Reject Windows-reserved stems on every host to keep tracked change names portable. A byte-length limit remains out of scope.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "third-party-pr25-follow-up-N4",
+      "source_ids": ["third-party-pr25-follow-up-20261121"],
+      "severity": "P5",
+      "description": "The timestamp normalizer accepts implausible values and broad Unicode numeric characters.",
+      "evidence": "src/specle/schema_registry.py:100 accepts zero and negative epochs; src/specle/change_state.py:159 accepts characters such as superscript or non-Latin digits.",
+      "analysis": "The proposed project floor, microsecond-epoch handling, and NFKC restrictions are additional policy choices rather than requirements of the current change.",
+      "recommendation": "Consider these constraints in a later change only if the project adopts concrete timestamp-range or Unicode-name policies.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Zero and negative Unix epochs are valid; no project timestamp floor, microsecond input format, or narrower Unicode policy has been established.",
+      "route": "none"
     }
   ]
 }
