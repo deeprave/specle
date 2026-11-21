@@ -23,19 +23,19 @@ def test_initialises_a_fresh_project_target_and_generates_an_index(
     installed = initialise_distribution(source_root, target)
 
     skills_root = target / ".agents" / "skills"
-    assert (skills_root / "spec" / "SKILL.md").is_file()
+    assert (skills_root / "define" / "SKILL.md").is_file()
     assert (skills_root / "verify" / "SKILL.md").is_file()
     assert (skills_root / "specle" / "resource.json").is_file()
     assert (target / ".agents" / "policies" / "testing.md").is_file()
     assert (
         target / ".specle" / ".gitignore"
-    ).read_text() == "/current-spec\n/context.json\n"
+    ).read_text() == "/current-change\n/context.json\n"
     index = json.loads((skills_root / "specle" / "index.json").read_text())
     indexed_skills = [skill for group in index["groups"] for skill in group["skills"]]
-    assert next(skill for skill in indexed_skills if skill["name"] == "spec") == {
-        "name": "spec",
-        "description": "Spec skill.",
-        "usage": "Use spec for tests.",
+    assert next(skill for skill in indexed_skills if skill["name"] == "define") == {
+        "name": "define",
+        "description": "Define skill.",
+        "usage": "Use define for tests.",
     }
     assert installed[-1] == skills_root / "specle" / "index.json"
 
@@ -47,7 +47,7 @@ def test_initialises_a_home_like_target_without_project_state(tmp_path: Path) ->
 
     initialise_distribution(source_root, home)
 
-    assert (home / ".agents" / "skills" / "spec" / "SKILL.md").is_file()
+    assert (home / ".agents" / "skills" / "define" / "SKILL.md").is_file()
     assert not (home / ".agents" / "project").exists()
     assert (home / ".specle" / ".gitignore").is_file()
 
@@ -74,7 +74,7 @@ def test_uses_the_explicit_target_not_the_current_directory(
 
     initialise_distribution(source_root, target)
 
-    assert (target / ".agents" / "skills" / "spec" / "SKILL.md").is_file()
+    assert (target / ".agents" / "skills" / "define" / "SKILL.md").is_file()
     assert not (current_directory / ".agents").exists()
 
 
@@ -105,14 +105,14 @@ def test_preserves_project_owned_content_and_unrelated_skills(tmp_path: Path) ->
 def test_collision_preflight_makes_no_writes_without_force(tmp_path: Path) -> None:
     source_root = _write_distribution(tmp_path / "source")
     target = tmp_path / "project"
-    existing = target / ".agents" / "skills" / "spec" / "SKILL.md"
+    existing = target / ".agents" / "skills" / "define" / "SKILL.md"
     existing.parent.mkdir(parents=True)
-    existing.write_text("# Existing spec\n")
+    existing.write_text("# Existing define\n")
 
     with pytest.raises(SkillInstallationError, match="destination already exists"):
         initialise_distribution(source_root, target)
 
-    assert existing.read_text() == "# Existing spec\n"
+    assert existing.read_text() == "# Existing define\n"
     assert not (target / ".agents" / "skills" / "verify").exists()
     assert not (target / ".agents" / "policies").exists()
 
@@ -122,11 +122,13 @@ def test_initialisation_preserves_existing_runtime_ignore_rules(tmp_path: Path) 
     target = tmp_path / "project"
     runtime_ignore = target / ".specle" / ".gitignore"
     runtime_ignore.parent.mkdir(parents=True)
-    runtime_ignore.write_text("/agent-cache\n/current-spec\n")
+    runtime_ignore.write_text("/agent-cache\n/current-change\n")
 
     initialise_distribution(source_root, target)
 
-    assert runtime_ignore.read_text() == "/agent-cache\n/current-spec\n/context.json\n"
+    assert (
+        runtime_ignore.read_text() == "/agent-cache\n/current-change\n/context.json\n"
+    )
 
 
 def test_compares_an_installed_distribution_to_its_package_source(
@@ -151,7 +153,7 @@ def test_reports_each_missing_skill_for_an_empty_installed_inventory(
 
     assert diagnostics == (
         "missing managed resource (requires update): policies/testing.md",
-        "missing managed skill (requires update): spec",
+        "missing managed skill (requires update): define",
         "missing managed skill (requires update): specle",
         "missing managed skill (requires update): verify",
     )
@@ -205,8 +207,8 @@ def test_inventory_scan_returns_package_completeness_diagnostics(
 @pytest.mark.parametrize(
     ("relative_path", "expected"),
     [
-        (("skills", "spec", "resource.json"), "modified managed resource"),
-        (("skills", "spec", "resource.json"), "missing managed resource"),
+        (("skills", "define", "resource.json"), "modified managed resource"),
+        (("skills", "define", "resource.json"), "missing managed resource"),
         (("policies", "testing.md"), "modified managed resource"),
     ],
 )
@@ -240,7 +242,7 @@ def test_reports_unexpected_managed_resources_but_ignores_unmarked_skills(
     target = tmp_path / "project"
     target.mkdir()
     initialise_distribution(source_root, target)
-    unexpected = target / ".agents" / "skills" / "spec" / "extra.json"
+    unexpected = target / ".agents" / "skills" / "define" / "extra.json"
     unmarked = target / ".agents" / "skills" / "external" / "SKILL.md"
     unexpected.write_text("{}\n")
     unmarked.parent.mkdir()
@@ -259,8 +261,8 @@ def test_reports_a_marker_stripped_expected_skill(tmp_path: Path) -> None:
     target = tmp_path / "project"
     target.mkdir()
     initialise_distribution(source_root, target)
-    skill_file = target / ".agents" / "skills" / "spec" / "SKILL.md"
-    skill_file.write_text("---\nname: spec\n---\n")
+    skill_file = target / ".agents" / "skills" / "define" / "SKILL.md"
+    skill_file.write_text("---\nname: define\n---\n")
 
     diagnostics = compare_installed_distribution(source_root, target)
 
@@ -269,7 +271,7 @@ def test_reports_a_marker_stripped_expected_skill(tmp_path: Path) -> None:
 
 def test_compares_binary_managed_resources(tmp_path: Path) -> None:
     source_root = _write_distribution(tmp_path / "source")
-    binary_resource = source_root / "skills" / "spec" / "resource.bin"
+    binary_resource = source_root / "skills" / "define" / "resource.bin"
     binary_resource.write_bytes(b"\x00\xff")
     target = tmp_path / "project"
     target.mkdir()
@@ -281,14 +283,14 @@ def test_compares_binary_managed_resources(tmp_path: Path) -> None:
 def test_force_replaces_only_exact_managed_destinations(tmp_path: Path) -> None:
     source_root = _write_distribution(tmp_path / "source")
     target = tmp_path / "project"
-    managed_skill = target / ".agents" / "skills" / "spec" / "SKILL.md"
+    managed_skill = target / ".agents" / "skills" / "define" / "SKILL.md"
     managed_policy = target / ".agents" / "policies" / "testing.md"
     old_index = target / ".agents" / "skills" / "specle" / "index.json"
     old_specle_resource = target / ".agents" / "skills" / "specle" / "resource.json"
     external_skill = target / ".agents" / "skills" / "external" / "SKILL.md"
     project_document = target / ".agents" / "project" / "README.md"
     for path, contents in (
-        (managed_skill, "# Old spec\n"),
+        (managed_skill, "# Old define\n"),
         (managed_policy, "# Old testing\n"),
         (old_index, "{}\n"),
         (old_specle_resource, '{"version": "old"}\n'),
@@ -305,7 +307,7 @@ def test_force_replaces_only_exact_managed_destinations(tmp_path: Path) -> None:
 
     assert (
         managed_skill.read_text()
-        == (source_root / "skills" / "spec" / "SKILL.md").read_text()
+        == (source_root / "skills" / "define" / "SKILL.md").read_text()
     )
     assert (
         managed_policy.read_text()
@@ -376,9 +378,9 @@ def test_staging_failure_preserves_existing_content_and_cleans_up(
 ) -> None:
     source_root = _write_distribution(tmp_path / "source")
     target = tmp_path / "project"
-    existing = target / ".agents" / "skills" / "spec" / "SKILL.md"
+    existing = target / ".agents" / "skills" / "define" / "SKILL.md"
     existing.parent.mkdir(parents=True)
-    existing.write_text("# Existing spec\n")
+    existing.write_text("# Existing define\n")
 
     def fail_copytree(*args: object, **kwargs: object) -> None:
         raise OSError("copy failed")
@@ -388,7 +390,7 @@ def test_staging_failure_preserves_existing_content_and_cleans_up(
     with pytest.raises(SkillInstallationError, match="unable to stage"):
         initialise_distribution(source_root, target, force=True)
 
-    assert existing.read_text() == "# Existing spec\n"
+    assert existing.read_text() == "# Existing define\n"
     assert not list((target / ".agents").rglob(".specle-tmp-*"))
 
 
@@ -430,13 +432,13 @@ def test_replacement_failure_reports_its_destination_and_preserves_the_index(
         destination: Path,
         backups: list[tuple[Path, Path]],
     ) -> None:
-        if destination.name == "spec":
+        if destination.name == "define":
             raise OSError("rename failed")
         original_replace(temporary, destination, backups)
 
     monkeypatch.setattr(inventory, "_replace_staged_destination", fail_first_skill)
 
-    with pytest.raises(SkillInstallationError, match=r"destination.*skills/spec"):
+    with pytest.raises(SkillInstallationError, match=r"destination.*skills/define"):
         initialise_distribution(source_root, target, force=True)
 
     assert index_path.read_text() == previous_index
@@ -451,16 +453,16 @@ def test_replacement_failure_restores_every_managed_skill_resource_and_index(
     target.mkdir()
     initialise_distribution(source_root, target)
     skills_root = target / ".agents" / "skills"
-    spec_directory = skills_root / "spec"
+    define_directory = skills_root / "define"
     specle_directory = skills_root / "specle"
     index_path = specle_directory / "index.json"
-    previous_spec_resource = (spec_directory / "resource.json").read_text()
+    previous_define_resource = (define_directory / "resource.json").read_text()
     specle_resource = specle_directory / "resource.json"
     previous_specle_resource = '{"version": "old"}\n'
     specle_resource.write_text(previous_specle_resource)
     previous_index = '{"previous": true}\n'
     index_path.write_text(previous_index)
-    (source_root / "skills" / "spec" / "resource.json").write_text(
+    (source_root / "skills" / "define" / "resource.json").write_text(
         '{"version": "new"}\n'
     )
     (source_root / "skills" / "specle" / "resource.json").write_text(
@@ -478,7 +480,7 @@ def test_replacement_failure_restores_every_managed_skill_resource_and_index(
     with pytest.raises(SkillInstallationError, match=r"destination.*skills/specle"):
         initialise_distribution(source_root, target, force=True)
 
-    assert (spec_directory / "resource.json").read_text() == previous_spec_resource
+    assert (define_directory / "resource.json").read_text() == previous_define_resource
     assert specle_resource.read_text() == previous_specle_resource
     assert index_path.read_text() == previous_index
     assert not list((target / ".agents").rglob(".specle-tmp-*"))
@@ -547,7 +549,7 @@ def test_replacement_failure_removes_new_managed_destinations_before_retry(
         initialise_distribution(source_root, target, force=True)
 
     skills_root = target / ".agents" / "skills"
-    assert not (skills_root / "spec").exists()
+    assert not (skills_root / "define").exists()
     assert not (skills_root / "specle").exists()
     assert not (skills_root / "verify").exists()
     assert not list((target / ".agents").rglob(".specle-tmp-*"))
@@ -555,11 +557,11 @@ def test_replacement_failure_removes_new_managed_destinations_before_retry(
     monkeypatch.setattr(Path, "replace", original_replace)
     initialise_distribution(source_root, target)
 
-    assert (skills_root / "spec" / "SKILL.md").is_file()
+    assert (skills_root / "define" / "SKILL.md").is_file()
 
 
 def _write_distribution(root: Path) -> Path:
-    _write_skill(root / "skills", "spec", "Planning")
+    _write_skill(root / "skills", "define", "Planning")
     _write_skill(root / "skills", "specle", "Reference")
     _write_skill(root / "skills", "verify", "Quality")
     policies = root / "policies"

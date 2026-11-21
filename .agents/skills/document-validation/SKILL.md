@@ -38,7 +38,7 @@ Do not validate installed `.agents/` copies, `.specle/` runtime artefacts, or ar
 
 - Do not install tools, add dependencies, create a CI workflow, or modify GitHub Actions.
 - Do not treat validation as a substitute for `verify` on an implementation change.
-- Do not change `.specle/current-spec`, a spec status, or project runtime artefacts.
+- Do not change `.specle/current-change`, a change status, or project runtime artefacts.
 - Do not expand the source inventory without an explicit requirement.
 
 ## Output

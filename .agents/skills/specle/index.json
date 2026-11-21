@@ -7,7 +7,7 @@
         {
           "name": "explain",
           "description": "Explain a Specle change's purpose, requirements, approach, and current lifecycle state.",
-          "usage": "Use with a named spec when a user wants to understand its intent, implementation direction, kind, status, and next action without changing it."
+          "usage": "Use with a named change when a user wants to understand its intent, implementation direction, kind, status, and next action without changing it."
         },
         {
           "name": "specle",
@@ -56,32 +56,32 @@
       "skills": [
         {
           "name": "activate",
-          "description": "Explicitly select and commence an unselected normal specification.",
-          "usage": "Use with a named unselected normal spec to select it in this worktree and begin its planning lifecycle."
+          "description": "Explicitly select and commence an unselected normal change.",
+          "usage": "Use with a named unselected normal change to select it in this worktree and begin its planning lifecycle."
+        },
+        {
+          "name": "define",
+          "description": "Create unselected normal feature changes under `.specle/changes/`.",
+          "usage": "Use to plan a normal unit of work and capture functional and non-functional requirements without commencing it."
         },
         {
           "name": "design",
-          "description": "Design a normal spec's technical implementation.",
+          "description": "Design a normal change's technical implementation.",
           "usage": "Use after normal requirements exist, especially for M/L/XL or uncertain work, and before task planning."
         },
         {
           "name": "estimate",
           "description": "Estimate Specle work complexity and planning depth.",
-          "usage": "Use before implementation to size an active spec and decide whether design is warranted; it is advisory and performs no implementation."
+          "usage": "Use before implementation to size an active change and decide whether design is warranted; it is advisory and performs no implementation."
         },
         {
           "name": "revise",
-          "description": "Revise specs and plans after accepted feedback.",
+          "description": "Revise changes and plans after accepted feedback.",
           "usage": "Use when accepted feedback changes requirements, design, or tasks; do not use it for an implementation-only defect."
         },
         {
-          "name": "spec",
-          "description": "Create normal feature specifications under `.specle/specs/`.",
-          "usage": "Use to plan a normal unit of work and capture functional and non-functional requirements without commencing it."
-        },
-        {
           "name": "tasks",
-          "description": "Generate task plans from normal specs and designs.",
+          "description": "Generate task plans from normal changes and designs.",
           "usage": "Use after normal requirements and any necessary design exist to create or reconcile an ordered TDD task plan; do not infer completed work from a diff."
         }
       ]
@@ -92,7 +92,7 @@
         {
           "name": "build",
           "description": "Implement active Specle tasks with TDD.",
-          "usage": "Use when the active normal spec, or an explicitly named committed normal target, is planned or building with incomplete tasks; execute tasks in order and stop at verify when they are complete."
+          "usage": "Use when the active normal change, or an explicitly named committed normal target, is planned or building with incomplete tasks; execute tasks in order and stop at verify when they are complete."
         }
       ]
     },
@@ -121,7 +121,7 @@
         },
         {
           "name": "verify",
-          "description": "Verify implementations against specs and quality gates.",
+          "description": "Verify implementations against changes and quality gates.",
           "usage": "Use after implementation tasks are complete and before review; check every requirement and documented gate against current code and tests."
         }
       ]
@@ -152,7 +152,7 @@
         {
           "name": "bugfix",
           "description": "Fix bounded defects with abbreviated test-first work.",
-          "usage": "Use for a clear, bounded defect that needs a reproduction and regression test; use spec when the work introduces new behaviour or broader scope."
+          "usage": "Use for a clear, bounded defect that needs a reproduction and regression test; use change when the work introduces new behaviour or broader scope."
         },
         {
           "name": "prepare",
@@ -162,7 +162,7 @@
         {
           "name": "refactor",
           "description": "Restructure code without changing observable behaviour.",
-          "usage": "Use for structural cleanup protected by documented invariants and tests; use spec when new behaviour is needed."
+          "usage": "Use for structural cleanup protected by documented invariants and tests; use change when new behaviour is needed."
         }
       ]
     },

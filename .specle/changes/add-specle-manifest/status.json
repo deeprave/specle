@@ -1,0 +1,20 @@
+{
+  "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
+  "kind": "change",
+  "status": "defined",
+  "progress": {
+    "tasks_completed": 0,
+    "tasks_total": 0
+  },
+  "verification": {
+    "status": "not-run"
+  },
+  "review": {
+    "status": "not-run"
+  },
+  "delivery": null,
+  "relationships": [],
+  "dependencies": [],
+  "created_at": 1795245120,
+  "activated_at": null
+}

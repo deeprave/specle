@@ -23,7 +23,7 @@ usage: Use this test skill for metadata coverage.
 specle_group: Planning
 requires:
   - onboard
-  - spec
+  - define
 ---
 
 # Sample
@@ -36,7 +36,7 @@ requires:
     assert metadata.specle_group == "Planning"
     assert metadata.description == "A test skill."
     assert metadata.usage == "Use this test skill for metadata coverage."
-    assert metadata.requires == ("onboard", "spec")
+    assert metadata.requires == ("onboard", "define")
 
 
 def test_rejects_a_non_regular_skill_file_before_reading_it(tmp_path: Path) -> None:
@@ -73,7 +73,7 @@ def test_lifecycle_owners_declare_lifecycle_metadata() -> None:
         "resolve",
         "review",
         "revise",
-        "spec",
+        "define",
         "spike",
         "tasks",
         "triage",

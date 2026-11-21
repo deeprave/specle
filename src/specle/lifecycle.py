@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
+from specle.change_state import ChangeStateSnapshot, read_change_state
 from specle.inventory import (
     LifecycleDiagnostic,
     SkillMetadata,
@@ -13,14 +14,13 @@ from specle.inventory import (
     analyse_lifecycle,
     scan_managed_inventory,
 )
-from specle.spec_state import SpecStateSnapshot, read_spec_state
 
 
 @dataclass(frozen=True, slots=True)
 class RuntimeSnapshot:
     """One buffered read of durable state used by validation and reporting."""
 
-    state: SpecStateSnapshot
+    state: ChangeStateSnapshot
     diagnostics: tuple[LifecycleDiagnostic, ...]
 
 
@@ -42,7 +42,7 @@ def validate_runtime_records(
     skills: Iterable[SkillMetadata],
     snapshot: RuntimeSnapshot | None = None,
 ) -> tuple[LifecycleDiagnostic, ...]:
-    """Validate discovered per-spec records without rejecting future fields."""
+    """Validate discovered per-change records without rejecting future fields."""
     skills = tuple(skills)
     snapshot = snapshot or read_runtime_snapshot(target_directory)
     diagnostics = list(snapshot.diagnostics)
@@ -57,7 +57,7 @@ def validate_runtime_records(
             diagnostics.append(
                 LifecycleDiagnostic(
                     "archived-not-complete",
-                    f"{record.directory / 'status.json'}: archived spec is not complete",
+                    f"{record.directory / 'status.json'}: archived change is not complete",
                 )
             )
     return tuple(diagnostics)
@@ -65,7 +65,7 @@ def validate_runtime_records(
 
 def read_runtime_snapshot(target_directory: Path) -> RuntimeSnapshot:
     """Read durable records once for validation and optional reporting."""
-    state = read_spec_state(target_directory)
+    state = read_change_state(target_directory)
     diagnostics = tuple(
         LifecycleDiagnostic("invalid-runtime-state", message)
         for message in state.diagnostics
@@ -121,7 +121,7 @@ def _lifecycle_statuses(skills: Iterable[SkillMetadata]) -> set[str]:
 def _lifecycle_statuses_for_kind(
     skills: Iterable[SkillMetadata], kind: object
 ) -> set[str]:
-    """Return lifecycle statuses that can apply to one persisted spec kind."""
+    """Return lifecycle statuses that can apply to one persisted change kind."""
     statuses = _lifecycle_statuses(skills)
     if kind != "spike":
         return statuses

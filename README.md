@@ -4,17 +4,17 @@
 [![Maintenance](https://img.shields.io/badge/maintenance-active-brightgreen.svg)](https://github.com/deeprave/specle)
 [![Python versions](https://img.shields.io/badge/python-3.13%20%7C%203.14%20%7C%203.15-blue?logo=python&logoColor=white)](https://github.com/deeprave/specle/actions/workflows/test.yml)
 
-Specle is a set of AI-agent skills for lightweight, spec-driven development. It provides a practical way to describe a focused change, work through it with an agent, and keep the resulting work clear and reviewable—without adding unnecessary process.
+Specle is a set of AI-agent skills for lightweight, change-driven development. It provides a practical way to describe a focused change, work through it with an agent, and keep the resulting work clear and reviewable—without adding unnecessary process.
 
 ## What’s included
 
-- Human-friendly Markdown files that document the workflow and its specifications.
-- Agent skills for guiding the stages of spec-driven development.
+- Human-friendly Markdown files that document the workflow and its changes.
+- Agent skills for guiding the stages of change-driven development.
 - A small Python management script, designed to be run through `uvx`.
 
 ## Approach
 
-Specle keeps specifications small and purposeful. A spec should give people and agents enough shared context to make a change safely, while remaining easy to read, discuss, and maintain.
+Specle keeps changes small and purposeful. A change should give people and agents enough shared context to make a change safely, while remaining easy to read, discuss, and maintain.
 
 The project is intended to support development workflows where documentation and agent instructions are first-class, rather than an afterthought.
 

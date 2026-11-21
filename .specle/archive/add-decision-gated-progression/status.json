@@ -1,0 +1,25 @@
+{
+  "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
+  "kind": "change",
+  "status": "complete",
+  "progress": {},
+  "verification": {
+    "status": "not-recorded"
+  },
+  "review": {
+    "status": "not-recorded",
+    "findings": 0
+  },
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/3",
+    "head_branch": "feature/add-decision-gated-progression",
+    "target_branch": "main",
+    "commit": "9f79db2",
+    "merge_commit": "1945170b1d538b8ac731d3d81d7451c76ec666d2",
+    "final_event": "merged 2026-11-19T07:06:06Z"
+  },
+  "relationships": [],
+  "dependencies": [],
+  "created_at": 1795056780,
+  "activated_at": null
+}

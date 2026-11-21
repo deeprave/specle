@@ -1,11 +1,11 @@
 # Specle
 
-`specle` is a collection of AI-agent skills for a lightweight, spec-driven development workflow. It helps agents and developers turn focused changes into clear, reviewable work without imposing heavyweight process.
+`specle` is a collection of AI-agent skills for a lightweight, change-driven development workflow. It helps agents and developers turn focused changes into clear, reviewable work without imposing heavyweight process.
 
 The project primarily contains:
 
-- Human-friendly Markdown documentation and workflow specifications.
-- Agent skills that guide each stage of the spec-driven workflow.
+- Human-friendly Markdown documentation and workflow changes.
+- Agent skills that guide each stage of the change-driven workflow.
 - A small Python management script, available through `uvx`, for working with the project.
 
 Python scripts in this repository are asynchronous, using `anyio` with the default `asyncio` runtime.

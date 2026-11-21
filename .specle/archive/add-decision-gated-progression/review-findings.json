@@ -1,0 +1,219 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261119",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree"
+    },
+    {
+      "id": "local-review-20261119-recheck",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-after-revision",
+      "outcome": "approve"
+    },
+    {
+      "id": "github-pr-3-sourcery-20261119",
+      "system": "github",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/3",
+      "revision": "9fc0a4b",
+      "author": "sourcery-ai"
+    },
+    {
+      "id": "local-review-20261119-post-resolution",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-after-pr-resolution",
+      "outcome": "approve"
+    }
+  ],
+  "findings": [
+    {
+      "id": "local-review-20261119-1",
+      "source_ids": [
+        "local-review-20261119"
+      ],
+      "severity": "P3",
+      "description": "Policy tests assert literal production Markdown phrases rather than observable inventory or workflow behaviour.",
+      "evidence": "tests/test_delivery_blueprints.py",
+      "analysis": "These assertions can pass for contradictory guidance and fail during harmless wording edits. They do not validate decision-gated lifecycle behaviour.",
+      "recommendation": "Remove literal prose assertions. Retain actual inventory/index coverage and defer behavioural lifecycle validation to the separate deterministic validator change.",
+      "state": "resolved",
+      "decision": "accept",
+      "rationale": "Literal documentation assertions are not reliable behavioural validation and conflict with the project's testing approach.",
+      "route": "revise"
+    },
+    {
+      "id": "github-pr-3-1",
+      "source_ids": [
+        "github-pr-3-sourcery-20261119"
+      ],
+      "severity": "P2",
+      "description": "Decision-gated estimates for a named queued spec can hand planning to the active spec.",
+      "evidence": "https://github.com/deeprave/specle/pull/3#discussion_r4624948197",
+      "analysis": "The decision-gated handoff must preserve an explicitly selected target. Otherwise a queued change can cause design or tasks artifacts to be written to the unrelated active change.",
+      "recommendation": "Accept. Preserve the selected target through automatic planning handoffs.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Every automatic handoff should explicitly retain its selected target, regardless of the target's kind; active-spec defaults remain only for unnamed direct invocations.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "github-pr-3-2",
+      "source_ids": [
+        "github-pr-3-sourcery-20261119"
+      ],
+      "severity": "P3",
+      "description": "Prepared bugfix/refactor and revise workflows stop before an unambiguous decision-gated continuation.",
+      "evidence": "https://github.com/deeprave/specle/pull/3#discussion_r4624948152",
+      "analysis": "This conflicts with the selected decision-gated policy: a successful abbreviated implementation should progress to verification, and a revision should proceed through its applicable planning stage when no decision remains.",
+      "recommendation": "Accept. Add policy-aware continuation while preserving manual-mode handoffs.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Decision-gated progression should continue through unambiguous abbreviated-work and revision transitions while manual mode remains explicitly user-driven.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "github-pr-3-3",
+      "source_ids": [
+        "github-pr-3-sourcery-20261119"
+      ],
+      "severity": "P3",
+      "description": "Automatic downstream handoffs omit a named non-active target.",
+      "evidence": "https://github.com/deeprave/specle/pull/3#discussion_r4624948158",
+      "analysis": "Named non-active work cannot safely rely on a downstream skill's active-spec default. The name must travel through verify, review, and triage.",
+      "recommendation": "Accept. Carry the selected target through every automatic handoff.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "All automatic handoffs retain their selected spec name, irrespective of kind or active status.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "github-pr-3-4",
+      "source_ids": [
+        "github-pr-3-sourcery-20261119"
+      ],
+      "severity": "P3",
+      "description": "The spec workflow itself does not continue automatically into planning.",
+      "evidence": "https://github.com/deeprave/specle/pull/3#discussion_r4624948166",
+      "analysis": "A completed feature specification normally has an unambiguous next planning stage. This is part of decision-gated progression rather than a new workflow.",
+      "recommendation": "Vary. Keep spec strictly planning-only and add an explicit activation boundary.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Spec creates requirements and a brief only; it must never select itself as the current issue or auto-progress. A new activate <spec-name> skill explicitly selects a queued normal spec, then immediately invokes its next planning stage regardless of the project's progression mode.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "github-pr-3-5",
+      "source_ids": [
+        "github-pr-3-sourcery-20261119"
+      ],
+      "severity": "P4",
+      "description": "Prepared independent work is blocked while another unrelated spec is active.",
+      "evidence": "https://github.com/deeprave/specle/pull/3#discussion_r4624948174",
+      "analysis": "The project deliberately avoids executing unrelated prepared work in a shared worktree. Such work should be undertaken separately, not relaxed into the current workflow.",
+      "recommendation": "Decline. The current guard preserves separation of concerns; separate-worktree support is future work.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Bugfixes and refactors are sidecar fast-track work that normally unblocks delivery of the current item; unrelated work belongs in a separate worktree.",
+      "route": null
+    },
+    {
+      "id": "github-pr-3-6",
+      "source_ids": [
+        "github-pr-3-sourcery-20261119"
+      ],
+      "severity": "P5",
+      "description": "Concurrent build invocations could race when updating task progress.",
+      "evidence": "https://github.com/deeprave/specle/pull/3#discussion_r4624948180",
+      "analysis": "The finding assumes concurrent agents operating the same spec in one worktree. Atomic task claiming is a broader concurrency design and is outside this policy change.",
+      "recommendation": "Decline. Do not introduce speculative locking or state-merge machinery here.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The workflow does not support concurrent build invocations for the same spec in one worktree; no speculative concurrency machinery is warranted.",
+      "route": null
+    },
+    {
+      "id": "github-pr-3-7",
+      "source_ids": [
+        "github-pr-3-sourcery-20261119"
+      ],
+      "severity": "P3",
+      "description": "Completed parent tasks have unchecked sub-items in the delivered task plan.",
+      "evidence": "https://github.com/deeprave/specle/pull/3#discussion_r4624948185",
+      "analysis": "The recorded completed task plan should agree with verification evidence and status.",
+      "recommendation": "Accept. Mark implemented sub-items complete after confirming the plan reflects delivered work.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "The implementation is complete; task detail must accurately reflect the delivered work and verification record.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "github-pr-3-8",
+      "source_ids": [
+        "github-pr-3-sourcery-20261119"
+      ],
+      "severity": "P3",
+      "description": "Runtime context still advertises the removed implement skill.",
+      "evidence": "https://github.com/deeprave/specle/pull/3#discussion_r4624948207",
+      "analysis": "The active-skills context snapshot must match the installed inventory or it can direct an agent to an unavailable workflow.",
+      "recommendation": "Accept. Remove implement from the context skill inventory.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Runtime context must accurately represent the installed skill inventory.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "github-pr-3-9",
+      "source_ids": [
+        "github-pr-3-sourcery-20261119"
+      ],
+      "severity": "P4",
+      "description": "A forced installation might leave an obsolete removed skill in an existing target.",
+      "evidence": "https://github.com/deeprave/specle/pull/3#discussion_r4624948212",
+      "analysis": "The existing specle_group frontmatter is the management marker. During a forced installation, directories with that marker that are absent from the incoming inventory are obsolete managed skills and must be removed safely; unmarked skills remain untouched.",
+      "recommendation": "Accept. Stage the new distribution, recoverably remove obsolete marked skill directories, install replacements and the index, and restore all backups on failure.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "A forced installation must synchronise the managed inventory, including removal of obsolete specle_group-marked skills, without affecting unrelated skills.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    }
+  ]
+}

@@ -138,19 +138,53 @@ usage: Use for installed inventory tests.
     assert "requires missing skill" in diagnostics[0].message
 
 
-def test_validates_per_spec_state_and_ignored_selection(tmp_path: Path) -> None:
+def test_validates_per_change_state_and_ignored_selection(tmp_path: Path) -> None:
     target = tmp_path / "project"
-    _write_status(target, "202611200001-example", status="defined")
-    selector = target / ".specle" / "current-spec"
-    selector.write_text("202611200001-example\n")
+    _write_status(target, "example", status="defined")
+    selector = target / ".specle" / "current-change"
+    selector.write_text("example\n")
 
     assert validate_runtime_records(target, _runtime_skills()) == ()
 
 
+def test_accepts_unicode_change_names_with_ascii_hyphen_separators(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "révision-東京", status="defined")
+    (target / ".specle" / "current-change").write_text("révision-東京\n")
+
+    assert validate_runtime_records(target, _runtime_skills()) == ()
+
+
+def test_reports_non_ascii_dash_in_a_change_name(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "révision—東京", status="defined")
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
+    assert "invalid change directory name" in diagnostics[0].message
+
+
+def test_reports_noncanonical_durable_timestamp(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "example", status="defined")
+    status_path = target / ".specle" / "changes" / "example" / "status.json"
+    status = json.loads(status_path.read_text())
+    status["created_at"] = "2026-11-21T20:14:00+11:00"
+    status_path.write_text(json.dumps(status))
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
+    assert "failed type" in diagnostics[0].message
+
+
 def test_reports_invalid_status_and_archived_non_completion(tmp_path: Path) -> None:
     target = tmp_path / "project"
-    _write_status(target, "202611200001-example", status="unknown")
-    _write_status(target, "202611200002-archived", status="defined", archived=True)
+    _write_status(target, "example", status="unknown")
+    _write_status(target, "archived", status="defined", archived=True)
 
     codes = {
         diagnostic.code
@@ -160,9 +194,48 @@ def test_reports_invalid_status_and_archived_non_completion(tmp_path: Path) -> N
     assert {"invalid-status", "archived-not-complete"} <= codes
 
 
+def test_reports_duplicate_change_names_across_active_and_archive(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "example", status="defined")
+    _write_status(target, "example", status="complete", archived=True)
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
+    assert "duplicate change name" in diagnostics[0].message
+
+
+def test_reports_case_folded_duplicate_change_names(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "Foo", status="defined")
+    _write_status(target, "foo", status="complete", archived=True)
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
+    assert "duplicate change name" in diagnostics[0].message
+
+
+def test_reports_non_nfc_and_windows_reserved_change_names(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "cafe\u0301", status="defined")
+    _write_status(target, "CON", status="defined")
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
+    assert len(diagnostics) == 2
+    assert all(
+        "invalid change directory name" in diagnostic.message
+        for diagnostic in diagnostics
+    )
+
+
 def test_reports_an_implementation_status_for_a_spike(tmp_path: Path) -> None:
     target = tmp_path / "project"
-    _write_status(target, "202611200001-example", status="building", kind="spike")
+    _write_status(target, "example", status="building", kind="spike")
     skills = (
         _skill(
             "spike",
@@ -193,10 +266,10 @@ def test_reports_an_implementation_status_for_a_spike(tmp_path: Path) -> None:
 
 def test_reports_malformed_status_and_invalid_local_selector(tmp_path: Path) -> None:
     target = tmp_path / "project"
-    directory = target / ".specle" / "specs" / "202611200001-example"
+    directory = target / ".specle" / "changes" / "example"
     directory.mkdir(parents=True)
     (directory / "status.json").write_text("{")
-    (target / ".specle" / "current-spec").write_text("not-a-spec\nsecond\n")
+    (target / ".specle" / "current-change").write_text("not-a-change\nsecond\n")
 
     diagnostics = validate_runtime_records(target, _runtime_skills())
 
@@ -206,9 +279,9 @@ def test_reports_malformed_status_and_invalid_local_selector(tmp_path: Path) -> 
 
 def test_accepts_a_status_symlink_to_a_regular_file(tmp_path: Path) -> None:
     target = tmp_path / "project"
-    name = "202611200001-example"
+    name = "example"
     _write_status(target, name, status="defined")
-    status_path = target / ".specle" / "specs" / name / "status.json"
+    status_path = target / ".specle" / "changes" / name / "status.json"
     source = tmp_path / "status-source.json"
     source.write_text(status_path.read_text())
     status_path.unlink()
@@ -219,8 +292,8 @@ def test_accepts_a_status_symlink_to_a_regular_file(tmp_path: Path) -> None:
 
 def test_reports_a_non_regular_status_before_reading_it(tmp_path: Path) -> None:
     target = tmp_path / "project"
-    name = "202611200001-example"
-    directory = target / ".specle" / "specs" / name
+    name = "example"
+    directory = target / ".specle" / "changes" / name
     directory.mkdir(parents=True)
     (directory / "status.json").symlink_to(tmp_path, target_is_directory=True)
 
@@ -230,11 +303,11 @@ def test_reports_a_non_regular_status_before_reading_it(tmp_path: Path) -> None:
     assert "not a regular file" in diagnostics[0].message
 
 
-def test_reports_a_broken_current_spec_symlink(tmp_path: Path) -> None:
+def test_reports_a_broken_current_change_symlink(tmp_path: Path) -> None:
     target = tmp_path / "project"
-    _write_status(target, "202611200001-example", status="defined")
-    selector = target / ".specle" / "current-spec"
-    selector.symlink_to(tmp_path / "missing-current-spec")
+    _write_status(target, "example", status="defined")
+    selector = target / ".specle" / "current-change"
+    selector.symlink_to(tmp_path / "missing-current-change")
 
     diagnostics = validate_runtime_records(target, _runtime_skills())
 
@@ -269,15 +342,17 @@ def _write_status(
     archived: bool = False,
     kind: str = "change",
 ) -> None:
-    root = "archive" if archived else "specs"
+    root = "archive" if archived else "changes"
     directory = target / ".specle" / root / name
     directory.mkdir(parents=True)
     (directory / "status.json").write_text(
         json.dumps(
             {
-                "$schema": SCHEMA_IDENTIFIERS["spec-status"],
+                "$schema": SCHEMA_IDENTIFIERS["change-status"],
                 "kind": kind,
                 "status": status,
+                "created_at": 1_795_252_440,
+                "activated_at": None,
                 "progress": {},
                 "verification": {"status": "not-run"},
                 "review": {"status": "not-run"},

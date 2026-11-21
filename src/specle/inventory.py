@@ -909,7 +909,7 @@ def _discover_obsolete_policies(
 
 def _local_runtime_ignore_contents(destination: Path) -> str | None:
     """Return merged local-runtime ignore content, or None when already current."""
-    required = ("/current-spec", "/context.json")
+    required = ("/current-change", "/context.json")
     try:
         existing = destination.read_text()
     except FileNotFoundError:

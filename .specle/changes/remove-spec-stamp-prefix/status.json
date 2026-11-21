@@ -1,0 +1,26 @@
+{
+  "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
+  "kind": "change",
+  "status": "committed",
+  "progress": {
+    "tasks_completed": 10,
+    "tasks_total": 10
+  },
+  "verification": {
+    "status": "pass"
+  },
+  "review": {
+    "status": "pass",
+    "findings": 0
+  },
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/25",
+    "head_branch": "feature/remove-spec-stamp-prefix",
+    "target_branch": "main",
+    "event": "pull-request-updated"
+  },
+  "relationships": [],
+  "dependencies": [],
+  "created_at": 1795251420,
+  "activated_at": 1795252918
+}

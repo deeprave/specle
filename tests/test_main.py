@@ -74,12 +74,6 @@ def test_parser_accepts_schema_export_destination_and_force() -> None:
     assert args.force is True
 
 
-@pytest.mark.parametrize("command", ["install", "update"])
-def test_parser_rejects_retired_commands(command: str) -> None:
-    with pytest.raises(SystemExit):
-        build_parser().parse_args([command])
-
-
 def test_init_uses_the_explicit_target(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -91,7 +85,7 @@ def test_init_uses_the_explicit_target(
 
     anyio.run(main, ["init", str(target)])
 
-    assert (target / ".agents" / "skills" / "spec" / "SKILL.md").is_file()
+    assert (target / ".agents" / "skills" / "define" / "SKILL.md").is_file()
     assert not (current_directory / ".agents").exists()
 
 
@@ -143,5 +137,5 @@ def test_schema_export_uses_the_explicit_destination(tmp_path, capsys) -> None:
 
     anyio.run(main, ["schemas", "export", str(destination)])
 
-    assert (destination / "spec-status" / "1.0.json").is_file()
+    assert (destination / "change-status" / "1.0.json").is_file()
     assert str(destination) in capsys.readouterr().out

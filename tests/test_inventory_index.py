@@ -34,8 +34,8 @@ def test_builds_a_stable_grouped_index_for_installed_skills(tmp_path: Path) -> N
 
 
 def test_index_does_not_depend_on_skill_locations(tmp_path: Path) -> None:
-    left = build_skill_index((_skill("spec", "Planning", tmp_path / "left"),))
-    right = build_skill_index((_skill("spec", "Planning", tmp_path / "right"),))
+    left = build_skill_index((_skill("define", "Planning", tmp_path / "left"),))
+    right = build_skill_index((_skill("define", "Planning", tmp_path / "right"),))
 
     assert left == right
 

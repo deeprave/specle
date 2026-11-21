@@ -4,7 +4,7 @@ specle_group: Implementation
 description: >-
   Implement active Specle tasks with TDD.
 usage: >-
-  Use when the active normal spec, or an explicitly named committed normal target, is planned or building with incomplete tasks; execute tasks in order and stop at verify when they are complete.
+  Use when the active normal change, or an explicitly named committed normal target, is planned or building with incomplete tasks; execute tasks in order and stop at verify when they are complete.
 lifecycle:
   accepts:
     - planned
@@ -22,16 +22,16 @@ lifecycle:
       next: verify
 ---
 
-# Build the current spec (TDD)
+# Build the current change (TDD)
 
-Work through the active spec's tasks one at a time, test-first, keeping the spec's tracking files
+Work through the active change's tasks one at a time, test-first, keeping the change's tracking files
 in sync.
 
 ## Workflow
 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.specle/current-spec` when present, the selected target's `status.json`, `.agents/policies/lifecycle.md`, applicable `.agents/steering/` overrides, and the relevant authoritative `.agents/project/` documents. Default to the selected normal spec. A named non-selected committed normal target is permitted only when explicitly requested; update only that target and preserve the local selection.
+1. Read `.specle/current-change` when present, the selected target's `status.json`, `.agents/policies/lifecycle.md`, applicable `.agents/steering/` overrides, and the relevant authoritative `.agents/project/` documents. Default to the selected normal change. A named non-selected committed normal target is permitted only when explicitly requested; update only that target and preserve the local selection.
 2. Run a lifecycle preflight before reading or changing `tasks.md`:
    - `defined` — stop and advise `estimate`, or `design`/`tasks` only for small, understood work.
    - `estimated` — stop and advise `design`.
@@ -62,7 +62,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
 
 ## Next
 
-After all tasks complete, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `verify <spec-name>`; otherwise report it and wait.
+After all tasks complete, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `verify <change-name>`; otherwise report it and wait.
 
-- When all tasks are complete: use `verify` to confirm the implementation against the spec.
+- When all tasks are complete: use `verify` to confirm the implementation against the change.
 - Use `review` for a quality pass on the diff.

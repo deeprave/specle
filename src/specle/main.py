@@ -187,8 +187,8 @@ async def main(args: list[str] | None = None) -> None:
         if parsed.verbose:
             _report_validation_summary(installed, index_path=index_path)
             selected = runtime.state.selected_name or "none"
-            print(f"validated active specs: {len(runtime.state.active)}")
-            print(f"validated archived specs: {len(runtime.state.archived)}")
+            print(f"validated active changes: {len(runtime.state.active)}")
+            print(f"validated archived changes: {len(runtime.state.archived)}")
             print(f"validated local selection: {selected}")
         print(f"validated {resolved_target}")
         return
