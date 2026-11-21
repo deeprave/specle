@@ -32,7 +32,7 @@ Before creating or recording lifecycle state, consult this skill's `lifecycle` f
      (`THE … SHALL …`, `IF … THEN … SHALL …`). These are the conformance checklist `verify` uses.
    - **Non-Functional Requirements** — dependencies, applicable project rules, and unchanged behaviour.
 5. Write `spec.md` (concise, well under 500 words) — the condensed intent for context retention after compression: problem, goal, key result keys, output, design sketch, verification.
-6. Add versioned `status.json` with `kind: "change"`, `status: "defined"`, `created_at` set to the current ISO 8601 timestamp with UTC offset, `activated_at: null`, empty progress, `not-run` verification/review, `delivery: null`, and empty `relationships` and `dependencies`. Do not select it in `.specle/current-change`, invoke planning, or commence implementation.
+6. Add versioned `status.json` with `kind: "change"`, `status: "defined"`, `created_at` set to current Unix seconds as a JSON number, `activated_at: null`, empty progress, `not-run` verification/review, `delivery: null`, and empty `relationships` and `dependencies`. Do not select it in `.specle/current-change`, invoke planning, or commence implementation.
 
 If the user identifies a completed spike as the source of this change, update that spike's `findings.json` `outcome_change` with this change's stable name.
 

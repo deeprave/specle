@@ -53,4 +53,4 @@ The generated skill index is intentionally an agent-facing discovery resource, n
 - The manifest format must be versioned and suitable for schema validation.
 - Manifest creation must consume the shared inventory result rather than reparsing blueprint files.
 - Historical records are package provenance, not user-project state.
-- This change is an explicit prerequisite for `202611211734-add-specle-update`; update will use the manifest for generation reporting but will still perform live inventory comparison.
+- This change is an explicit prerequisite for `add-specle-update`; update will use the manifest for generation reporting but will still perform live inventory comparison.

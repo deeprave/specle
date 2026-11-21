@@ -10,7 +10,7 @@ Add `specle update <target-directory>` to bring one explicit, valid deployment i
 
 ## Direction
 
-Update depends on `202611211812-add-specle-manifest`. It will inspect package and installed manifest generations together with the packaged blueprint and installed `.agents/` inventories. It will require a structurally valid deployment, compare live inventories for managed drift, and make no change when already current. When drift exists, it will reuse init's staged replacement, backup, recovery, obsolete-managed-content removal, index generation, and manifest distribution machinery. User-owned configuration remains untouched.
+Update depends on `add-specle-manifest`. It will inspect package and installed manifest generations together with the packaged blueprint and installed `.agents/` inventories. It will require a structurally valid deployment, compare live inventories for managed drift, and make no change when already current. When drift exists, it will reuse init's staged replacement, backup, recovery, obsolete-managed-content removal, index generation, and manifest distribution machinery. User-owned configuration remains untouched.
 
 ## Verification
 

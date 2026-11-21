@@ -1,0 +1,181 @@
+{
+  "sources": [
+    {
+      "id": "third-party-pr25-20261121",
+      "system": "third-party",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/25",
+      "revision": "171b1ee",
+      "reviewed_at": "2026-11-21T21:18:00+11:00",
+      "findings": 8
+    },
+    {
+      "id": "local-review-remove-spec-stamp-prefix-20261121",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-after-third-party-resolution",
+      "reviewed_at": "2026-11-21T22:30:00+11:00",
+      "findings": 1
+    },
+    {
+      "id": "local-review-remove-spec-stamp-prefix-20261121-final",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-after-timestamp-canonicalization",
+      "reviewed_at": "2026-11-21T21:53:57+11:00",
+      "findings": 0,
+      "outcome": "approve"
+    }
+  ],
+  "findings": [
+    {
+      "id": "third-party-pr25-1",
+      "source_ids": ["third-party-pr25-20261121"],
+      "severity": "P2",
+      "description": "The date-time format on created_at and activated_at is not enforced.",
+      "evidence": "src/specle/schemas/change-status/1.0.json:22-23; validate_instance accepted created_at='yesterday' and an offset-free timestamp.",
+      "analysis": "Confirmed in the locked environment: jsonschema FormatChecker accepts 'yesterday' because no date-time validator extra is installed.",
+      "recommendation": "Vary: add custom timestamp normalization and validation rather than an offset-only schema pattern.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Accept naive datetimes by interpreting them in the user's current timezone; accept offset-aware ISO 8601 timestamps; and accept millisecond or nanosecond Unix-epoch values. Normalize accepted values to the durable timestamp representation before state is recorded.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "third-party-pr25-2",
+      "source_ids": ["third-party-pr25-20261121"],
+      "severity": "P2",
+      "description": "The schema no longer rejects retired or redundant state fields.",
+      "evidence": "src/specle/schemas/change-status/1.0.json:66; records with name, current_spec, next, and relationships containing spec alongside change are accepted.",
+      "analysis": "The removed guard was legacy-oriented and its removal was deliberate during the prior review; the proposed replacement would retain obsolete-name assertions.",
+      "recommendation": "Retain the permissive forward-compatible status contract unless a current field creates ambiguity.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The proposed guard tests and constrains fields that no longer exist. The status contract remains forward-compatible unless a current field creates a concrete ambiguity.",
+      "route": "none"
+    },
+    {
+      "id": "third-party-pr25-3",
+      "source_ids": ["third-party-pr25-20261121"],
+      "severity": "P2",
+      "description": "The change-slug regex accepts timestamp-prefixed and malformed names.",
+      "evidence": "src/specle/change_state.py:17; [a-z0-9][a-z0-9-]* accepts 202611211234-foo, foo-, and a--b.",
+      "analysis": "The existing ASCII-only regex is too restrictive: user-supplied change names should allow filesystem-compatible Unicode characters within words. The concern about timestamp-shaped names is not a defect; those remain valid user choices.",
+      "recommendation": "Vary: use Unicode word components separated only by the ordinary ASCII hyphen-minus (-), not an en or em dash.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Accept filesystem-compatible Unicode characters within name words. Require the ASCII hyphen-minus (-) between words; preserve timestamp-shaped user names and reject empty, dot, separator, NUL, and platform-invalid components.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "third-party-pr25-4",
+      "source_ids": ["third-party-pr25-20261121"],
+      "severity": "P2",
+      "description": "The project-local changelog skill still uses the old selector, timestamp-prefix rule, and spec terminology.",
+      "evidence": ".agents/skills/changelog/SKILL.md:15,25.",
+      "analysis": "The migration sweep did not include this project-local skill. It is current workflow guidance and must match the renamed layout.",
+      "recommendation": "Update the changelog skill to use current-change, plain slugs, and change terminology.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "The changelog skill is active project-local workflow guidance and must use the current selector, plain change names, and change terminology.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "third-party-pr25-5",
+      "source_ids": ["third-party-pr25-20261121"],
+      "severity": "P3",
+      "description": "Some active change documents and one structured archived finding still reference timestamp-prefixed names.",
+      "evidence": "add-specle-manifest and add-specle-update requirements/specs, this change's estimate.md, and archive/restructure-spec-state/review-findings.json route data.",
+      "analysis": "Active documents and structured state should reference valid current slugs. Historical prose may retain contemporaneous path descriptions.",
+      "recommendation": "Rewrite current active and structured references to slugs; leave purely historical archive prose unchanged.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "The one-off tracked-state update must leave current documents and machine-readable records resolvable by their current slugs. Historical archive prose remains historical evidence.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "third-party-pr25-6",
+      "source_ids": ["third-party-pr25-20261121"],
+      "severity": "P3",
+      "description": "The removed parser test should remain while install and update commands are unavailable.",
+      "evidence": "tests/test_main.py former test_parser_rejects_retired_commands.",
+      "analysis": "The commands were never implemented. The test asserted historical absence rather than current production behavior and conflicts with the adopted cross-project test directive.",
+      "recommendation": "Keep the test removed; add current-contract tests when update is implemented.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Neither command was implemented. Tests cover current production behavior, not the absence of historical or proposed command names.",
+      "route": "none"
+    },
+    {
+      "id": "third-party-pr25-7",
+      "source_ids": ["third-party-pr25-20261121"],
+      "severity": "P4",
+      "description": "Dependencies and relationship targets are not checked for referential integrity.",
+      "evidence": "change_state accepts dependencies ['also-ghost'] and relationships with change 'ghost'.",
+      "analysis": "This is a pre-existing validation gap outside the requested rename and state-layout refactor.",
+      "recommendation": "Defer to a separate change if referential-integrity validation becomes a requirement.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Archived changes may be intentionally removed from the working tree while remaining in Git history. Dependency and relationship references may therefore legitimately be dangling.",
+      "route": "none"
+    },
+    {
+      "id": "third-party-pr25-8",
+      "source_ids": ["third-party-pr25-20261121"],
+      "severity": "P5",
+      "description": "Creation collision checks and first-activation preservation exist only in skill guidance.",
+      "evidence": "src/specle/blueprints/skills/activate/SKILL.md and define/SKILL.md.",
+      "analysis": "Those are agent-owned workflow operations, not current Python runtime behavior. The requirement should not claim code enforcement that does not exist.",
+      "recommendation": "Vary: document them as agent-enforced workflow responsibilities; do not add runtime tests or a validation subsystem in this change.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Creation collision checks and first-activation timestamp preservation are owned by the define and activate workflows. The requirements and design must state that boundary without inventing runtime enforcement.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "local-review-remove-spec-stamp-prefix-1",
+      "source_ids": [
+        "local-review-remove-spec-stamp-prefix-20261121"
+      ],
+      "severity": "P2",
+      "description": "Timestamp normalization is not persisted and accepts a date without a time.",
+      "evidence": "src/specle/schema_registry.py:100-137 normalizes values only as a return value; src/specle/change_state.py:134-138 replaces values only in the in-memory record. datetime.fromisoformat accepts a date-only string such as 2026-11-21.",
+      "analysis": "Requirement 2 requires accepted naive and epoch timestamps to be normalized before durable state is recorded and accepts full ISO 8601 datetimes. The current reader leaves the file unchanged, so a subsequent consumer still receives the original non-normalized value; date-only input is not a full datetime.",
+      "recommendation": "Revise the timestamp contract so durable state is normalized at its write boundary, and reject date-only timestamp strings while retaining the accepted naive, offset-aware, millisecond, and nanosecond forms.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Keep the accepted naive ISO 8601, offset-aware ISO 8601, millisecond-epoch, and nanosecond-epoch inputs, but normalize all persisted timestamps to Unix seconds as a JSON number. Use a fractional value only when required for sub-second precision; reject date-only input because it is not a timestamp.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    }
+  ]
+}

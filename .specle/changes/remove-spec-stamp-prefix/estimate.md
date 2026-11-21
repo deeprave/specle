@@ -22,6 +22,6 @@ Keep this as one repository-wide, atomic source-layout change. Introduce the new
 
 ## Similar past work
 
-- `202611192027-restructure-spec-state` moved lifecycle authority from shared state into per-change records and established ignored local selection.
-- `202611172043-versioned-json-schemas` established packaged, validated JSON Schema resources.
-- `202611211216-support-blueprint-validate` consolidated the blueprint and installed inventory validation paths.
+- `restructure-spec-state` moved lifecycle authority from shared state into per-change records and established ignored local selection.
+- `versioned-json-schemas` established packaged, validated JSON Schema resources.
+- `support-blueprint-validate` consolidated the blueprint and installed inventory validation paths.

@@ -51,4 +51,4 @@
 
 - Update is read-write only after all required preflight checks have succeeded.
 - Update must retain the existing recoverable replacement behaviour and clear error reporting.
-- This change depends on `202611211812-add-specle-manifest`, which supplies the managed distribution's generation and checksum provenance. It does not add a launcher, an index-only command, reconciliation command, or a lifecycle-rendering CLI command.
+- This change depends on `add-specle-manifest`, which supplies the managed distribution's generation and checksum provenance. It does not add a launcher, an index-only command, reconciliation command, or a lifecycle-rendering CLI command.

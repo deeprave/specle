@@ -40,7 +40,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - Steps to reproduce, if inferable.
    - Root-cause analysis and fix approach.
    - Regression-test evidence to establish during the work.
-4. Add a matching versioned `status.json` with `kind: "bugfix"`, `status: "defined"`, `created_at` set to the current ISO 8601 timestamp with UTC offset, `activated_at: null`, empty progress, `not-run` verification/review, `delivery: null`, and empty relationships/dependencies. Do not change `.specle/current-change`.
+4. Add a matching versioned `status.json` with `kind: "bugfix"`, `status: "defined"`, `created_at` set to current Unix seconds as a JSON number, `activated_at: null`, empty progress, `not-run` verification/review, `delivery: null`, and empty relationships/dependencies. Do not change `.specle/current-change`.
    When active work exists, do not execute unlinked abbreviated work in that worktree. Require an
    explicit relationship to the selected change before execution, or direct the user to `prepare` it
    for later named execution in a separate worktree. A linked sidecar records its origin stable name,

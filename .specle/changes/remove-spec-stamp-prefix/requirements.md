@@ -8,8 +8,8 @@ Specle currently prefixes every active and archived change directory with a crea
 
 - **Change:** one durable unit of planned or delivered work, stored as a directory beneath `.specle/changes/` while active or `.specle/archive/` after completion.
 - **Change slug:** the short, human-readable unique directory name for a change, such as `add-online-install`.
-- **Created timestamp:** the ISO 8601 timestamp recorded in `status.json` when a change is first created.
-- **Activated timestamp:** the ISO 8601 timestamp recorded in `status.json` when `activate` first selects a change in a worktree; it is `null` until activation.
+- **Created timestamp:** Unix seconds recorded as a JSON number in `status.json` when a change is first created.
+- **Activated timestamp:** Unix seconds recorded as a JSON number when `activate` first selects a change in a worktree; it is `null` until activation.
 
 ## Requirements
 
@@ -19,10 +19,10 @@ Specle currently prefixes every active and archived change directory with a crea
 
 #### Acceptance Criteria
 
-1. New active changes SHALL be created beneath `.specle/changes/<slug>/` without a datetime prefix.
+1. New active changes SHALL be created beneath `.specle/changes/<name>/` without adding an automatic datetime prefix.
 2. A change slug SHALL be unique across both `.specle/changes/` and `.specle/archive/`.
 3. IF an attempted new slug already exists in either collection, THEN creation SHALL fail with an actionable collision diagnostic.
-4. Lifecycle commands that accept a named change SHALL resolve the unique slug without requiring or accepting a retired timestamp prefix.
+4. Lifecycle commands that accept a named change SHALL resolve its exact unique name without applying a timestamp-prefix convention.
 5. The active and archive collection paths SHALL be `.specle/changes/` and `.specle/archive/`.
 
 ### Requirement 2: Record creation and activation time in durable state
@@ -32,10 +32,21 @@ Specle currently prefixes every active and archived change directory with a crea
 #### Acceptance Criteria
 
 1. Every change `status.json` SHALL contain `created_at` and `activated_at` fields.
-2. `created_at` SHALL be recorded when the change is created and SHALL use ISO 8601 with an explicit UTC offset.
-3. `activated_at` SHALL be `null` before first activation and SHALL be set once on first successful activation using the same format.
+2. Timestamp input SHALL accept a full naive ISO 8601 datetime, an offset-aware ISO 8601 datetime, or an integer Unix epoch expressed in milliseconds or nanoseconds. A naive datetime SHALL be interpreted in the user's current timezone; date-only values SHALL be rejected.
+3. Accepted timestamps SHALL be normalized to Unix seconds as a JSON number before durable state is recorded. A fractional value SHALL be used only when needed for sub-second precision. `activated_at` SHALL be `null` before first activation and SHALL be set once on first successful activation using that normalized representation.
 4. Subsequent activation or continuation of a change SHALL preserve its original `activated_at` value.
-5. The status schema and validation SHALL enforce the new field shapes.
+5. A custom timestamp validator and normalizer SHALL enforce the accepted input forms and durable representation.
+
+### Requirement 2a: Support Unicode change names
+
+**User Story:** As a developer, I want to name a change with filesystem-compatible Unicode characters without losing a readable word separator.
+
+#### Acceptance Criteria
+
+1. A change name SHALL allow filesystem-compatible Unicode characters within its words.
+2. Multiple name words SHALL be separated only by the ASCII hyphen-minus (`-`), not an en dash or em dash.
+3. Change-name validation SHALL reject empty names, dot components, path separators, NUL, and components invalid for the target filesystem.
+4. A timestamp-shaped user-supplied name SHALL remain valid when it otherwise meets the name rules.
 
 ### Requirement 3: Update the tracked repository state
 
@@ -59,7 +70,7 @@ Specle currently prefixes every active and archived change directory with a crea
 2. The distributable `spec` skill SHALL be renamed to `define`, including its directory, frontmatter name, index entry, dependencies, lifecycle declarations, references, and installed mirror.
 3. `define` SHALL retain the current creation behaviour: create an unselected normal change with requirements, `spec.md`, and initial status, without activating or planning it.
 4. References to `spec.md` SHALL remain unchanged when they mean that file.
-5. Retired `spec` skill names and timestamp-prefixed change names SHALL not be retained.
+5. Retired `spec` skill names SHALL not be retained. User-supplied change names remain valid when they meet the current name rules, including names that happen to start with a timestamp.
 
 ### Requirement 5: Rename persisted change identifiers
 
@@ -82,3 +93,4 @@ Specle currently prefixes every active and archived change directory with a crea
 - The implementation must preserve the distinction between active `.specle/changes/` changes and archived `.specle/archive/` changes.
 - Existing queued changes remain independent; this migration does not create an ordering dependency among them.
 - The change must update blueprint and active `.agents/` skills together, rebuild the generated index, and validate lifecycle and runtime state after migration.
+- Collision checks during `define` and first-activation timestamp preservation during `activate` are agent-enforced workflow responsibilities; they are not a Python runtime validation subsystem.

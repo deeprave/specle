@@ -7,6 +7,7 @@ import os
 import shutil
 import uuid
 from collections.abc import Mapping
+from datetime import UTC, datetime, tzinfo
 from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Any
@@ -77,6 +78,11 @@ def validate_instance(instance: Mapping[str, object]) -> str:
     identifier = instance.get("$schema")
     if not isinstance(identifier, str):
         raise SchemaRegistryError("contract instance is missing string '$schema'")
+    if identifier == SCHEMA_IDENTIFIERS["change-status"]:
+        for field in ("created_at", "activated_at"):
+            value = instance.get(field)
+            if value is not None:
+                instance[field] = normalize_change_timestamp(value)
     schema = load_schema(identifier)
     validator = Draft202012Validator(
         schema, registry=_registry(), format_checker=FormatChecker()
@@ -89,6 +95,49 @@ def validate_instance(instance: Mapping[str, object]) -> str:
             f"invalid {identifier!r} instance at {location}: failed {error.validator}"
         ) from error
     return identifier
+
+
+def normalize_change_timestamp(
+    value: object, *, local_timezone: tzinfo | None = None
+) -> int | float:
+    """Normalize supported timestamp input to canonical Unix seconds."""
+    if isinstance(value, bool):
+        raise SchemaRegistryError("timestamp must not be a boolean")
+    if isinstance(value, int):
+        magnitude = abs(value)
+        if magnitude >= 100_000_000_000_000_000:
+            seconds = value / 1_000_000_000
+        elif magnitude >= 100_000_000_000:
+            seconds = value / 1_000
+        else:
+            seconds = value
+        return _canonical_unix_seconds(seconds)
+    if isinstance(value, float):
+        return _canonical_unix_seconds(value)
+    if not isinstance(value, str) or "T" not in value:
+        raise SchemaRegistryError(
+            "timestamp must be a full ISO 8601 datetime or numeric Unix epoch"
+        )
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError as error:
+        raise SchemaRegistryError(
+            "timestamp must be a full ISO 8601 datetime"
+        ) from error
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(
+            tzinfo=local_timezone or datetime.now().astimezone().tzinfo
+        )
+    return _canonical_unix_seconds(parsed.timestamp())
+
+
+def _canonical_unix_seconds(value: float) -> int | float:
+    """Validate Unix seconds and collapse whole-second values to integers."""
+    try:
+        datetime.fromtimestamp(value, tz=UTC)
+    except (OverflowError, OSError, ValueError) as error:
+        raise SchemaRegistryError("timestamp epoch is out of range") from error
+    return int(value) if float(value).is_integer() else value
 
 
 def export_schemas(destination: Path, *, force: bool = False) -> Path:

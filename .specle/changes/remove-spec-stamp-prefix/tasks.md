@@ -27,3 +27,14 @@
 - [x] 7. Audit the final repository state and run complete verification.
   - [x] 7.1 Search tracked source and state for unintended work-item `spec` terminology, excluding the product name `Specle` and literal `spec.md` references.
   - [x] 7.2 Run `uv run pytest`, `uv run ruff check .`, `uv run ruff format --check .`, `uv run ty check`, blueprint validation, installed-target validation, and whitespace validation.
+
+- [x] 8. Implement accepted external-review revisions.
+  - [x] 8.1 Add custom timestamp normalization for naive and offset-aware ISO 8601 input plus millisecond and nanosecond epochs; update the status contract and production tests for current accepted forms.
+  - [x] 8.2 Replace ASCII-only change-name validation with Unicode word components separated by ASCII hyphen-minus, and cover current valid/invalid component behavior.
+  - [x] 8.3 Update the project-local changelog skill and rewrite remaining active-document and structured-record references to current change names.
+  - [x] 8.4 Regenerate the active inventory if needed and repeat the complete verification and review cycle.
+
+- [x] 9. Canonicalize durable timestamps after local review.
+  - [x] 9.1 Normalize accepted timestamp input to Unix seconds and reject date-only input; require numeric durable timestamps in the schema and reader.
+  - [x] 9.2 Convert tracked status timestamps and update workflow writers in both blueprint and installed skills.
+  - [x] 9.3 Cover the current timestamp contract and repeat verification and review.

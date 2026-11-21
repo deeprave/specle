@@ -147,6 +147,26 @@ def test_validates_per_change_state_and_ignored_selection(tmp_path: Path) -> Non
     assert validate_runtime_records(target, _runtime_skills()) == ()
 
 
+def test_accepts_unicode_change_names_with_ascii_hyphen_separators(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "révision-東京", status="defined")
+    (target / ".specle" / "current-change").write_text("révision-東京\n")
+
+    assert validate_runtime_records(target, _runtime_skills()) == ()
+
+
+def test_reports_non_ascii_dash_in_a_change_name(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "révision—東京", status="defined")
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
+    assert "invalid change directory name" in diagnostics[0].message
+
+
 def test_reports_invalid_status_and_archived_non_completion(tmp_path: Path) -> None:
     target = tmp_path / "project"
     _write_status(target, "example", status="unknown")
@@ -291,7 +311,7 @@ def _write_status(
                 "$schema": SCHEMA_IDENTIFIERS["change-status"],
                 "kind": kind,
                 "status": status,
-                "created_at": "2026-11-21T20:14:00+11:00",
+                "created_at": 1_795_252_440,
                 "activated_at": None,
                 "progress": {},
                 "verification": {"status": "not-run"},

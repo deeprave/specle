@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import json
-import re
+import os
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -11,10 +12,9 @@ from specle.file_reading import read_regular_text
 from specle.schema_registry import (
     SCHEMA_IDENTIFIERS,
     SchemaRegistryError,
+    normalize_change_timestamp,
     validate_instance,
 )
-
-_CHANGE_SLUG = re.compile(r"[a-z0-9][a-z0-9-]*")
 
 
 class ChangeStateError(ValueError):
@@ -101,7 +101,7 @@ def _read_change_collection(
         return []
     records: list[ChangeRecord] = []
     for directory in sorted(path for path in root.iterdir() if path.is_dir()):
-        if not _CHANGE_SLUG.fullmatch(directory.name):
+        if not _is_change_name(directory.name):
             diagnostics.append(f"{directory}: invalid change directory name")
             continue
         status_path = directory / "status.json"
@@ -131,6 +131,9 @@ def _read_status(path: Path, diagnostics: list[str]) -> dict[str, object] | None
             raise SchemaRegistryError(
                 f"expected schema {SCHEMA_IDENTIFIERS['change-status']!r}"
             )
+        for field in ("created_at", "activated_at"):
+            if value.get(field) is not None:
+                value[field] = normalize_change_timestamp(value[field])
         validate_instance(value)
     except SchemaRegistryError as error:
         diagnostics.append(f"{path}: invalid contract: {error}")
@@ -147,10 +150,26 @@ def _read_current_change(path: Path, diagnostics: list[str]) -> str | None:
         diagnostics.append(f"{path}: unreadable selector: {error}")
         return None
     lines = contents.splitlines()
-    if len(lines) != 1 or not _CHANGE_SLUG.fullmatch(lines[0]):
+    if len(lines) != 1 or not _is_change_name(lines[0]):
         diagnostics.append(f"{path}: expected one stable change name")
         return None
     return lines[0]
+
+
+def _is_change_name(value: str) -> bool:
+    """Return whether value is a safe Unicode name with ASCII dash separators."""
+    if value in {"", ".", ".."} or "\x00" in value:
+        return False
+    if os.sep in value or (os.altsep is not None and os.altsep in value):
+        return False
+    return all(
+        part
+        and all(
+            character.isalnum() or unicodedata.category(character).startswith("M")
+            for character in part
+        )
+        for part in value.split("-")
+    )
 
 
 def _report_duplicate_names(

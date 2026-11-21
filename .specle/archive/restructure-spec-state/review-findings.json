@@ -230,7 +230,7 @@
       "recommendation": "Reject duplicate identities now; add explicit reconciliation separately.",
       "state": "decided",
       "decision": "vary",
-      "route": "revise active change; follow-up 202611201846-add-specle-reconcile",
+      "route": "revise active change; follow-up add-specle-reconcile",
       "resulting_change": "add-specle-reconcile",
       "execution_mode": "before delivery and later change",
       "dispatch_result": "Routed to active revision to block ordinary ambiguous resolution; the independent add-specle-reconcile change records later read-only analysis and confirmed recovery."
