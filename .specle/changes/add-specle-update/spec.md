@@ -10,8 +10,8 @@ Add `specle update <target-directory>` to bring one explicit, valid deployment i
 
 ## Direction
 
-Update depends on `add-specle-manifest`. It will inspect package and installed manifest generations together with the packaged blueprint and installed `.agents/` inventories. It will require a structurally valid deployment, compare live inventories for managed drift, and make no change when already current. When drift exists, it will reuse init's staged replacement, backup, recovery, obsolete-managed-content removal, index generation, and manifest distribution machinery. User-owned configuration remains untouched.
+Update uses exact-first package manifest generation detection and compares managed plus scanned unmanaged inventory to produce one immutable add, upgrade, remove, and confirmation plan. `--dry-run` reports it without mutation. A normal update with conflict actions reports the complete plan, makes no changes, and exits non-zero; `--yes` explicitly approves every reported conflict in that selective plan. A path occupied by unmanaged content, including an unmarked policy document, is a confirmation conflict rather than an absent resource. `--force` remains the separate init-equivalent full managed replacement operation. Managed actions finish before the generated index is produced from the resulting installed inventory. Every applied update is validated afterwards and reports the result. The manifest remains package-only provenance and is never installed into `.agents/`.
 
 ## Verification
 
-Test invalid and current targets, each kind of managed drift, update preservation of user content, managed removals, failed staging/replacement recovery, and post-update installed-target validation. Run the repository quality gates.
+Test version detection and confidence reporting, dry-run non-mutation and plan output, conflict reporting without mutation, `--yes` selective approval, each kind of managed drift, preservation of modified and user-owned content, force-mode replacement, managed removals, failed staging/replacement recovery including partial copy cleanup, and post-update installed-target validation. Run the repository quality gates.

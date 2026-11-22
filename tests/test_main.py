@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import anyio
 import pytest
 
@@ -16,6 +18,92 @@ def test_parser_accepts_init_target_and_force() -> None:
 def test_parser_requires_an_explicit_init_target() -> None:
     with pytest.raises(SystemExit):
         build_parser().parse_args(["init"])
+
+
+def test_parser_accepts_an_explicit_update_target_with_options() -> None:
+    args = build_parser().parse_args(
+        ["update", "/work/example", "--dry-run", "--yes", "--force"]
+    )
+
+    assert args.command == "update"
+    assert args.target_directory == "/work/example"
+    assert args.dry_run is True
+    assert args.yes is True
+    assert args.force is True
+
+
+def test_update_dry_run_reports_a_valid_deployment_without_writing(
+    tmp_path, capsys
+) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+    anyio.run(main, ["init", str(target)])
+    capsys.readouterr()
+
+    anyio.run(main, ["update", str(target), "--dry-run"])
+
+    output = capsys.readouterr().out
+    assert "detected version:" in output
+    assert "deployment is already current" in output
+    assert "dry run: no changes made" in output
+
+
+def test_force_dry_run_describes_bypass_as_prospective(tmp_path: Path, capsys) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+    anyio.run(main, ["init", str(target)])
+    capsys.readouterr()
+
+    anyio.run(main, ["update", str(target), "--dry-run", "--force"])
+
+    assert "would be bypassed" in capsys.readouterr().out
+
+
+def test_update_validates_the_target_after_applying_managed_changes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys
+) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+    anyio.run(main, ["init", str(target)])
+    capsys.readouterr()
+    (target / ".agents" / "policies" / "testing.md").write_text(
+        "---\nspecle_policy: true\n---\n\n# Locally modified\n"
+    )
+    anyio.run(main, ["update", str(target), "--yes"])
+
+    output = capsys.readouterr().out
+    assert f"validated {target.resolve()}" in output
+    assert "updated deployment" in output
+
+
+def test_update_reports_all_conflicts_without_mutating(tmp_path: Path, capsys) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+    anyio.run(main, ["init", str(target)])
+    policy = target / ".agents" / "policies" / "testing.md"
+    policy.write_text("---\nspecle_policy: true\n---\n\n# Locally modified\n")
+    with pytest.raises(SystemExit) as error:
+        anyio.run(main, ["update", str(target)])
+
+    assert error.value.code == 1
+    assert policy.read_text() == "---\nspecle_policy: true\n---\n\n# Locally modified\n"
+    output = capsys.readouterr().out
+    assert "confirm upgrade: policies/testing.md" in output
+    assert "no changes made" in output
+
+
+def test_update_yes_applies_a_reported_conflict(tmp_path: Path, capsys) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+    anyio.run(main, ["init", str(target)])
+    capsys.readouterr()
+    policy = target / ".agents" / "policies" / "testing.md"
+    policy.write_text("---\nspecle_policy: true\n---\n\n# Locally modified\n")
+
+    anyio.run(main, ["update", str(target), "--yes"])
+
+    assert "updated deployment" in capsys.readouterr().out
+    assert policy.read_text() != "---\nspecle_policy: true\n---\n\n# Locally modified\n"
 
 
 def test_parser_accepts_an_explicit_validate_target() -> None:

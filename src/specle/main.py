@@ -7,32 +7,41 @@ import json
 from functools import partial
 from importlib.resources import as_file
 from pathlib import Path
+from typing import cast
 
 import anyio
 
 from specle import __version__
 from specle.file_reading import read_regular_text
 from specle.inventory import (
-    ManagedInventory,
+    DistributionInventory,
     SkillInstallationError,
     SkillMetadataError,
     build_skill_index,
     compare_managed_inventories,
     initialise_distribution,
+    managed_resource_checksums,
     packaged_distribution_root,
     scan_managed_inventory,
+    update_distribution,
 )
 from specle.lifecycle import (
     LifecycleDiagnostic,
     read_runtime_snapshot,
     validate_runtime_records,
 )
-from specle.manifest import ManifestError, append_manifest
+from specle.manifest import (
+    ManifestError,
+    append_manifest,
+    detect_installed_version,
+    read_manifest_generations,
+)
 from specle.schema_registry import (
     SchemaRegistryError,
     export_schemas,
     validate_instance,
 )
+from specle.update_models import UpdatePlan
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -53,6 +62,25 @@ def build_parser() -> argparse.ArgumentParser:
         "--force",
         action="store_true",
         help="Replace existing distribution-managed destinations.",
+    )
+    update = commands.add_parser(
+        "update", help="Update a Specle deployment from the packaged blueprints."
+    )
+    update.add_argument(
+        "target_directory", help="Existing directory containing the Specle deployment."
+    )
+    update.add_argument(
+        "--dry-run", action="store_true", help="Report the update plan without writing."
+    )
+    update.add_argument(
+        "--yes",
+        action="store_true",
+        help="Apply every confirmation-required action in the displayed update plan.",
+    )
+    update.add_argument(
+        "--force",
+        action="store_true",
+        help="Replace all managed content, including locally modified resources.",
     )
     validate = commands.add_parser(
         "validate",
@@ -151,65 +179,85 @@ async def main(args: list[str] | None = None) -> None:
                 print("validated mode: blueprint")
             print("validated blueprint")
             return
-        target = Path(parsed.target_directory)
-        diagnostics: list[LifecycleDiagnostic] = []
-        with as_file(packaged_distribution_root()) as source_root:
-            try:
-                blueprint = scan_managed_inventory(source_root)
-                installed = scan_managed_inventory(
-                    target.expanduser().resolve() / ".agents"
-                )
-            except SkillMetadataError as error:
-                diagnostics.append(_diagnostic(str(error)))
-                skills = ()
-            else:
-                skills = tuple(record.metadata for record in installed.skills)
-                diagnostics.extend(installed.lifecycle.diagnostics)
-                diagnostics.extend(
-                    _diagnostic(message)
-                    for message in compare_managed_inventories(blueprint, installed)
-                )
-                runtime = read_runtime_snapshot(target)
-                diagnostics.extend(validate_runtime_records(target, skills, runtime))
-        resolved_target = target.expanduser().resolve()
-        index_path = resolved_target / ".agents" / "skills" / "specle" / "index.json"
+        await _validate_installed_target(
+            Path(parsed.target_directory), verbose=parsed.verbose
+        )
+        return
+
+    if parsed.command == "update":
+        target = Path(parsed.target_directory).expanduser().resolve()
         try:
-            index = json.loads(read_regular_text(index_path))
-        except (
-            FileNotFoundError,
-            OSError,
-            UnicodeDecodeError,
-            json.JSONDecodeError,
-        ) as error:
-            diagnostics.append(
-                _diagnostic(f"invalid generated skill index: {index_path}: {error}")
-            )
-        else:
-            expected_index = build_skill_index(skills)
-            if index != expected_index:
-                diagnostics.append(
-                    _diagnostic(f"invalid generated skill index: {index_path}")
+            with as_file(packaged_distribution_root()) as source_root:
+                blueprint = await anyio.to_thread.run_sync(
+                    partial(scan_managed_inventory, source_root)
                 )
-            else:
-                try:
-                    validate_instance(index)
-                except SchemaRegistryError as error:
-                    diagnostics.append(
-                        _diagnostic(
-                            f"invalid generated skill index: {index_path}: {error}"
-                        )
+                if blueprint.package_diagnostics:
+                    raise SkillMetadataError(blueprint.package_diagnostics[0])
+                if blueprint.lifecycle.diagnostics:
+                    raise SkillMetadataError(blueprint.lifecycle.diagnostics[0].message)
+                installed = await anyio.to_thread.run_sync(
+                    partial(scan_managed_inventory, target / ".agents")
+                )
+                if installed.lifecycle.diagnostics:
+                    raise SkillInstallationError(
+                        installed.lifecycle.diagnostics[0].message
                     )
-        if diagnostics:
-            for diagnostic in diagnostics:
-                print(diagnostic.message)
+                generations = await anyio.to_thread.run_sync(
+                    partial(read_manifest_generations, source_root / "manifest")
+                )
+                detection = await anyio.to_thread.run_sync(
+                    partial(
+                        detect_installed_version,
+                        managed_resource_checksums(installed),
+                        generations,
+                    )
+                )
+                plan = await anyio.to_thread.run_sync(
+                    partial(
+                        update_distribution,
+                        source_root,
+                        target,
+                        blueprint,
+                        installed,
+                        generations,
+                        detection,
+                        dry_run=True,
+                    )
+                )
+                _report_update_plan(plan, force=parsed.force, dry_run=parsed.dry_run)
+                if parsed.dry_run:
+                    print("dry run: no changes made")
+                    return
+                result = await anyio.to_thread.run_sync(
+                    partial(
+                        update_distribution,
+                        source_root,
+                        target,
+                        blueprint,
+                        installed,
+                        generations,
+                        detection,
+                        plan=plan,
+                        force=parsed.force,
+                        approve_conflicts=parsed.yes,
+                    )
+                )
+        except (ManifestError, SkillInstallationError, SkillMetadataError) as error:
+            raise SystemExit(str(error)) from error
+        if not result.converged:
+            print(
+                "update requires --yes to apply every confirmation-required action; "
+                "no changes made"
+            )
             raise SystemExit(1)
-        if parsed.verbose:
-            _report_validation_summary(installed, index_path=index_path)
-            selected = runtime.state.selected_name or "none"
-            print(f"validated active changes: {len(runtime.state.active)}")
-            print(f"validated archived changes: {len(runtime.state.archived)}")
-            print(f"validated local selection: {selected}")
-        print(f"validated {resolved_target}")
+        applied_actions = parsed.force or bool(result.actions)
+        if applied_actions:
+            await _validate_installed_target(target)
+        if parsed.force or any(
+            action.action in {"add", "upgrade", "remove", "replace-skill"}
+            for action in plan.actions
+        ):
+            print("updated deployment")
         return
 
     if parsed.command == "schemas":
@@ -243,8 +291,76 @@ def _diagnostic(message: str) -> LifecycleDiagnostic:
     return LifecycleDiagnostic("invalid-index", message)
 
 
+async def _validate_installed_target(target: Path, *, verbose: bool = False) -> None:
+    """Validate one installed target without re-entering the CLI dispatcher."""
+    resolved_target = target.expanduser().resolve()
+    diagnostics: list[LifecycleDiagnostic] = []
+    with as_file(packaged_distribution_root()) as source_root:
+        try:
+            blueprint = await anyio.to_thread.run_sync(
+                partial(scan_managed_inventory, source_root)
+            )
+            installed = await anyio.to_thread.run_sync(
+                partial(scan_managed_inventory, resolved_target / ".agents")
+            )
+        except SkillMetadataError as error:
+            diagnostics.append(_diagnostic(str(error)))
+            skills = ()
+        else:
+            skills = tuple(record.metadata for record in installed.skills)
+            diagnostics.extend(installed.lifecycle.diagnostics)
+            diagnostics.extend(
+                _diagnostic(message)
+                for message in compare_managed_inventories(blueprint, installed)
+            )
+            runtime = await anyio.to_thread.run_sync(
+                partial(read_runtime_snapshot, resolved_target)
+            )
+            diagnostics.extend(
+                await anyio.to_thread.run_sync(
+                    partial(validate_runtime_records, resolved_target, skills, runtime)
+                )
+            )
+    index_path = resolved_target / ".agents" / "skills" / "specle" / "index.json"
+    try:
+        index = await anyio.to_thread.run_sync(partial(_read_index, index_path))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        diagnostics.append(
+            _diagnostic(f"invalid generated skill index: {index_path}: {error}")
+        )
+    else:
+        expected_index = build_skill_index(skills)
+        if index != expected_index:
+            diagnostics.append(
+                _diagnostic(f"invalid generated skill index: {index_path}")
+            )
+        else:
+            try:
+                validate_instance(index)
+            except SchemaRegistryError as error:
+                diagnostics.append(
+                    _diagnostic(f"invalid generated skill index: {index_path}: {error}")
+                )
+    if diagnostics:
+        for diagnostic in diagnostics:
+            print(diagnostic.message)
+        raise SystemExit(1)
+    if verbose:
+        _report_validation_summary(installed, index_path=index_path)
+        selected = runtime.state.selected_name or "none"
+        print(f"validated active changes: {len(runtime.state.active)}")
+        print(f"validated archived changes: {len(runtime.state.archived)}")
+        print(f"validated local selection: {selected}")
+    print(f"validated {resolved_target}")
+
+
+def _read_index(path: Path) -> dict[str, object]:
+    """Read generated JSON in a worker thread for installed-target validation."""
+    return cast(dict[str, object], json.loads(read_regular_text(path)))
+
+
 def _report_validation_summary(
-    inventory: ManagedInventory, *, index_path: Path | None
+    inventory: DistributionInventory, *, index_path: Path | None
 ) -> None:
     """Print stable verbose summaries shared by validation modes."""
     print(f"validated managed skills: {len(inventory.skills)}")
@@ -257,6 +373,32 @@ def _report_validation_summary(
         print("validated generated skill index model")
     else:
         print(f"validated skill index: {index_path}")
+
+
+def _report_update_plan(
+    plan: UpdatePlan, *, force: bool, dry_run: bool = False
+) -> None:
+    """Render the stable, user-facing update plan without exposing implementation types."""
+    version = plan.version or "unknown"
+    print(
+        "detected version: "
+        f"{version} ({plan.confidence}; "
+        f"{plan.matched}/{plan.compared} resources matched)"
+    )
+    actions = plan.actions
+    if actions:
+        for action in actions:
+            prefix = "confirm " if action.requires_confirmation and not force else ""
+            print(f"{prefix}{action.action}: {action.path}")
+    else:
+        print("deployment is already current")
+    for guidance in plan.project_guidance:
+        print(f"project: {guidance}")
+    if force:
+        if dry_run:
+            print("force: normal update confirmations would be bypassed")
+        else:
+            print("force: normal update confirmations were bypassed")
 
 
 def run() -> None:

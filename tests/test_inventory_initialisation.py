@@ -7,9 +7,17 @@ import pytest
 from specle import inventory
 from specle.inventory import (
     SkillInstallationError,
+    build_skill_index,
     compare_installed_distribution,
     initialise_distribution,
+    managed_resource_checksums,
     scan_managed_inventory,
+    update_distribution,
+)
+from specle.manifest import (
+    append_manifest,
+    detect_installed_version,
+    read_manifest_generations,
 )
 
 
@@ -139,6 +147,366 @@ def test_compares_an_installed_distribution_to_its_package_source(
     target.mkdir()
     initialise_distribution(source_root, target)
 
+    assert compare_installed_distribution(source_root, target) == ()
+
+
+def test_version_aware_update_previews_and_applies_safe_resource_changes(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    manifest = tmp_path / "manifest"
+    old_inventory = scan_managed_inventory(source_root)
+    append_manifest(manifest, old_inventory, "1.0")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    changed = source_root / "skills" / "define" / "resource.json"
+    changed.write_text('{"version": "new"}\n')
+    (source_root / "policies" / "new.md").write_text(
+        "---\nspecle_policy: true\n---\n\n# New\n"
+    )
+    blueprint = scan_managed_inventory(source_root)
+    installed = scan_managed_inventory(target / ".agents")
+    generations = read_manifest_generations(manifest)
+    detection = detect_installed_version(
+        {
+            resource.path: resource.checksum
+            for skill in installed.skills
+            for resource in skill.resources
+        }
+        | {resource.path: resource.checksum for resource in installed.resources},
+        generations,
+    )
+
+    preview = update_distribution(
+        source_root,
+        target,
+        blueprint,
+        installed,
+        generations,
+        detection,
+        dry_run=True,
+    )
+
+    assert {action.action for action in preview.actions} == {"add", "upgrade"}
+    assert all(action.requires_confirmation is False for action in preview.actions)
+    assert preview.project_guidance == ("project guidance is missing; run onboard",)
+    assert (target / ".agents" / "policies" / "new.md").exists() is False
+    update_distribution(
+        source_root,
+        target,
+        blueprint,
+        installed,
+        generations,
+        detection,
+    )
+    assert (target / ".agents" / "skills" / "define" / "resource.json").read_text() == (
+        '{"version": "new"}\n'
+    )
+    assert (target / ".agents" / "policies" / "new.md").is_file()
+    assert compare_installed_distribution(source_root, target) == ()
+
+
+def test_update_reports_an_unexpected_project_overlay_path_type(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    manifest = tmp_path / "manifest"
+    append_manifest(manifest, scan_managed_inventory(source_root), "1.0")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    (target / ".agents" / "project").write_text("not a directory\n")
+    blueprint = scan_managed_inventory(source_root)
+    installed = scan_managed_inventory(target / ".agents")
+    generations = read_manifest_generations(manifest)
+    detection = detect_installed_version(
+        {
+            resource.path: resource.checksum
+            for skill in installed.skills
+            for resource in skill.resources
+        }
+        | {resource.path: resource.checksum for resource in installed.resources},
+        generations,
+    )
+
+    plan = update_distribution(
+        source_root,
+        target,
+        blueprint,
+        installed,
+        generations,
+        detection,
+        dry_run=True,
+    )
+
+    assert plan.project_guidance == (
+        "project guidance has an unexpected path type; run onboard",
+    )
+
+
+def test_version_aware_update_removes_an_unchanged_retired_resource(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    retired_source = source_root / "policies" / "retired.md"
+    retired_source.write_text("---\nspecle_policy: true\n---\n\n# Retired\n")
+    manifest = tmp_path / "manifest"
+    append_manifest(manifest, scan_managed_inventory(source_root), "1.0")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    retired_source.unlink()
+    blueprint = scan_managed_inventory(source_root)
+    installed = scan_managed_inventory(target / ".agents")
+    generations = read_manifest_generations(manifest)
+    detection = detect_installed_version(
+        {
+            resource.path: resource.checksum
+            for skill in installed.skills
+            for resource in skill.resources
+        }
+        | {resource.path: resource.checksum for resource in installed.resources},
+        generations,
+    )
+
+    plan = update_distribution(
+        source_root, target, blueprint, installed, generations, detection
+    )
+
+    assert any(action.action == "remove" for action in plan.actions)
+    assert not (target / ".agents" / "policies" / "retired.md").exists()
+
+
+def test_retired_skill_with_a_modified_resource_is_removed_atomically(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    manifest = tmp_path / "manifest"
+    append_manifest(manifest, scan_managed_inventory(source_root), "1.0")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    skill_directory = target / ".agents" / "skills" / "define"
+    (skill_directory / "resource.json").write_text('{"version": "local"}\n')
+    shutil.rmtree(source_root / "skills" / "define")
+    blueprint = scan_managed_inventory(source_root)
+    installed = scan_managed_inventory(target / ".agents")
+    generations = read_manifest_generations(manifest)
+    detection = detect_installed_version(
+        {
+            resource.path: resource.checksum
+            for skill in installed.skills
+            for resource in skill.resources
+        }
+        | {resource.path: resource.checksum for resource in installed.resources},
+        generations,
+    )
+
+    result = update_distribution(
+        source_root, target, blueprint, installed, generations, detection
+    )
+
+    assert result.converged is False
+    assert (skill_directory / "SKILL.md").is_file()
+    assert (skill_directory / "resource.json").read_text() == '{"version": "local"}\n'
+
+
+def test_version_aware_update_requires_confirmation_for_unmanaged_policy(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    manifest = tmp_path / "manifest"
+    append_manifest(manifest, scan_managed_inventory(source_root), "1.0")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    policy = target / ".agents" / "policies" / "new.md"
+    policy.write_text("# Local policy\n")
+    (source_root / "policies" / "new.md").write_text(
+        "---\nspecle_policy: true\n---\n\n# Package policy\n"
+    )
+    blueprint = scan_managed_inventory(source_root)
+    installed = scan_managed_inventory(target / ".agents")
+    generations = read_manifest_generations(manifest)
+    detection = detect_installed_version(
+        {
+            resource.path: resource.checksum
+            for skill in installed.skills
+            for resource in skill.resources
+        }
+        | {resource.path: resource.checksum for resource in installed.resources},
+        generations,
+    )
+
+    declined = update_distribution(
+        source_root, target, blueprint, installed, generations, detection
+    )
+
+    assert declined.converged is False
+    assert policy.read_text() == "# Local policy\n"
+
+
+def test_version_aware_update_preserves_modified_managed_resources(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    manifest = tmp_path / "manifest"
+    append_manifest(manifest, scan_managed_inventory(source_root), "1.0")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    installed_resource = target / ".agents" / "skills" / "define" / "resource.json"
+    installed_resource.write_text('{"version": "local"}\n')
+    (source_root / "skills" / "define" / "resource.json").write_text(
+        '{"version": "new"}\n'
+    )
+    blueprint = scan_managed_inventory(source_root)
+    installed = scan_managed_inventory(target / ".agents")
+    generations = read_manifest_generations(manifest)
+    detection = detect_installed_version(
+        {
+            resource.path: resource.checksum
+            for skill in installed.skills
+            for resource in skill.resources
+        }
+        | {resource.path: resource.checksum for resource in installed.resources},
+        generations,
+    )
+
+    plan = update_distribution(
+        source_root, target, blueprint, installed, generations, detection
+    )
+
+    assert any(action.requires_confirmation for action in plan.actions)
+    assert installed_resource.read_text() == '{"version": "local"}\n'
+
+    update_distribution(
+        source_root,
+        target,
+        blueprint,
+        installed,
+        generations,
+        detection,
+        force=True,
+    )
+
+    assert installed_resource.read_text() == '{"version": "new"}\n'
+
+
+def test_conflicted_update_does_not_apply_safe_actions_until_yes(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    manifest = tmp_path / "manifest"
+    append_manifest(manifest, scan_managed_inventory(source_root), "1.0")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    installed_skill = target / ".agents" / "skills" / "define" / "SKILL.md"
+    installed_skill.write_text(
+        installed_skill.read_text().replace("Define skill.", "Local define skill.")
+    )
+    installed = scan_managed_inventory(target / ".agents")
+    index_path = target / ".agents" / "skills" / "specle" / "index.json"
+    index_path.write_text(
+        json.dumps(
+            build_skill_index(tuple(record.metadata for record in installed.skills)),
+            indent=2,
+        )
+        + "\n"
+    )
+    source_skill = source_root / "skills" / "define" / "SKILL.md"
+    source_skill.write_text(
+        source_skill.read_text().replace("Define skill.", "Updated define skill.")
+    )
+    (source_root / "policies" / "new.md").write_text(
+        "---\nspecle_policy: true\n---\n\n# New\n"
+    )
+    blueprint = scan_managed_inventory(source_root)
+    generations = read_manifest_generations(manifest)
+    detection = detect_installed_version(
+        {
+            resource.path: resource.checksum
+            for skill in installed.skills
+            for resource in skill.resources
+        }
+        | {resource.path: resource.checksum for resource in installed.resources},
+        generations,
+    )
+
+    result = update_distribution(
+        source_root,
+        target,
+        blueprint,
+        installed,
+        generations,
+        detection,
+    )
+
+    assert result.converged is False
+    assert not (target / ".agents" / "policies" / "new.md").exists()
+    assert json.loads(index_path.read_text()) == build_skill_index(
+        tuple(record.metadata for record in installed.skills)
+    )
+    accepted = update_distribution(
+        source_root,
+        target,
+        blueprint,
+        installed,
+        generations,
+        detection,
+        approve_conflicts=True,
+    )
+
+    assert accepted.converged is True
+    assert (target / ".agents" / "policies" / "new.md").is_file()
+
+
+def test_version_aware_update_requires_confirmation_for_an_unmarked_skill(
+    tmp_path: Path,
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    shutil.rmtree(source_root / "skills" / "define")
+    manifest = tmp_path / "manifest"
+    append_manifest(manifest, scan_managed_inventory(source_root), "1.0")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    unmarked_skill = target / ".agents" / "skills" / "define" / "SKILL.md"
+    unmarked_skill.parent.mkdir(parents=True)
+    unmarked_skill.write_text("# Local skill\n")
+    _write_skill(source_root / "skills", "define", "Planning")
+    blueprint = scan_managed_inventory(source_root)
+    installed = scan_managed_inventory(target / ".agents")
+    generations = read_manifest_generations(manifest)
+    detection = detect_installed_version(
+        {
+            resource.path: resource.checksum
+            for skill in installed.skills
+            for resource in skill.resources
+        }
+        | {resource.path: resource.checksum for resource in installed.resources},
+        generations,
+    )
+
+    declined = update_distribution(
+        source_root, target, blueprint, installed, generations, detection
+    )
+
+    assert declined.converged is False
+    assert unmarked_skill.read_text() == "# Local skill\n"
+    accepted = update_distribution(
+        source_root,
+        target,
+        blueprint,
+        installed,
+        generations,
+        detection,
+        approve_conflicts=True,
+    )
+    assert accepted.converged is True
+    assert "specle_group: Planning" in unmarked_skill.read_text()
     assert compare_installed_distribution(source_root, target) == ()
 
 
@@ -392,6 +760,61 @@ def test_staging_failure_preserves_existing_content_and_cleans_up(
 
     assert existing.read_text() == "# Existing define\n"
     assert not list((target / ".agents").rglob(".specle-tmp-*"))
+
+
+def test_update_staging_failure_removes_a_partially_created_temporary_copy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    manifest = tmp_path / "manifest"
+    append_manifest(manifest, scan_managed_inventory(source_root), "1.0")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    source_resource = source_root / "skills" / "define" / "resource.json"
+    source_resource.write_text('{"version": "new"}\n')
+    blueprint = scan_managed_inventory(source_root)
+    installed = scan_managed_inventory(target / ".agents")
+    generations = read_manifest_generations(manifest)
+    detection = detect_installed_version(
+        managed_resource_checksums(installed), generations
+    )
+
+    def fail_after_creating_destination(source: Path, destination: Path) -> None:
+        destination.mkdir()
+        raise OSError("copy failed")
+
+    monkeypatch.setattr(inventory.shutil, "copytree", fail_after_creating_destination)
+
+    with pytest.raises(SkillInstallationError, match="unable to stage"):
+        update_distribution(
+            source_root, target, blueprint, installed, generations, detection
+        )
+
+    assert not list((target / ".agents").rglob(".specle-tmp-*"))
+
+
+def test_apply_failure_removes_directories_created_for_staged_resources(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / ".agents"
+    destination = root / "skills" / "new" / "resource.json"
+    destination.parent.mkdir(parents=True)
+    temporary = inventory._temporary_sibling(destination)
+    temporary.write_text("new\n")
+
+    def fail_after_apply() -> None:
+        raise OSError("index generation failed")
+
+    with pytest.raises(SkillInstallationError, match="unable to replace"):
+        inventory._apply_staged_changes(
+            [(temporary, destination)],
+            [],
+            after_apply=fail_after_apply,
+            cleanup_directories=[destination.parent, destination.parent.parent],
+        )
+
+    assert not (root / "skills").exists()
 
 
 def test_index_generation_failure_preserves_the_previous_index_and_cleans_up(

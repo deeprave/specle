@@ -7,7 +7,13 @@ import pytest
 
 from specle import __version__
 from specle.inventory import scan_managed_inventory
-from specle.manifest import ManifestError, append_manifest, build_manifest_lines
+from specle.manifest import (
+    ManifestError,
+    append_manifest,
+    build_manifest_lines,
+    detect_installed_version,
+    read_manifest_generations,
+)
 
 PACKAGE_VERSION = __version__
 
@@ -105,3 +111,118 @@ def test_rejects_duplicate_identity_without_rewriting_output(tmp_path: Path) -> 
         append_manifest(output, inventory, PACKAGE_VERSION)
 
     assert output.read_text() == f"{entry}\n{entry}\n"
+
+
+def test_reads_generations_and_reports_exact_likely_and_indeterminate_matches(
+    tmp_path: Path,
+) -> None:
+    manifest = tmp_path / "manifest"
+    first = "a" * 64
+    second = "b" * 64
+    manifest.write_text(
+        "\n".join(
+            (
+                f"1.0:skill/define/SKILL.md:{first}",
+                f"1.0:policies/testing.md:{second}",
+                f"2.0:skill/define/SKILL.md:{second}",
+                f"2.0:policies/testing.md:{second}",
+            )
+        )
+        + "\n"
+    )
+
+    generations = read_manifest_generations(manifest)
+
+    assert (
+        detect_installed_version(
+            {
+                Path("skills/define/SKILL.md"): first,
+                Path("policies/testing.md"): second,
+            },
+            generations,
+        ).confidence
+        == "exact"
+    )
+    likely = detect_installed_version(
+        {Path("skills/define/SKILL.md"): first}, generations
+    )
+    assert (likely.version, likely.confidence, likely.matched) == ("1.0", "likely", 1)
+    assert detect_installed_version({}, generations).confidence == "indeterminate"
+
+
+def test_exact_generation_wins_over_a_purely_additive_later_generation(
+    tmp_path: Path,
+) -> None:
+    manifest = tmp_path / "manifest"
+    checksum = "a" * 64
+    added = "b" * 64
+    manifest.write_text(
+        "\n".join(
+            (
+                f"1.0:skill/define/SKILL.md:{checksum}",
+                f"1.1:skill/define/SKILL.md:{checksum}",
+                f"1.1:policies/new.md:{added}",
+            )
+        )
+        + "\n"
+    )
+
+    detection = detect_installed_version(
+        {Path("skills/define/SKILL.md"): checksum}, read_manifest_generations(manifest)
+    )
+
+    assert (detection.version, detection.confidence) == ("1.0", "exact")
+
+
+def test_equivalent_exact_generations_select_the_latest_release(tmp_path: Path) -> None:
+    manifest = tmp_path / "manifest"
+    checksum = "a" * 64
+    manifest.write_text(
+        "\n".join(
+            (
+                f"1.0:skill/define/SKILL.md:{checksum}",
+                f"1.1:skill/define/SKILL.md:{checksum}",
+            )
+        )
+        + "\n"
+    )
+
+    detection = detect_installed_version(
+        {Path("skills/define/SKILL.md"): checksum}, read_manifest_generations(manifest)
+    )
+
+    assert (detection.version, detection.confidence) == ("1.1", "exact")
+
+
+def test_partial_detection_penalises_missing_and_mismatched_resources(
+    tmp_path: Path,
+) -> None:
+    manifest = tmp_path / "manifest"
+    first = "a" * 64
+    second = "b" * 64
+    third = "c" * 64
+    manifest.write_text(
+        "\n".join(
+            (
+                f"1.0:skill/define/SKILL.md:{first}",
+                f"1.0:policies/testing.md:{second}",
+                f"2.0:skill/define/SKILL.md:{first}",
+                f"2.0:policies/extra.md:{third}",
+            )
+        )
+        + "\n"
+    )
+
+    detection = detect_installed_version(
+        {
+            Path("skills/define/SKILL.md"): first,
+            Path("policies/testing.md"): third,
+        },
+        read_manifest_generations(manifest),
+    )
+
+    assert (detection.version, detection.confidence, detection.matched) == (
+        "2.0",
+        "likely",
+        1,
+    )
