@@ -1,0 +1,23 @@
+{
+  "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
+  "kind": "change",
+  "status": "approved",
+  "updated_at": 1795351352,
+  "progress": {
+    "tasks_completed": 4,
+    "tasks_total": 4
+  },
+  "verification": {
+    "status": "pass"
+  },
+  "review": {
+    "status": "pass",
+    "findings": 0
+  },
+  "delivery": null,
+  "relationships": [],
+  "dependencies": [],
+  "created_at": 1795314266,
+  "activated_at": 1795346331,
+  "revision_note": "Added confirmation before durable definition records and before build readiness."
+}

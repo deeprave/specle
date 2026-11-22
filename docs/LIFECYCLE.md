@@ -8,7 +8,7 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 
 | Status | Meaning | Usual next workflow command |
 | --- | --- | --- |
-| `defined` | A work artefact exists but work has not begun. | `activate <change-name>` for an unselected normal change; its named abbreviated owner or `spike` otherwise. |
+| `defined` | A work artifact exists but work has not begun. | `activate <change-name>` for an unselected normal change; its named abbreviated owner or `spike` otherwise. |
 | `estimated` | Complexity has been assessed. | `design` or `tasks` |
 | `designed` | Technical design exists. | `tasks` |
 | `planned` | Tasks exist and implementation has not begun. | `build`, or named `bugfix` / `refactor` for abbreviated work |
@@ -27,12 +27,12 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 
 | Workflow command | Status transition |
 | --- | --- |
-| `define` | Creates an unselected normal change as `defined`; it does not select or commence it. |
-| `activate` | The sole workflow writer of ignored local `current-change`. It selects a resumable normal change or a spike, fills a normal change's required estimate → design → tasks preparation chain before build, and invokes a selected spike. |
+| `define` | Creates an unselected normal change as `defined`, reports its concise summary, and does not select or commence it. |
+| `activate` | The sole workflow writer of ignored local `current-change`. It selects a resumable normal change or a spike, fills a normal change's required estimate → design → tasks preparation chain before invoking build, and invokes a selected spike. |
 | `estimate` | Marks the selected target `estimated`; selected normal work continues to design, while a named unselected target writes only its advisory estimate and remains unselected. |
 | `design` | Marks the selected normal change `designed`; a named unselected target writes only its design and remains unselected. |
 | `tasks` | Requires a design. Marks the selected normal change `planned`; a named unselected target writes only its task plan and remains unselected. |
-| `build` | Marks the selected normal change `building` while completing its tasks. A named committed normal target may be built in place without replacing the local selection. |
+| `build` | For a planned normal change, first presents a specification alignment summary and requires explicit confirmation before implementation, including in decision-gated progression. It then marks the selected normal change `building` while completing its tasks. A named committed normal target may be built in place without replacing the local selection. |
 | `verify` | Sets a passing target `verified`; a failed target is `building`. A named committed normal target or unselected abbreviated target changes only its own record. |
 | `review` | On approval, sets the selected target `approved` with next `commit`. On findings, sets the selected target `review-findings`. |
 | `commit` | Applies the selected delivery model: local-only and direct delivery record their final event; branch-and-pull-request delivery becomes `committed`. Every final event proceeds to archive finalisation. |
@@ -41,7 +41,7 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 | `resolve` | Reconciles previously dispatched accepted work, then dispatches any pending accepted follow-up. It reports `resolve <target>` as the later reconciliation step for incomplete follow-ups. A local no-action outcome returns to `approved`; a previously committed no-action outcome returns to `committed`. An independent-change hand-off creates unselected normal work and preserves the origin for its own delivery. |
 | `revise` | Reconciles accepted feedback and returns a selected normal change to the earliest viable planning state; a named committed normal target becomes `planned` with `next: "build"`, and a named abbreviated item becomes unselected `planned` with its owning next skill. |
 | `prepare` | Creates an unselected bugfix or refactor as `planned` with its owning next skill. |
-| `bugfix` / `refactor` | When executed, move only the named abbreviated item to `building`; when called through `prepare`, they create artefacts without executing them. |
+| `bugfix` / `refactor` | When executed, move only the named abbreviated item to `building`; when called through `prepare`, they create artifacts without executing them. |
 | `spike` | Creates an unselected spike or, when invoked by `activate`, moves it through `defined` → `spiking` → `complete` while recording durable findings and a stable outcome-change name. |
 
 `analyse`, `specle`, `status`, `summary`, and `track` do not themselves transition lifecycle status. `summary` requires a completed target but does not alter it.

@@ -9,7 +9,7 @@ usage: >-
 
 # Summarise completed work
 
-Produce `summary.md` as a concise human account of completed work. It is a communication artefact, not an AI verification record, delivery log, or external publication.
+Produce `summary.md` as a concise human account of completed work. It is a communication artifact, not an AI verification record, delivery log, or external publication.
 
 ## Workflow
 

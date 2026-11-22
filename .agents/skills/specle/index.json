@@ -61,8 +61,8 @@
         },
         {
           "name": "define",
-          "description": "Create unselected normal feature changes under `.specle/changes/`.",
-          "usage": "Use to plan a normal unit of work and capture functional and non-functional requirements without commencing it."
+          "description": "Create evidence-led, unselected normal change definitions under `.specle/changes/`.",
+          "usage": "Use when scoping potential normal work: investigate evidence, resolve material uncertainty, and define the change without activating it."
         },
         {
           "name": "design",

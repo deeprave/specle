@@ -33,7 +33,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
 
 1. Read `.specle/current-change` when present and preserve its selected change; this workflow must not replace it.
 2. Read the relevant authoritative `.agents/project/` documents, then understand the bug from the description and inspect the codebase to find the relevant area.
-   If the user names an existing active bugfix, locate its matching `status.json` and read its `spec.md` and `tasks.md`; reuse those artefacts and skip directly to step 6. Do not create another directory or status record.
+   If the user names an existing active bugfix, locate its matching `status.json` and read its `spec.md` and `tasks.md`; reuse those artifacts and skip directly to step 6. Do not create another directory or status record.
 3. Create a change folder `.specle/changes/<slug>/` with a short `spec.md`, using a slug unique across active and archived changes, containing:
    - Bug description.
    - Expected behaviour and actual behaviour.

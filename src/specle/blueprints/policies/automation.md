@@ -15,4 +15,4 @@ Missing or unsupported project policy means manual mode.
 
 ## Mandatory stops
 
-decision-gated progression stops for a material requirement or design decision, a verification failure, a completed triage decision-and-route summary, or delivery authorisation. It never skips lifecycle skills and never authorises an external write. A successful review stops at `approved` to request commit authority; review findings enter triage, which stops after its final summary until explicit `resolve`.
+decision-gated progression stops for a material requirement or design decision, the pre-build specification alignment summary and explicit confirmation, a verification failure, a completed triage decision-and-route summary, or delivery authorisation. It never skips lifecycle skills and never authorises an external write. A successful review stops at `approved` to request commit authority; review findings enter triage, which stops after its final summary until explicit `resolve`.

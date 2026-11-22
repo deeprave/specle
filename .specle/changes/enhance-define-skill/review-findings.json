@@ -1,0 +1,217 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261122-enhance-define-skill",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "define-skill:3085054af7f503c44227c556313a8f0351c87b938edcef5dcd387354c555cf2d",
+      "outcome": "request-changes",
+      "findings": 1
+    },
+    {
+      "id": "user-direction-20261122-definition-confirmation",
+      "system": "user",
+      "kind": "direct-requirement",
+      "revision": "conversation-20261122",
+      "findings": 1,
+      "outcome": "accepted"
+    },
+    {
+      "id": "local-review-20261122-enhance-define-skill-2",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "guidance:bd2d73e53f7196babf1f12fe16efc13369cac865098efdc61156913cb9960542",
+      "outcome": "approve",
+      "findings": 0
+    },
+    {
+      "id": "review-code-20261122-enhance-define-skill",
+      "system": "external",
+      "kind": "code-review",
+      "revision": "git-diff-HEAD",
+      "outcome": "findings",
+      "findings": 4
+    },
+    {
+      "id": "agy-review-20261122-enhance-define-skill",
+      "system": "external",
+      "kind": "code-review",
+      "revision": "git-diff-HEAD",
+      "outcome": "findings",
+      "findings": 7
+    },
+    {
+      "id": "local-review-20261122-enhance-define-skill-3",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "guidance:fb204a916eb4f6fc3c853687461dbfa0b89e0a2c078b0f4c5968fd3389a1af78",
+      "outcome": "approve",
+      "findings": 0
+    }
+  ],
+  "findings": [
+    {
+      "id": "local-review-20261122-enhance-define-skill-1",
+      "source_ids": ["local-review-20261122-enhance-define-skill"],
+      "severity": "P3",
+      "description": "Define identifies work already covered by an existing change but does not explicitly stop duplicate creation.",
+      "evidence": "src/specle/blueprints/skills/define/SKILL.md:25",
+      "analysis": "The revised workflow asks the agent to check whether existing work already covers the request, but only directs it to explain a boundary. A fully covered request has no meaningful boundary and could still produce a duplicate defined change.",
+      "recommendation": "Explicitly report the existing evidence and stop without creating a change when the request is already covered; retain boundary explanation for partial overlap.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Fully covered requests should not create duplicate changes; partial overlap remains visible through an explicit boundary.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "user-direction-20261122-definition-confirmation-1",
+      "source_ids": ["user-direction-20261122-definition-confirmation", "agy-review-20261122-enhance-define-skill"],
+      "severity": "P3",
+      "description": "Definition and activation need explicit user-alignment summaries before their respective boundaries.",
+      "evidence": "User direction, 2026-11-22",
+      "analysis": "A substantive definition should be confirmed before it becomes a durable queued change. Likewise, estimates, design, and tasks should be confirmed together before activation commences build, even with decision-gated progression enabled.",
+      "recommendation": "Add a definition-confirmation summary before finalising a defined record and an activation-readiness summary plus explicit build confirmation after preparation completes.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Superseded by the user's clarification: define presents a summary but never requires confirmation; only starting build requires explicit confirmation.",
+      "superseded_by": "user-direction-20261122-build-confirmation-only",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "user-direction-20261122-build-confirmation-only",
+      "source_ids": ["user-direction-20261122-definition-confirmation"],
+      "severity": "P3",
+      "description": "Only build start is a confirmation boundary; define presents its summary without gating and tasks does not pause.",
+      "evidence": "User direction, 2026-11-22",
+      "analysis": "A defined change remains independent queued work, so confirmation is unnecessary. The material decision occurs immediately before implementation begins, regardless of which planning stages have run.",
+      "recommendation": "Remove definition and tasks confirmation gates, present a non-blocking define summary, and make build require explicit confirmation before it changes implementation.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "User explicitly clarified the intended boundary.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "review-code-20261122-enhance-define-skill-1",
+      "source_ids": ["review-code-20261122-enhance-define-skill", "agy-review-20261122-enhance-define-skill"],
+      "severity": "P4",
+      "description": "Human-facing lifecycle documentation and define lifecycle guidance do not describe the new confirmation boundaries.",
+      "evidence": "docs/LIFECYCLE.md:30-31; src/specle/blueprints/policies/lifecycle.md:32",
+      "analysis": "The changed skills require confirmation before durable definition and build, but the human lifecycle reference and define row do not yet say so.",
+      "recommendation": "Add concise confirmation-boundary language to the lifecycle reference and package policy.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Document that define presents a summary, but do not describe it as a confirmation boundary. Document the sole confirmation boundary before build.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "review-code-20261122-enhance-define-skill-2",
+      "source_ids": ["review-code-20261122-enhance-define-skill", "agy-review-20261122-enhance-define-skill"],
+      "severity": "P3",
+      "description": "Tasks has no durable signal that activation invoked it as a preparation-chain stage.",
+      "evidence": "src/specle/blueprints/skills/tasks/SKILL.md:47",
+      "analysis": "The new exception relies on an agent inferring call context. A mistaken inference can let decision-gated progression invoke build directly and bypass the readiness confirmation.",
+      "recommendation": "Define an explicit, checkable activation-chain signal or a durable state-based condition.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Tasks must not infer activation context or pause. Replace the task exception with a direct build-start confirmation guard that applies regardless of preceding planning stages.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "review-code-20261122-enhance-define-skill-3",
+      "source_ids": ["review-code-20261122-enhance-define-skill", "agy-review-20261122-enhance-define-skill"],
+      "severity": "P3",
+      "description": "Decision-gated policy does not list definition or build-readiness confirmations as mandatory stops.",
+      "evidence": "src/specle/blueprints/policies/automation.md:18",
+      "analysis": "The automation policy's stop list omits the two new user decisions, while lifecycle and skill guidance require them. Reading the automation policy alone can suggest automatic progression is allowed.",
+      "recommendation": "Add both confirmation boundaries to the mandatory-stop list.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Decision-gated workflow policy must explicitly stop before build for the alignment summary and user confirmation.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "user-direction-20261122-build-restatement",
+      "source_ids": ["user-direction-20261122-build-confirmation-only"],
+      "severity": "P3",
+      "description": "Build must restate the change specification before requesting confirmation to commence implementation.",
+      "evidence": "User direction, 2026-11-22",
+      "analysis": "The start-of-build decision consumes implementation time and tokens, so the user needs a concise current statement of the intended work at that point.",
+      "recommendation": "Require build to present an alignment summary derived from the change specification and wait for explicit confirmation before the first implementation action.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "User explicitly requires a specification restatement at the sole confirmation boundary.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "review-code-20261122-enhance-define-skill-4",
+      "source_ids": ["review-code-20261122-enhance-define-skill", "agy-review-20261122-enhance-define-skill"],
+      "severity": "P4",
+      "description": "Define does not say how to handle a slug collision discovered after the user confirms the definition summary.",
+      "evidence": "src/specle/blueprints/skills/define/SKILL.md:31",
+      "analysis": "The workflow chooses and checks the slug only after user confirmation, so a collision needs an explicit deterministic response.",
+      "recommendation": "Select and validate a unique slug before presenting it, or choose an adjusted unique slug after confirmation and report it.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "A duplicate slug is blocking. Report the conflicting change and let the user choose a new name or investigate whether the same-name change already covers the work.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "agy-review-20261122-enhance-define-skill-7",
+      "source_ids": ["agy-review-20261122-enhance-define-skill"],
+      "severity": "P6",
+      "description": "Activate mixes US and UK/AU spelling for artefact, and the supplied review JSON remains untracked.",
+      "evidence": "src/specle/blueprints/skills/activate/SKILL.md:48-50; .specle/agy-review-findings.json",
+      "analysis": "The project requires UK/AU English for human-facing guidance. The untracked report is a user-supplied review source and should remain outside a scoped change commit unless explicitly requested.",
+      "recommendation": "Use artefact consistently in activate guidance; leave the supplied review source uncommitted.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Review-source files remain excluded from change scope. Correct the one inconsistent use of `artefact` to the accepted software-industry spelling `artifact`.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    }
+  ]
+}

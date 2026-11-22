@@ -50,7 +50,7 @@ The exported `registry.json` maps each stable schema URI to its relative resourc
 
 Active changes live in `.specle/changes/`; durably completed changes live in `.specle/archive/`. Each change has a self-contained directory named with its unique kebab-case slug. The slug is its stable identity.
 
-Artifacts belonging to a change stay in that change's directory rather than in a top-level artefacts directory.
+Artifacts belonging to a change stay in that change's directory rather than in a top-level artifacts directory.
 
 ## Specification documents
 
@@ -119,7 +119,7 @@ An active spike is a `kind: "spike"` work item that records a bounded investigat
 
 ## Completed-work summaries
 
-`summary.md` is a Markdown artefact within the completed change directory. It is deliberately human-facing, unlike a spike's agent-managed `findings.json`. It describes the outcome, evidenced verification and review where applicable, key decisions and limits, follow-up recommendations, and a concise update that can be adapted for an external system. Creating it does not change lifecycle state or publish anything externally.
+`summary.md` is a Markdown artifact within the completed change directory. It is deliberately human-facing, unlike a spike's agent-managed `findings.json`. It describes the outcome, evidenced verification and review where applicable, key decisions and limits, follow-up recommendations, and a concise update that can be adapted for an external system. Creating it does not change lifecycle state or publish anything externally.
 
 ## Review findings
 
