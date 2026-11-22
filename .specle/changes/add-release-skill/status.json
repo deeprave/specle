@@ -1,0 +1,29 @@
+{
+  "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
+  "kind": "change",
+  "status": "committed",
+  "updated_at": 1795342937,
+  "revision_note": "Canonical release-version and delivery-branch synchronisation requirements added from accepted PR review findings.",
+  "created_at": 1795338392,
+  "activated_at": 1795338747,
+  "progress": {
+    "tasks_completed": 4,
+    "tasks_total": 4
+  },
+  "verification": {
+    "status": "pass"
+  },
+  "review": {
+    "status": "pass",
+    "findings": 0
+  },
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/31",
+    "head_branch": "feature/add-release-skill",
+    "target_branch": "main",
+    "commit": "bbd3ff1",
+    "event": "pull-request-updated"
+  },
+  "relationships": [],
+  "dependencies": []
+}
