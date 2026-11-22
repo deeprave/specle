@@ -1,8 +1,9 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
-  "updated_at": 1795354222,
+  "status": "complete",
+  "updated_at": 1795354393,
+  "archived_at": 1795354393,
   "progress": {
     "tasks_completed": 4,
     "tasks_total": 4
@@ -19,7 +20,8 @@
     "head_branch": "feature/enhance-define-skill",
     "target_branch": "main",
     "commit": "4bf6336",
-    "event": "pull-request-open"
+    "event": "pull-request-merged",
+    "merge_commit": "13b1b6c299d7adbbd65827d51310770edf76ad88"
   },
   "relationships": [],
   "dependencies": [],
