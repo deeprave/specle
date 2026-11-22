@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
   "kind": "change",
-  "status": "approved",
+  "status": "committed",
   "revision_note": "Reopened after PR #29 review: report all selective-update conflicts without prompting, add --yes approval, and clean partial staging paths.",
   "progress": {
     "tasks_completed": 9,
@@ -19,8 +19,8 @@
     "reference": "https://github.com/deeprave/specle/pull/29",
     "head_branch": "feature/add-specle-update",
     "target_branch": "main",
-    "commit": "0f6ab4325bcdfca6e914865a0f9dce617da52fff",
-    "event": "pull-request-open"
+    "commit": "9f828da5d8ea2c64902b1e835920fc1050b0ce30",
+    "event": "pull-request-updated"
   },
   "relationships": [],
   "dependencies": [
