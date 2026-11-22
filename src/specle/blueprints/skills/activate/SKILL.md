@@ -47,7 +47,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - no `tasks.md` — `tasks`;
    - all three artifacts exist — set `status` to `planned` if it is not already planned, then invoke `build`.
    A task plan without a design is not build-ready: invoke design first, then reconcile tasks after design. Do not skip a preparation stage based on T-shirt size.
-   Activation deliberately commences the selected change and invokes this stage regardless of manual or decision-gated progression policy.
+   Activation deliberately commences the selected change and invokes this stage regardless of manual or decision-gated progression policy. `build` owns the sole confirmation boundary before implementation.
 
 ## Boundaries
 

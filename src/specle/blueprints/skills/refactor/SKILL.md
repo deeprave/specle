@@ -33,7 +33,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
 
 1. Read `.specle/current-change` when present. Preserve the local selected change; this workflow must not replace it.
 2. Read the relevant authoritative `.agents/project/` documents and the codebase area being refactored.
-   If the user names an existing refactor, locate its matching `kind: "refactor"` status record and read its `spec.md` and `tasks.md`; reuse those artefacts and skip directly to step 6. Do not create another directory or status record.
+   If the user names an existing refactor, locate its matching `kind: "refactor"` status record and read its `spec.md` and `tasks.md`; reuse those artifacts and skip directly to step 6. Do not create another directory or status record.
 3. Create a change folder `.specle/changes/<slug>/` with a short `spec.md`, using a slug unique across active and archived changes, containing:
    - Current state and target state.
    - Behavioural invariants that must remain true.

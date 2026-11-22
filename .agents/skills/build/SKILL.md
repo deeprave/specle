@@ -43,8 +43,9 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - Any missing, inconsistent, or unrecognised lifecycle state — stop and report the status-record defect.
    If `review-findings` has no uncompleted task, advise `triage` so the reviewed decisions
    can be routed and recorded. If `planned` or `building` has no uncompleted task, advise `verify`.
-3. Read `tasks.md`; find the first uncompleted task (`- [ ]`).
-4. For each task, in order:
+3. For a `planned` normal change, read its `spec.md`, `requirements.md`, `design.md`, and `tasks.md`, then present a concise alignment summary: intended outcome, scope and non-goals, acceptance direction, planned tasks, and material assumptions or limits. Require the user's explicit confirmation before changing implementation, task completion, or lifecycle state. This is a mandatory stop in every progression mode, including decision-gated. If the user corrects the summary, stop for revision rather than commencing the build.
+4. Read `tasks.md`; find the first uncompleted task (`- [ ]`).
+5. For each task, in order:
    a. Write the test(s) first (TDD).
    b. Implement the minimum code to pass — no speculative code.
    c. Run the focused test and any project checks needed to keep the change safe.
