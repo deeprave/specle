@@ -28,9 +28,19 @@ Initialise the reusable Specle distribution at an explicit, existing target dire
 uvx specle init /path/to/project
 ```
 
-This installs the packaged skills and steering documents into `/path/to/project/.agents/` and generates `skills/specle/index.json`. It never assumes the current directory, and it does not create or modify `.agents/project/`, `.specle/`, a root `AGENTS.md`, or a shell launcher. If a managed skill, steering document, or index already exists, the command stops before writing; rerun with `--force` to replace only those managed destinations.
+This installs the packaged skills and policy documents into `/path/to/project/.agents/` and generates `skills/specle/index.json`. It never assumes the current directory, and it does not create or modify `.agents/project/`, `.specle/`, a root `AGENTS.md`, or a shell launcher. If a managed skill, policy document, or index already exists, the command stops before writing; rerun with `--force` to replace only those managed destinations.
 
-`update`, standalone `index`, launcher, client-integration, and project-bootstrap commands are deliberately deferred to later changes.
+## Update an installation
+
+Preview a managed distribution update before writing it:
+
+```console
+uvx specle update /path/to/project --dry-run
+```
+
+An ordinary update applies conflict-free changes. If it would replace locally modified managed content or an unmanaged path at a package-managed destination, it reports every conflict, makes no changes, and exits non-zero. Rerun with `--yes` to approve every reported selective replacement, or use `--force` for the broader init-equivalent managed replacement.
+
+Standalone `index`, launcher, client-integration, and project-bootstrap commands are deliberately deferred to later changes.
 
 ## JSON schemas
 

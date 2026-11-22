@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add `specle update <target-directory>` with `--dry-run` and `--force`. It will scan the installed deployment and packaged blueprint once each, read the package-owned historical manifest, determine the best-supported installed release generation, and create one explicit resource-level update plan. A normal update applies only additions, replacements, and removals that are safe against that detected generation. It preserves local modifications and all user-owned content. Force mode delegates to the same complete managed replacement policy as `init --force`.
+Add `specle update <target-directory>` with `--dry-run`, `--yes`, and `--force`. It will scan the installed deployment and packaged blueprint once each, read the package-owned historical manifest, determine the best-supported installed release generation, and create one explicit resource-level update plan. A normal update applies only additions, replacements, and removals that are safe against that detected generation. If that plan contains conflicts, it reports all of them and exits non-zero without mutation; `--yes` explicitly applies that complete selective plan. It preserves local modifications and all user-owned content unless `--yes` selects their reported replacement. Force mode delegates to the same complete managed replacement policy as `init --force`.
 
 The manifest remains a package resource only. It is never copied into `.agents`.
 
@@ -46,7 +46,7 @@ For each managed resource path, compare the detected historical checksum, instal
 | Unmarked skill has the name of an incoming managed skill | Request confirmation before replacement |
 | Same installed and current checksum | No action |
 
-Normal update requests confirmation only before overwriting content that differs from its detected generation or an unmarked same-named skill. A skill is atomic: its resources are never independently replaced or removed. A declined confirmation leaves that conflict unchanged and reports non-convergence, while accepted and conflict-free actions may still proceed. The generated index is built from the projected resulting installed managed inventory: it retains installed metadata for declined or unchanged skills and uses blueprint metadata only for accepted skill replacements. Strict installed-target validation is claimed only after no conflicts remain. `--force` deliberately bypasses all normal update confirmations and invokes the existing complete managed replacement behaviour used by `init --force`; dry-run output describes this as prospective behaviour.
+Normal update flags overwrites of content that differs from its detected generation or an unmarked same-named skill as confirmation-required. A skill is atomic: its resources are never independently replaced or removed. Without `--yes`, any confirmation-required action causes the complete plan to be reported and the command to exit non-zero without applying even otherwise-safe actions. `--yes` approves every reported confirmation-required action and applies the displayed selective plan exactly once. The generated index is built from the projected resulting installed managed inventory. Strict installed-target validation follows every applied update. `--force` deliberately bypasses selective planning and invokes the existing complete managed replacement behaviour used by `init --force`; dry-run output describes this as prospective behaviour.
 
 Project overlay inspection is advisory only: the update never writes `.agents/project/` or `.agents/steering/`. A missing project directory or stable project README, and unexpected project-overlay layout that prevents normal onboarding assumptions, is reported with a suggestion to run `onboard`.
 
@@ -54,19 +54,19 @@ Project overlay inspection is advisory only: the update never writes `.agents/pr
 
 Extract the staging, same-parent backup, replacement, rollback, and cleanup behaviour from `initialise_distribution` into a reusable transaction that accepts an explicit operation list. Operations are resource additions/replacements and removals; staged replacements use unique same-parent temporary paths. Existing destinations are moved to recoverable backups before a staged item is renamed into place. On any apply error, created destinations are removed and backups are restored in reverse order.
 
-`init` keeps its current policy: stage all package-managed skill directories and policies, reject collisions unless forced, and then apply through this shared transaction. Normal `update` creates a selected resource operation list and uses the same transaction. After managed actions succeed, it generates the index from projected installed metadata while rollback recovery remains available; the index is not a staged input. Failure cleanup removes empty directories created solely by the failed operation.
+`init` keeps its current policy: stage all package-managed skill directories and policies, reject collisions unless forced, and then apply through this shared transaction. Normal `update` creates a selected resource operation list and uses the same transaction. After managed actions succeed, it generates the index from projected installed metadata while rollback recovery remains available; the index is not a staged input. Each temporary path is registered for cleanup before its copy begins, so failure cleanup removes partial temporary paths and empty directories created solely by the failed operation.
 
 ## CLI and output
 
 Add an `update` argparse subcommand:
 
 ```text
-specle update TARGET_DIRECTORY [--dry-run] [--force]
+specle update TARGET_DIRECTORY [--dry-run] [--yes] [--force]
 ```
 
-`TARGET_DIRECTORY` must exist and is never inferred. Preflight validation uses the existing installed-target checks: readable managed files, valid metadata and dependencies, valid lifecycle declarations, and a valid generated index. A structurally invalid deployment fails before planning or mutation. Normal update asks for confirmation before any conflict replacement; preview never prompts. A declined confirmation produces a non-converged result rather than a false success.
+`TARGET_DIRECTORY` must exist and is never inferred. Preflight validation uses the existing installed-target checks: readable managed files, valid metadata and dependencies, valid lifecycle declarations, and a valid generated index. A structurally invalid deployment fails before planning or mutation. Normal update never prompts: it reports every conflict in the plan, makes no changes, and exits non-zero. `--yes` approves every reported conflict for that invocation; preview never mutates.
 
-Both preview and normal modes print the detected version, confidence/evidence, and one ordered immutable plan. Preview exits without writes. Normal mode applies that displayed plan rather than rebuilding it. The async command implementation extracts reusable update and validation operations, performs scan/read work asynchronously, and uses an asynchronous confirmation prompt. If confirmation is required, both stdin and stdout must be TTYs; otherwise the command fails clearly without applying the conflicted plan. Every update that applies managed actions runs installed-target validation afterwards and reports the result directly, without re-entering the CLI dispatcher. `--force` reports that it bypasses confirmation only when applying; dry-run says it would bypass it.
+Both preview and normal modes print the detected version, confidence/evidence, and one ordered immutable plan. Preview exits without writes. A normal conflict plan exits non-zero before writing; `--yes` applies that displayed plan rather than rebuilding it. The command implementation uses AnyIO-compatible scan/read work and reusable validation operations directly, without re-entering the CLI dispatcher or reading interactive terminal input. Every update that applies managed actions runs installed-target validation afterwards and reports the result directly. `--force` reports that it bypasses selective confirmation only when applying; dry-run says it would do so.
 
 ## Error handling
 
@@ -75,12 +75,12 @@ Both preview and normal modes print the detected version, confidence/evidence, a
 | Missing target directory or `.agents` inventory | Clear command error; no changes |
 | Invalid installed managed metadata, dependency, lifecycle, or index | Clear validation error; no changes |
 | Invalid, unreadable, or conflicting package manifest | Clear command error; no changes |
-| Indeterminate version detection | Report evidence; request confirmation only for content that diverges from available provenance or collides with scanned unmanaged content |
-| Confirmation declined | Preserve that conflict, apply other safe or accepted actions, generate an index for the resulting installed inventory, and report non-convergence |
-| Staging failure | Remove all temporary files and staging-created empty directories; no changes |
+| Indeterminate version detection | Report evidence; mark only content that diverges from available provenance or collides with scanned unmanaged content as requiring `--yes` |
+| Confirmation-required plan without `--yes` | Report every conflict; make no changes; exit non-zero |
+| Staging failure | Remove every temporary file, including a partial path created by a failed copy, and staging-created empty directories; no changes |
 | Replacement/removal failure | Restore backups, report recovery paths if restoration is incomplete |
 | `--force` | Explicitly report bypass; use established init force replacement semantics |
 
 ## Test strategy
 
-Add production-behaviour tests for exact additive/subtractive and equivalent-generation detection; scanned unmanaged-policy conflicts; atomic skill update and removal; post-apply index generation; end-to-end TTY and non-TTY confirmation behaviour; update-specific staging failure cleanup; applying the displayed plan once; direct post-update validation; safe additions/upgrades/removals; partial-update reporting; force replacement including dry-run wording; advisory project guidance; and transaction recovery. Run `uv run pytest`, `uv run ruff check`, `uv run ruff format --check`, `uv run ty`, and both installed and `--blueprint` Specle validation modes.
+Add production-behaviour tests for exact additive/subtractive and equivalent-generation detection; scanned unmanaged-policy conflicts; atomic skill update and removal; post-apply index generation; complete conflict reporting without mutation; `--yes` selective approval; update-specific staging failure cleanup including partial copy paths; applying the displayed plan once; direct post-update validation; safe additions/upgrades/removals; force replacement including dry-run wording; advisory project guidance; and transaction recovery. Run `uv run pytest`, `uv run ruff check`, `uv run ruff format --check`, `uv run ty`, and both installed and `--blueprint` Specle validation modes.

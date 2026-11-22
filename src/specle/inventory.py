@@ -589,7 +589,7 @@ def update_distribution(
     plan: UpdatePlan | None = None,
     force: bool = False,
     dry_run: bool = False,
-    confirm: Callable[[UpdateAction], bool] | None = None,
+    approve_conflicts: bool = False,
 ) -> UpdatePlan:
     """Update a valid target using already-supplied package provenance generations."""
     target_directory = target_directory.expanduser().resolve()
@@ -608,19 +608,17 @@ def update_distribution(
     if force:
         initialise_distribution(source_root, target_directory, force=True)
         return plan
-    approved: list[UpdateAction] = []
-    declined: list[UpdateAction] = []
-    for action in plan.actions:
-        if action.requires_confirmation and (confirm is None or not confirm(action)):
-            declined.append(action)
-        else:
-            approved.append(action)
-    result = replace(plan, declined=tuple(declined))
+    conflicts = tuple(action for action in plan.actions if action.requires_confirmation)
+    if conflicts and not approve_conflicts:
+        return replace(plan, declined=conflicts)
+    approved = list(plan.actions)
+    result = replace(plan)
     if not approved:
         return result
     index_skills = _projected_skill_metadata(blueprint, installed, approved)
 
     staged: list[tuple[Path, Path]] = []
+    temporary_paths: list[Path] = []
     removals: list[Path] = []
     staging_directories: list[Path] = []
     agents_root = target_directory / ".agents"
@@ -629,6 +627,7 @@ def update_distribution(
             destination = agents_root / action.path
             if action.path.parts[0] == "skills" and action.action != "remove":
                 temporary = _temporary_sibling(destination)
+                temporary_paths.append(temporary)
                 staging_directories.extend(
                     _missing_parent_directories(temporary.parent, agents_root)
                 )
@@ -637,6 +636,7 @@ def update_distribution(
                 staged.append((temporary, destination))
             elif action.action in {"add", "upgrade"}:
                 temporary = _temporary_sibling(destination)
+                temporary_paths.append(temporary)
                 staging_directories.extend(
                     _missing_parent_directories(temporary.parent, agents_root)
                 )
@@ -646,7 +646,7 @@ def update_distribution(
             elif action.action == "remove":
                 removals.append(destination)
     except (OSError, TypeError, ValueError) as error:
-        _clean_up_temporary([temporary for temporary, _ in staged], None)
+        _clean_up_temporary(temporary_paths, None)
         _remove_empty_directories(staging_directories)
         raise SkillInstallationError("unable to stage the Specle update") from error
     index_destination = agents_root / "skills" / "specle" / "index.json"
@@ -883,6 +883,7 @@ def initialise_distribution(
         )
 
     staged: list[tuple[Path, Path]] = []
+    temporary_paths: list[Path] = []
     index_temporary: Path | None = None
     ignore_temporary: Path | None = None
     ignore_destination = target_directory / ".specle" / ".gitignore"
@@ -891,10 +892,12 @@ def initialise_distribution(
         policies_root.mkdir(parents=True, exist_ok=True)
         for source, destination in skill_destinations:
             temporary = _temporary_sibling(destination)
+            temporary_paths.append(temporary)
             shutil.copytree(source, temporary)
             staged.append((temporary, destination))
         for source, destination in policy_destinations:
             temporary = _temporary_sibling(destination)
+            temporary_paths.append(temporary)
             shutil.copy2(source, temporary)
             staged.append((temporary, destination))
 
@@ -908,9 +911,7 @@ def initialise_distribution(
             ignore_temporary = _temporary_sibling(ignore_destination)
             ignore_temporary.write_text(ignore_contents)
     except (OSError, TypeError, ValueError) as error:
-        _clean_up_temporary(
-            [temporary for temporary, _ in staged], index_temporary, ignore_temporary
-        )
+        _clean_up_temporary(temporary_paths, index_temporary, ignore_temporary)
         raise SkillInstallationError(
             "unable to stage the Specle distribution"
         ) from error

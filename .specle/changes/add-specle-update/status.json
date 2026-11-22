@@ -1,14 +1,15 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "approved",
+  "revision_note": "Reopened after PR #29 review: report all selective-update conflicts without prompting, add --yes approval, and clean partial staging paths.",
   "progress": {
     "tasks_completed": 9,
     "tasks_total": 9
   },
   "verification": {
     "status": "pass",
-    "evidence": ["uv run pytest (129 passed)", "uv run ruff check", "uv run ruff format --check", "uv run ty check", "uv run specle validate --blueprint", "uv run specle validate .", "uv run specle update . --dry-run"]
+    "evidence": ["uv run pytest (129 passed)", "uv run ruff check", "uv run ruff format --check", "uv run ty check", "uv run specle validate --blueprint", "uv run specle validate .", "uv run specle update . --dry-run (exact 29/29; no changes)"]
   },
   "review": {
     "status": "pass",

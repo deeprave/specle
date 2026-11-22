@@ -1,11 +1,10 @@
 from pathlib import Path
-from types import SimpleNamespace
 
 import anyio
 import pytest
 
-from specle.inventory import SkillInstallationError, SkillMetadataError, UpdateAction
-from specle.main import _confirm_update_action, build_parser, main
+from specle.inventory import SkillMetadataError
+from specle.main import build_parser, main
 
 
 def test_parser_accepts_init_target_and_force() -> None:
@@ -23,12 +22,13 @@ def test_parser_requires_an_explicit_init_target() -> None:
 
 def test_parser_accepts_an_explicit_update_target_with_options() -> None:
     args = build_parser().parse_args(
-        ["update", "/work/example", "--dry-run", "--force"]
+        ["update", "/work/example", "--dry-run", "--yes", "--force"]
     )
 
     assert args.command == "update"
     assert args.target_directory == "/work/example"
     assert args.dry_run is True
+    assert args.yes is True
     assert args.force is True
 
 
@@ -69,59 +69,41 @@ def test_update_validates_the_target_after_applying_managed_changes(
     (target / ".agents" / "policies" / "testing.md").write_text(
         "---\nspecle_policy: true\n---\n\n# Locally modified\n"
     )
-    monkeypatch.setattr("specle.main._confirm_update_action", lambda _action: True)
-
-    anyio.run(main, ["update", str(target)])
+    anyio.run(main, ["update", str(target), "--yes"])
 
     output = capsys.readouterr().out
     assert f"validated {target.resolve()}" in output
     assert "updated deployment" in output
 
 
-def test_update_confirmation_requires_an_explicit_yes(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    action = UpdateAction("upgrade", Path("skills/define/SKILL.md"), True)
-    terminal = SimpleNamespace(isatty=lambda: True)
-    monkeypatch.setattr("specle.main.sys.stdin", terminal)
-    monkeypatch.setattr("specle.main.sys.stdout", terminal)
-    monkeypatch.setattr("builtins.input", lambda _prompt: "no")
-
-    assert _confirm_update_action(action) is False
-
-    monkeypatch.setattr("builtins.input", lambda _prompt: "yes")
-
-    assert _confirm_update_action(action) is True
-
-
-def test_update_confirmation_rejects_non_interactive_streams(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    action = UpdateAction("upgrade", Path("skills/define/SKILL.md"), True)
-    terminal = SimpleNamespace(isatty=lambda: False)
-    monkeypatch.setattr("specle.main.sys.stdin", terminal)
-    monkeypatch.setattr("specle.main.sys.stdout", terminal)
-
-    with pytest.raises(
-        SkillInstallationError, match="stdin and stdout must both be TTYs"
-    ):
-        _confirm_update_action(action)
-
-
-def test_update_refuses_a_conflict_without_interactive_input(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_update_reports_all_conflicts_without_mutating(tmp_path: Path, capsys) -> None:
     target = tmp_path / "target"
     target.mkdir()
     anyio.run(main, ["init", str(target)])
     policy = target / ".agents" / "policies" / "testing.md"
     policy.write_text("---\nspecle_policy: true\n---\n\n# Locally modified\n")
-    monkeypatch.setattr("specle.main.sys.stdin", SimpleNamespace(isatty=lambda: False))
-
-    with pytest.raises(SystemExit, match="stdin and stdout must both be TTYs"):
+    with pytest.raises(SystemExit) as error:
         anyio.run(main, ["update", str(target)])
 
+    assert error.value.code == 1
     assert policy.read_text() == "---\nspecle_policy: true\n---\n\n# Locally modified\n"
+    output = capsys.readouterr().out
+    assert "confirm upgrade: policies/testing.md" in output
+    assert "no changes made" in output
+
+
+def test_update_yes_applies_a_reported_conflict(tmp_path: Path, capsys) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+    anyio.run(main, ["init", str(target)])
+    capsys.readouterr()
+    policy = target / ".agents" / "policies" / "testing.md"
+    policy.write_text("---\nspecle_policy: true\n---\n\n# Locally modified\n")
+
+    anyio.run(main, ["update", str(target), "--yes"])
+
+    assert "updated deployment" in capsys.readouterr().out
+    assert policy.read_text() != "---\nspecle_policy: true\n---\n\n# Locally modified\n"
 
 
 def test_parser_accepts_an_explicit_validate_target() -> None:

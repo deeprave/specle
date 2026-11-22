@@ -10,6 +10,7 @@ from specle.inventory import (
     build_skill_index,
     compare_installed_distribution,
     initialise_distribution,
+    managed_resource_checksums,
     scan_managed_inventory,
     update_distribution,
 )
@@ -393,7 +394,7 @@ def test_version_aware_update_preserves_modified_managed_resources(
     assert installed_resource.read_text() == '{"version": "new"}\n'
 
 
-def test_partial_update_rebuilds_index_from_retained_installed_metadata(
+def test_conflicted_update_does_not_apply_safe_actions_until_yes(
     tmp_path: Path,
 ) -> None:
     source_root = _write_distribution(tmp_path / "source")
@@ -441,15 +442,25 @@ def test_partial_update_rebuilds_index_from_retained_installed_metadata(
         installed,
         generations,
         detection,
-        confirm=lambda action: action.path != Path("skills/define"),
     )
 
     assert result.converged is False
-    assert (target / ".agents" / "policies" / "new.md").is_file()
-    refreshed = scan_managed_inventory(target / ".agents")
+    assert not (target / ".agents" / "policies" / "new.md").exists()
     assert json.loads(index_path.read_text()) == build_skill_index(
-        tuple(record.metadata for record in refreshed.skills)
+        tuple(record.metadata for record in installed.skills)
     )
+    accepted = update_distribution(
+        source_root,
+        target,
+        blueprint,
+        installed,
+        generations,
+        detection,
+        approve_conflicts=True,
+    )
+
+    assert accepted.converged is True
+    assert (target / ".agents" / "policies" / "new.md").is_file()
 
 
 def test_version_aware_update_requires_confirmation_for_an_unmarked_skill(
@@ -492,7 +503,7 @@ def test_version_aware_update_requires_confirmation_for_an_unmarked_skill(
         installed,
         generations,
         detection,
-        confirm=lambda _action: True,
+        approve_conflicts=True,
     )
     assert accepted.converged is True
     assert "specle_group: Planning" in unmarked_skill.read_text()
@@ -748,6 +759,38 @@ def test_staging_failure_preserves_existing_content_and_cleans_up(
         initialise_distribution(source_root, target, force=True)
 
     assert existing.read_text() == "# Existing define\n"
+    assert not list((target / ".agents").rglob(".specle-tmp-*"))
+
+
+def test_update_staging_failure_removes_a_partially_created_temporary_copy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_root = _write_distribution(tmp_path / "source")
+    manifest = tmp_path / "manifest"
+    append_manifest(manifest, scan_managed_inventory(source_root), "1.0")
+    target = tmp_path / "project"
+    target.mkdir()
+    initialise_distribution(source_root, target)
+    source_resource = source_root / "skills" / "define" / "resource.json"
+    source_resource.write_text('{"version": "new"}\n')
+    blueprint = scan_managed_inventory(source_root)
+    installed = scan_managed_inventory(target / ".agents")
+    generations = read_manifest_generations(manifest)
+    detection = detect_installed_version(
+        managed_resource_checksums(installed), generations
+    )
+
+    def fail_after_creating_destination(source: Path, destination: Path) -> None:
+        destination.mkdir()
+        raise OSError("copy failed")
+
+    monkeypatch.setattr(inventory.shutil, "copytree", fail_after_creating_destination)
+
+    with pytest.raises(SkillInstallationError, match="unable to stage"):
+        update_distribution(
+            source_root, target, blueprint, installed, generations, detection
+        )
+
     assert not list((target / ".agents").rglob(".specle-tmp-*"))
 
 

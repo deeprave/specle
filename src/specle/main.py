@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from functools import partial
 from importlib.resources import as_file
 from pathlib import Path
@@ -42,7 +41,7 @@ from specle.schema_registry import (
     export_schemas,
     validate_instance,
 )
-from specle.update_models import UpdateAction, UpdatePlan
+from specle.update_models import UpdatePlan
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -72,6 +71,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     update.add_argument(
         "--dry-run", action="store_true", help="Report the update plan without writing."
+    )
+    update.add_argument(
+        "--yes",
+        action="store_true",
+        help="Apply every confirmation-required action in the displayed update plan.",
     )
     update.add_argument(
         "--force",
@@ -235,22 +239,21 @@ async def main(args: list[str] | None = None) -> None:
                         detection,
                         plan=plan,
                         force=parsed.force,
-                        confirm=_confirm_update_action,
+                        approve_conflicts=parsed.yes,
                     )
                 )
         except (ManifestError, SkillInstallationError, SkillMetadataError) as error:
             raise SystemExit(str(error)) from error
-        applied_actions = parsed.force or len(result.actions) > len(result.declined)
-        if applied_actions:
-            try:
-                await _validate_installed_target(target)
-            except SystemExit:
-                if result.converged:
-                    raise
-                print("update validation reported errors for the non-converged target")
         if not result.converged:
-            print("update did not converge: one or more replacements were declined")
-        elif parsed.force or any(
+            print(
+                "update requires --yes to apply every confirmation-required action; "
+                "no changes made"
+            )
+            raise SystemExit(1)
+        applied_actions = parsed.force or bool(result.actions)
+        if applied_actions:
+            await _validate_installed_target(target)
+        if parsed.force or any(
             action.action in {"add", "upgrade", "remove", "replace-skill"}
             for action in plan.actions
         ):
@@ -396,17 +399,6 @@ def _report_update_plan(
             print("force: normal update confirmations would be bypassed")
         else:
             print("force: normal update confirmations were bypassed")
-
-
-def _confirm_update_action(action: UpdateAction) -> bool:
-    """Request explicit CLI approval before replacing a conflicted target item."""
-    if not sys.stdin.isatty() or not sys.stdout.isatty():
-        raise SkillInstallationError(
-            "confirmation is required, but stdin and stdout must both be TTYs"
-        )
-    verb = "Remove" if action.action == "remove" else "Replace"
-    response = input(f"{verb} conflicted {action.path}? [y/N] ")
-    return response.strip().casefold() in {"y", "yes"}
 
 
 def run() -> None:

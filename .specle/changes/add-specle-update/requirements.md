@@ -51,14 +51,14 @@
 3. A managed skill, including every resource in its directory, SHALL be planned and applied as one atomic unit. If any installed resource differs from its detected-generation checksum, the entire skill replacement or removal SHALL require confirmation; the command SHALL never partially replace or retire a managed skill.
 4. A managed policy resource present in the detected generation but absent from the current generation SHALL be removed only when its installed checksum matches the detected-generation checksum.
 5. A managed policy resource absent from the detected generation and present in the current generation SHALL be added.
-6. Before overwriting or removing a modified managed policy resource, or before replacing an unmanaged scanned resource at an incoming managed path, the command SHALL request user confirmation. Declining confirmation SHALL leave that content unchanged and report that the deployment did not converge.
-7. The command SHALL regenerate `skills/specle/index.json` after applying managed changes from the resulting installed managed inventory, retaining installed metadata for declined conflicts. The index SHALL be generated after managed actions, not staged as package content.
-8. The command SHALL preserve unmarked skills and `.agents/project/`, `.agents/steering/`, and other user-owned content unless the user confirms replacement of a same-named conflicting skill.
-9. The command SHALL use the same staged-copy, replacement, backup, and recovery behaviour as initial installation rather than duplicating deployment file operations.
-10. The command SHALL make no change if its preflight inspection or staging fails.
-11. The command SHALL remove empty directories created solely by failed staging or apply work.
+6. Before overwriting or removing a modified managed policy resource, or before replacing an unmanaged scanned resource at an incoming managed path, the command SHALL report every affected action as requiring confirmation. Without `--yes` or `--force`, it SHALL make no changes and exit non-zero after reporting the complete plan.
+7. `specle update <target-directory> --yes` SHALL approve every confirmation-required action in the displayed selective update plan without interactive input.
+8. The command SHALL regenerate `skills/specle/index.json` after applying managed changes from the resulting installed managed inventory. The index SHALL be generated after managed actions, not staged as package content.
+9. The command SHALL preserve unmarked skills and `.agents/project/`, `.agents/steering/`, and other user-owned content unless `--yes` approves replacement of a same-named conflicting skill.
+10. The command SHALL use the same staged-copy, replacement, backup, and recovery behaviour as initial installation rather than duplicating deployment file operations.
+11. The command SHALL make no change if its preflight inspection or staging fails, and SHALL remove every temporary staging path created before a caught copy failure as well as empty directories created solely by failed staging or apply work.
 12. The command SHALL apply the single displayed update plan rather than reconstructing it before application.
-13. After every update attempt that applies managed actions, the command SHALL run installed-target validation and report its result. A fully converged target SHALL pass validation; validation errors after a partial update are reported for user-directed handling.
+13. After every update attempt that applies managed actions, the command SHALL run installed-target validation and report its result. A fully converged target SHALL pass validation.
 
 ### Requirement 4: Force a full managed replacement
 
@@ -86,7 +86,7 @@
 
 - Update is read-write only after all required preflight checks have succeeded; dry-run is read-only.
 - Update must retain the existing recoverable replacement behaviour and clear error reporting.
-- If confirmation is required, it SHALL be requested only when both stdin and stdout are TTYs. Otherwise update SHALL emit a clear error and exit non-zero without applying the conflicted plan.
-- The asynchronous command path SHALL use asynchronous scan/read work and confirmation prompting. It SHALL call reusable validation functionality directly rather than recursively invoking the top-level CLI entrypoint.
+- Update SHALL not prompt interactively. It SHALL report every confirmation-required action in one plan, and require `--yes` for selective conflict approval or `--force` for full managed replacement.
+- The asynchronous command path SHALL use AnyIO-compatible scan/read work and call reusable validation functionality directly rather than recursively invoking the top-level CLI entrypoint.
 - Version detection is best-effort: user modifications, missing managed resources, and ambiguous checksum matches reduce confidence and must be reported rather than silently treated as certainty.
 - This change depends on `add-specle-manifest`, which supplies the package's versioned managed-resource checksum history. It does not add a launcher, an index-only command, reconciliation command, or a lifecycle-rendering CLI command.
