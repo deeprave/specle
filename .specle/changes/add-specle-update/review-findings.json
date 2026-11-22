@@ -1,0 +1,439 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261122-add-specle-update",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree",
+      "outcome": "request-changes",
+      "findings": 2
+    },
+    {
+      "id": "local-review-20261122-add-specle-update-confirmation",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-after-confirmation-variation",
+      "outcome": "request-changes",
+      "findings": 1
+    },
+    {
+      "id": "local-review-20261122-add-specle-update-final",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-after-projected-index-variation",
+      "outcome": "approve",
+      "findings": 0
+    },
+    {
+      "id": "independent-review-20261122-add-specle-update",
+      "system": "codex",
+      "kind": "independent-code-review",
+      "revision": "4c82bfb3e957191bacce762145af581c5c257255..working-tree",
+      "outcome": "commented",
+      "findings": 2
+    },
+    {
+      "id": "local-review-20261122-add-specle-update-after-independent-review",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-after-independent-review-resolution",
+      "outcome": "approve",
+      "findings": 0
+    },
+    {
+      "id": "independent-review-20261122-add-specle-update-review-code",
+      "system": "antigravity",
+      "kind": "independent-code-review",
+      "revision": "4c82bfb3e957191bacce762145af581c5c257255..working-tree",
+      "generated_at": "2026-11-22T11:36:31+11:00",
+      "outcome": "commented",
+      "findings": 8
+    },
+    {
+      "id": "local-review-20261122-add-specle-update-resolution",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-after-review-resolution",
+      "outcome": "approve",
+      "findings": 0
+    },
+    {
+      "id": "external-review-20261122-add-specle-update-claude",
+      "system": "claude",
+      "kind": "external-code-review",
+      "revision": "working-tree against 4c82bfb3e957191bacce762145af581c5c257255",
+      "source": ".todo/Reviews/add-specle-update/claude.json",
+      "outcome": "commented",
+      "findings": 11
+    },
+    {
+      "id": "local-review-20261122-add-specle-update-after-claude-resolution",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-after-claude-resolution",
+      "outcome": "approve",
+      "findings": 0
+    }
+  ],
+  "findings": [
+    {
+      "id": "local-review-20261122-add-specle-update-1",
+      "source_ids": [
+        "local-review-20261122-add-specle-update"
+      ],
+      "severity": "P2",
+      "description": "An absent or empty package manifest is accepted as an indeterminate update source.",
+      "evidence": "src/specle/manifest.py:101-133; src/specle/main.py:250-262",
+      "analysis": "`read_manifest_generations()` returns an empty tuple for a missing or empty file, and the CLI continues with indeterminate detection. That permits additions from the current blueprint despite the release provenance required for the safe version-aware update contract.",
+      "recommendation": "Reject a missing or empty package manifest before update planning, with a clear command error and a focused production test.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The manifest is a required release artifact. A missing or empty package manifest indicates a broken package build or damaged installation, not an expected deployment-update condition.",
+      "route": "none"
+    },
+    {
+      "id": "local-review-20261122-add-specle-update-2",
+      "source_ids": [
+        "local-review-20261122-add-specle-update"
+      ],
+      "severity": "P2",
+      "description": "The required post-update validation outcome is incompatible with preserving locally modified managed resources.",
+      "evidence": "requirements.md Requirement 3.5 and 3.10; src/specle/inventory.py:613-616; src/specle/main.py:236-292",
+      "analysis": "Normal update correctly preserves a locally modified resource, but installed-target validation intentionally reports that modification as managed-resource drift. The implementation currently does not run post-update validation, so it cannot meet the stated requirement; making it run would turn a successful preservation update into a failure.",
+      "recommendation": "Clarify the contract: successful updates with preserved resources report those preserves and remain valid structurally, while strict blueprint-convergence validation applies only when no preserves remain; alternatively redefine validation to recognise documented preserves.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Normal update must obtain user confirmation before overwriting a modified managed skill or a conflicting non-managed skill. Declining confirmation leaves that resource unchanged and prevents convergence; --force bypasses all such confirmations.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "local-review-20261122-add-specle-update-3",
+      "source_ids": [
+        "local-review-20261122-add-specle-update-confirmation"
+      ],
+      "severity": "P2",
+      "description": "A declined confirmation can still apply unrelated actions and regenerate an index from the blueprint.",
+      "evidence": "src/specle/inventory.py:671-721",
+      "analysis": "If a user declines a changed SKILL.md while accepting or having unrelated safe actions, update applies those actions and rebuilds `index.json` from the complete blueprint. If the declined skill's metadata differs from the blueprint, the generated index no longer describes the installed inventory and target validation fails.",
+      "recommendation": "Build the generated index from the projected resulting installed managed inventory, retaining installed metadata for declined conflicts and using blueprint metadata only for accepted updates.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Apply accepted and conflict-free actions, retain declined conflicts, and regenerate the index from the projected resulting installed inventory. The index is a runtime description of what is installed, not a blueprint cache.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "independent-review-20261122-add-specle-update-1",
+      "source_ids": [
+        "independent-review-20261122-add-specle-update"
+      ],
+      "severity": "P2",
+      "description": "Safe upgrades incorrectly require confirmation.",
+      "evidence": "src/specle/inventory.py:632",
+      "analysis": "The `old == existing` branch proves the installed resource still matches its detected manifest generation, but currently marks the upgrade as requiring confirmation. Ordinary release upgrades therefore prompt unnecessarily and may remain non-converged when declined.",
+      "recommendation": "Require confirmation only before overwriting user-modified managed content or user-defined content; known unchanged managed resources upgrade without prompting.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Prompts are avoided unless necessary. They protect only user-modified or user-defined content, never a resource proven unchanged since its detected generation.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "independent-review-20261122-add-specle-update-2",
+      "source_ids": [
+        "independent-review-20261122-add-specle-update"
+      ],
+      "severity": "P4",
+      "description": "The approved change status records only two of five completed tasks.",
+      "evidence": ".specle/changes/add-specle-update/status.json:4-8; tasks.md",
+      "analysis": "Every top-level task is marked complete in `tasks.md`, while `status.json` retains the earlier 2/5 count from the revision transition. The durable lifecycle record is inconsistent.",
+      "recommendation": "Synchronise `progress.tasks_completed` with the completed task plan.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "All five top-level tasks in tasks.md are marked complete, so the durable progress record must report 5/5.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "review-code-1",
+      "source_ids": ["independent-review-20261122-add-specle-update-review-code"],
+      "severity": "P1",
+      "description": "Unmarked user files or directories colliding with incoming managed resources are silently overwritten and deleted.",
+      "evidence": "src/specle/inventory.py:598-602, 628-629, 820-826, 1075-1078, 1108",
+      "analysis": "Inventory scanning excludes unmarked policy files, directories without SKILL.md, and files below a new managed skill. The planner can therefore treat an occupied target path as an unconditional add. The staged replacement then backs it up and removes that backup after success, deleting user content without confirmation.",
+      "recommendation": "Extend the shared inventory scan to record unmanaged existing resources, including unmarked policy documents. Update planning must compare those records so an add is only planned when the target is genuinely absent; any unmanaged collision requires confirmation.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Unmanaged content must be known from inventory scanning rather than discovered ad hoc during replacement. The important case is an unmarked policy document colliding with a later package policy; replacing a non-skill with a skill is not a concern.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "review-code-2",
+      "source_ids": ["independent-review-20261122-add-specle-update-review-code"],
+      "severity": "P2",
+      "description": "Replacing an unmarked `skills/specle` conflicts with staging its generated index inside that directory.",
+      "evidence": "src/specle/inventory.py:699-727; 955",
+      "analysis": "When a confirmed replacement moves `skills/specle` to backup, the staged index temporary inside that directory moves with it. Its later rename fails and rolls back the update.",
+      "recommendation": "Do not stage the generated index. Apply selected managed actions first, then generate the index from the resulting installed inventory while recovery remains available.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "The index is generated output, not a staged deployment input. It must be generated after managed content is in place, not staged inside a directory that may itself be replaced.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "review-code-3",
+      "source_ids": ["independent-review-20261122-add-specle-update-review-code"],
+      "severity": "P2",
+      "description": "Version detection becomes indeterminate for purely additive or subtractive releases.",
+      "evidence": "src/specle/manifest.py:136-166",
+      "analysis": "Matching-count scoring does not penalise resources expected by a candidate generation but absent from the installation. An exact older generation can tie with a later purely additive one, losing the historical generation needed for safe automatic updates.",
+      "recommendation": "Identify exact inventory matches before partial scoring, then rank partial matches using missing, extra, and mismatched resources.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Manifest generation detection must identify exact additive and subtractive release inventories reliably before considering partial evidence.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "review-code-4",
+      "source_ids": ["independent-review-20261122-add-specle-update-review-code"],
+      "severity": "P2",
+      "description": "A partially accepted update can produce invalid skill dependencies or lifecycle invariants.",
+      "evidence": "src/specle/inventory.py:681-729; src/specle/main.py:246-250",
+      "analysis": "Applying safe actions while retaining a declined modified skill can change its required-skill or lifecycle counterparts. The projected metadata is indexed but not validated before writing, so a later update may fail its own preflight.",
+      "recommendation": "Run installed-target validation automatically after update and present any resulting errors for user-directed handling; do not block partial application on projected-graph validation.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Validation belongs after update. A partial update may proceed, but validation errors must be surfaced so the user can decide the appropriate remedy.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "review-code-5",
+      "source_ids": ["independent-review-20261122-add-specle-update-review-code"],
+      "severity": "P3",
+      "description": "A staging or apply failure can leave newly created empty parent directories in `.agents`.",
+      "evidence": "src/specle/inventory.py:700-729",
+      "analysis": "Staging creates target-parent directories before all items are staged. Cleanup removes temporary files and destinations but does not remove empty directories created solely for the failed update.",
+      "recommendation": "Track staging-created directories or remove empty staged-destination parents during failure cleanup.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "A failed update must not leave directories created solely for staging or apply work.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "review-code-6",
+      "source_ids": ["independent-review-20261122-add-specle-update-review-code"],
+      "severity": "P3",
+      "description": "Non-interactive confirmation handling and non-convergence reporting are misleading.",
+      "evidence": "src/specle/main.py:293-302, 372-375",
+      "analysis": "A closed stdin raises unhandled EOFError; removal prompts say ‘Replace’; and a declined, non-converged update returns exit status zero.",
+      "recommendation": "Require both stdin and stdout to be TTYs before prompting. If confirmation is required but interactive input/output is unavailable, emit a clear error and exit non-zero; use deletion wording for removals.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Confirmation is only valid when the CLI can reliably send a prompt and receive input. Non-interactive invocations requiring confirmation must fail explicitly rather than raise EOFError or silently default.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "review-code-7",
+      "source_ids": ["independent-review-20261122-add-specle-update-review-code"],
+      "severity": "P3",
+      "description": "Update misses post-update validation and duplicates planning/preflight work.",
+      "evidence": "src/specle/main.py:241-302; src/specle/inventory.py:653-680",
+      "analysis": "The CLI plans by calling update_distribution in dry-run mode, then calls it again to apply. It does not validate a converged target after apply, despite the recorded requirement. Force mode also re-scans through init.",
+      "recommendation": "Build one immutable update plan after preflight, display and apply that exact plan, centralise its invariants, report updated destinations, and validate every converged result.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Once the user approves the displayed plan, that exact immutable plan must be applied. Rebuilding it is unnecessary; converged results must be validated automatically.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "review-code-8",
+      "source_ids": ["independent-review-20261122-add-specle-update-review-code"],
+      "severity": "P4",
+      "description": "Checksum flattening is duplicated and project-overlay inspection misses unexpected shape.",
+      "evidence": "src/specle/main.py:252-263; src/specle/inventory.py:574-584, 637-642",
+      "analysis": "The CLI duplicates the inventory checksum flattener, while project inspection treats a non-directory project path as simply missing and does not identify unexpected project-overlay layout requested by the requirements.",
+      "recommendation": "Reuse managed_resource_checksums and distinguish missing from unexpected project-overlay structure.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Shared inventory helpers must be reused, and project guidance must distinguish absent expected content from an unexpected filesystem shape.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "claude-cr-1",
+      "source_ids": ["external-review-20261122-add-specle-update-claude"],
+      "severity": "P3",
+      "description": "Exact version detection becomes indeterminate when multiple release generations have identical resource inventories.",
+      "evidence": "src/specle/manifest.py:139; reproduced against two equal ManifestGeneration resource maps.",
+      "analysis": "The exact-match branch accepts only one matching generation. A no-content-change release therefore ties with its predecessor, falls through to partial scoring, and becomes indeterminate. The update plan then has no historical checksum generation, so changed resources require unnecessary confirmation.",
+      "recommendation": "Treat identical exact generations as an equivalence class, selecting the latest version while retaining exact confidence and the common resource checksums.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "An unchanged managed inventory released under consecutive versions must still be detected exactly, so clean updates remain automatic.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "claude-cr-2",
+      "source_ids": ["external-review-20261122-add-specle-update-claude"],
+      "severity": "P4",
+      "description": "An update plan can become stale while the user is considering interactive confirmations.",
+      "evidence": "src/specle/inventory.py:665; approved actions are applied from the original inventory snapshot without a final checksum check.",
+      "analysis": "A user can alter a clean managed resource after the plan is displayed but before answering another confirmation. The accepted safe action would then overwrite that new edit because its checksum was only observed during planning.",
+      "recommendation": "Re-check approved destination checksums immediately before apply, then abort or require a new decision when they have changed; alternatively explicitly document a single-user assumption.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "This is a local single-user operation. Adding a time-of-check/time-of-use confirmation protocol is unnecessary complexity for a hypothetical concurrent edit.",
+      "route": "none"
+    },
+    {
+      "id": "claude-cr-3",
+      "source_ids": ["external-review-20261122-add-specle-update-claude"],
+      "severity": "P4",
+      "description": "Supplying an already-built update plan bypasses the generated-index preflight inside update_distribution.",
+      "evidence": "src/specle/inventory.py:683-687; index validation runs only when plan is None.",
+      "analysis": "The CLI currently uses an initial dry plan call to perform preflight, then passes that plan to the apply call. A future direct caller could build a plan independently and pass it to update_distribution, allowing a corrupt index to be replaced rather than rejected.",
+      "recommendation": "Split planning and application into distinct APIs, keeping structural preflight in the planner and making application consume only a validated plan.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The only caller builds and validates the plan before applying it. Splitting this internal flow solely to defend a hypothetical future misuse is unnecessary abstraction.",
+      "route": "none"
+    },
+    {
+      "id": "claude-cr-4",
+      "source_ids": ["external-review-20261122-add-specle-update-claude"],
+      "severity": "P4",
+      "description": "A resource-level removal can leave a partially removed retired skill and transient dependency or lifecycle invalidity.",
+      "evidence": "src/specle/inventory.py:759-781; projected metadata removes a skill when SKILL.md is removed but does not validate the projected lifecycle before applying.",
+      "analysis": "A retired skill is planned as individual resource removals. If only some are accepted, or remaining unmarked content persists in its directory, the target can be left with a partially removed skill. The command validates afterwards and may report the inconsistency after making other changes.",
+      "recommendation": "Validate projected metadata before apply and/or treat a retired skill directory as an all-or-nothing removal group.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "A skill includes every resource in its directory and is therefore an atomic managed unit. If any skill resource differs from its detected generation, confirm replacement or removal of the entire skill; never partially update or retire it.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "claude-cr-5",
+      "source_ids": ["external-review-20261122-add-specle-update-claude"],
+      "severity": "P5",
+      "description": "Manifest and inventory modules have a concealed import relationship, while update planning enlarges the inventory module.",
+      "evidence": "src/specle/manifest.py:13; src/specle/inventory.py imports ManifestGeneration and VersionDetection at runtime.",
+      "analysis": "Manifest uses ManagedInventory only under TYPE_CHECKING, so there is no runtime cycle now. The concern is future fragility and module size rather than a current import failure.",
+      "recommendation": "Move shared types to a leaf module or move update planning to its own update module.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Extract update planning into a dedicated module and place shared records in a leaf module where needed. Rename ManagedInventory to DistributionInventory because the scanned result includes both managed and unmanaged content.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "claude-cr-6",
+      "source_ids": ["external-review-20261122-add-specle-update-claude"],
+      "severity": "P5",
+      "description": "Update action and confidence values are untyped strings shared through literal comparisons.",
+      "evidence": "src/specle/inventory.py:144; src/specle/main.py matches action strings such as add, upgrade, remove, and replace-skill.",
+      "analysis": "A spelling mismatch could make planning, staging, or reporting disagree without type-checker help. The values form a small closed domain.",
+      "recommendation": "Use StrEnum or Literal aliases for update-action and confidence values.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Update actions and detection confidence are closed domains and should be represented explicitly for type-checked planning, application, and reporting.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "claude-cr-7",
+      "source_ids": ["external-review-20261122-add-specle-update-claude"],
+      "severity": "P5",
+      "description": "The update branch performs blocking scanning and prompt input inline in async main, and recurses through main for post-update validation.",
+      "evidence": "src/specle/main.py:239; scan_managed_inventory, read_manifest_generations, and input run directly in the async command path.",
+      "analysis": "The repository convention is asynchronous Python with blocking work offloaded. The current command works for small local deployments, but its control flow is long and re-enters the CLI dispatcher for validation.",
+      "recommendation": "Extract an async update runner, use a worker thread for blocking scans and prompt input, and call shared validation logic directly rather than recursively invoking main.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Do not recurse through main. Extract reusable validation and call it directly. The update path must use asynchronous scan/read operations and an asynchronous confirmation prompt rather than synchronous I/O on the async command path.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "claude-cr-8",
+      "source_ids": ["external-review-20261122-add-specle-update-claude"],
+      "severity": "P5",
+      "description": "Manifest parsing uses assert for a malformed-line condition in production code.",
+      "evidence": "src/specle/manifest.py:121; assert match is not None after manifest-line parsing.",
+      "analysis": "Earlier validation makes the assertion unreachable in normal execution, but Python optimisation removes asserts and would turn a violated invariant into an unhelpful AttributeError instead of a ManifestError.",
+      "recommendation": "Raise ManifestError explicitly when the match is unexpectedly absent.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Production validation and control flow must not rely on assertions, which may be removed by Python optimisation.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "claude-cr-9",
+      "source_ids": ["external-review-20261122-add-specle-update-claude"],
+      "severity": "P5",
+      "description": "Production tests do not cover identical manifest generations, real CLI non-interactive confirmation failure, or update-specific staging failure.",
+      "evidence": "tests/test_manifest.py; tests/test_main.py; tests/test_inventory_initialisation.py.",
+      "analysis": "The review identifies gaps around the new version-equivalence behaviour, end-to-end non-TTY refusal, and update transaction cleanup. Some lower-level paths are covered, but these update-specific cases could regress unnoticed.",
+      "recommendation": "Add focused production-behaviour tests for those three cases.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "These are new production behaviours and need focused regression coverage: equivalent exact generations, end-to-end non-TTY confirmation refusal, and update-specific staging recovery.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "claude-cr-10",
+      "source_ids": ["external-review-20261122-add-specle-update-claude"],
+      "severity": "P6",
+      "description": "Requirement 3 acceptance-criterion numbering skips 7 and duplicates 10.",
+      "evidence": ".specle/changes/add-specle-update/requirements.md: Requirement 3.",
+      "analysis": "The duplicated and missing numbers make later task, review, and verification references ambiguous, even though implementation requirements remain understandable.",
+      "recommendation": "Renumber the criteria sequentially.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "No requirement is missing, but sequential labels make future references unambiguous. Renumber the existing criteria without changing their meaning.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    },
+    {
+      "id": "claude-cr-11",
+      "source_ids": ["external-review-20261122-add-specle-update-claude"],
+      "severity": "P6",
+      "description": "A dry run with --force says confirmations were bypassed although it does not apply changes.",
+      "evidence": "src/specle/main.py: _report_update_plan(force=True) runs before the dry-run return.",
+      "analysis": "The output describes a completed bypass in a non-mutating preview. The underlying operation remains safe, but the wording is inaccurate.",
+      "recommendation": "Use conditional wording such as ‘would bypass normal confirmations’ during a force dry run.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "A non-mutating preview must describe force behaviour conditionally rather than claim confirmations were already bypassed.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place"}
+    }
+  ]
+}

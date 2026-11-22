@@ -8,7 +8,9 @@ import re
 import shutil
 import uuid
 from collections import defaultdict, deque
-from dataclasses import dataclass
+from collections.abc import Callable
+from contextlib import suppress
+from dataclasses import dataclass, replace
 from importlib.resources import files
 from importlib.resources.abc import Traversable
 from pathlib import Path
@@ -19,6 +21,12 @@ from strictyaml.exceptions import StrictYAMLError
 
 from specle.file_reading import read_regular_bytes, read_regular_text
 from specle.schema_registry import SCHEMA_IDENTIFIERS
+from specle.update_models import (
+    ManifestGeneration,
+    UpdateAction,
+    UpdatePlan,
+    VersionDetection,
+)
 
 _SKILL_NAME = re.compile(r"[a-z][a-z0-9-]*")
 _LIFECYCLE_STATUSES = (
@@ -121,13 +129,14 @@ class ManagedSkillInventory:
 
 
 @dataclass(frozen=True, slots=True)
-class ManagedInventory:
+class DistributionInventory:
     """A scanned distribution root with managed skills and shared resources."""
 
     root: Path
     skills: tuple[ManagedSkillInventory, ...]
     resources: tuple[ResourceChecksum, ...]
     unmanaged_skill_files: tuple[Path, ...]
+    unmanaged_resources: tuple[Path, ...]
     lifecycle: LifecycleAnalysis
     package_diagnostics: tuple[str, ...]
 
@@ -444,7 +453,7 @@ def analyse_lifecycle(skills: tuple[SkillMetadata, ...]) -> LifecycleAnalysis:
     )
 
 
-def scan_managed_inventory(distribution_root: Path) -> ManagedInventory:
+def scan_managed_inventory(distribution_root: Path) -> DistributionInventory:
     """Scan one blueprint or installed `.agents` root into managed inventory records."""
     root = distribution_root.expanduser().resolve()
     skills_root = root / "skills"
@@ -490,12 +499,13 @@ def scan_managed_inventory(distribution_root: Path) -> ManagedInventory:
         )
     metadata = tuple(record.metadata for record in skills)
     _validate_skill_dependencies(metadata)
-    policy_resources = _scan_managed_policies(root)
-    return ManagedInventory(
+    policy_resources, unmanaged_resources = _scan_managed_policies(root)
+    return DistributionInventory(
         root,
         tuple(skills),
         policy_resources,
         tuple(unmanaged),
+        unmanaged_resources,
         analyse_lifecycle(metadata),
         _package_completeness_diagnostics(root, tuple(skills), policy_resources),
     )
@@ -518,7 +528,7 @@ def _package_completeness_diagnostics(
 
 
 def compare_managed_inventories(
-    blueprint: ManagedInventory, installed: ManagedInventory
+    blueprint: DistributionInventory, installed: DistributionInventory
 ) -> tuple[str, ...]:
     """Report managed skill and resource drift between scanned inventories."""
     diagnostics: list[str] = []
@@ -540,6 +550,171 @@ def compare_managed_inventories(
         _compare_resources(blueprint.resources, installed.resources, "managed")
     )
     return tuple(sorted(diagnostics))
+
+
+def managed_resource_checksums(inventory: DistributionInventory) -> dict[Path, str]:
+    """Flatten one already-scanned inventory into stable managed resource checksums."""
+    resources = {
+        resource.path: resource.checksum
+        for skill in inventory.skills
+        for resource in skill.resources
+    }
+    resources.update(
+        {resource.path: resource.checksum for resource in inventory.resources}
+    )
+    return resources
+
+
+def build_update_plan(
+    blueprint: DistributionInventory,
+    installed: DistributionInventory,
+    generations: tuple[ManifestGeneration, ...],
+    detection: VersionDetection,
+    target_directory: Path,
+) -> UpdatePlan:
+    """Compatibility entrypoint for the dedicated update planner."""
+    from specle.update import build_update_plan as plan_update
+
+    return plan_update(blueprint, installed, generations, detection, target_directory)
+
+
+def update_distribution(
+    source_root: Path,
+    target_directory: Path,
+    blueprint: DistributionInventory,
+    installed: DistributionInventory,
+    generations: tuple[ManifestGeneration, ...],
+    detection: VersionDetection,
+    *,
+    plan: UpdatePlan | None = None,
+    force: bool = False,
+    dry_run: bool = False,
+    confirm: Callable[[UpdateAction], bool] | None = None,
+) -> UpdatePlan:
+    """Update a valid target using already-supplied package provenance generations."""
+    target_directory = target_directory.expanduser().resolve()
+    if not target_directory.is_dir():
+        raise SkillInstallationError(
+            f"target directory must be an existing directory: {target_directory}"
+        )
+    source_root = source_root.expanduser().resolve()
+    if plan is None:
+        _validate_installed_index(target_directory, installed)
+        plan = build_update_plan(
+            blueprint, installed, generations, detection, target_directory
+        )
+    if dry_run:
+        return plan
+    if force:
+        initialise_distribution(source_root, target_directory, force=True)
+        return plan
+    approved: list[UpdateAction] = []
+    declined: list[UpdateAction] = []
+    for action in plan.actions:
+        if action.requires_confirmation and (confirm is None or not confirm(action)):
+            declined.append(action)
+        else:
+            approved.append(action)
+    result = replace(plan, declined=tuple(declined))
+    if not approved:
+        return result
+    index_skills = _projected_skill_metadata(blueprint, installed, approved)
+
+    staged: list[tuple[Path, Path]] = []
+    removals: list[Path] = []
+    staging_directories: list[Path] = []
+    agents_root = target_directory / ".agents"
+    try:
+        for action in approved:
+            destination = agents_root / action.path
+            if action.path.parts[0] == "skills" and action.action != "remove":
+                temporary = _temporary_sibling(destination)
+                staging_directories.extend(
+                    _missing_parent_directories(temporary.parent, agents_root)
+                )
+                temporary.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copytree(source_root / action.path, temporary)
+                staged.append((temporary, destination))
+            elif action.action in {"add", "upgrade"}:
+                temporary = _temporary_sibling(destination)
+                staging_directories.extend(
+                    _missing_parent_directories(temporary.parent, agents_root)
+                )
+                temporary.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source_root / action.path, temporary)
+                staged.append((temporary, destination))
+            elif action.action == "remove":
+                removals.append(destination)
+    except (OSError, TypeError, ValueError) as error:
+        _clean_up_temporary([temporary for temporary, _ in staged], None)
+        _remove_empty_directories(staging_directories)
+        raise SkillInstallationError("unable to stage the Specle update") from error
+    index_destination = agents_root / "skills" / "specle" / "index.json"
+    removals.append(index_destination)
+
+    def generate_index() -> None:
+        index_destination.parent.mkdir(parents=True, exist_ok=True)
+        index_destination.write_text(
+            json.dumps(
+                build_skill_index(
+                    tuple(index_skills[name] for name in sorted(index_skills))
+                ),
+                indent=2,
+            )
+            + "\n"
+        )
+
+    _apply_staged_changes(
+        staged,
+        removals,
+        after_apply=generate_index,
+        cleanup_directories=staging_directories,
+    )
+    _remove_empty_parents(removals, agents_root)
+    return result
+
+
+def _projected_skill_metadata(
+    blueprint: DistributionInventory,
+    installed: DistributionInventory,
+    approved: list[UpdateAction],
+) -> dict[str, SkillMetadata]:
+    """Return managed skill metadata for the post-update installed inventory."""
+    result = {record.metadata.name: record.metadata for record in installed.skills}
+    blueprint_skills = {
+        record.metadata.name: record.metadata for record in blueprint.skills
+    }
+    for action in approved:
+        parts = action.path.parts
+        if len(parts) < 2 or parts[0] != "skills":
+            continue
+        name = parts[1]
+        if action.action == "remove":
+            result.pop(name, None)
+        else:
+            result[name] = blueprint_skills[name]
+    return result
+
+
+def _validate_installed_index(
+    target_directory: Path, installed: DistributionInventory
+) -> None:
+    """Reject malformed or stale generated indexes before an update can mutate a target."""
+    index_path = target_directory / ".agents" / "skills" / "specle" / "index.json"
+    try:
+        index = json.loads(read_regular_text(index_path))
+    except (
+        FileNotFoundError,
+        OSError,
+        UnicodeDecodeError,
+        json.JSONDecodeError,
+    ) as error:
+        raise SkillInstallationError(
+            f"invalid generated skill index: {index_path}: {error}"
+        ) from error
+    expected = build_skill_index(tuple(record.metadata for record in installed.skills))
+    if index != expected:
+        raise SkillInstallationError(f"invalid generated skill index: {index_path}")
 
 
 def compare_installed_distribution(
@@ -578,23 +753,27 @@ def _checksum_resources(
     return tuple(resources)
 
 
-def _scan_managed_policies(root: Path) -> tuple[ResourceChecksum, ...]:
+def _scan_managed_policies(
+    root: Path,
+) -> tuple[tuple[ResourceChecksum, ...], tuple[Path, ...]]:
     """Return checksums for marker-owned top-level Markdown policy documents."""
     policies_root = root / "policies"
     if not policies_root.is_dir():
-        return ()
+        return (), ()
     resources: list[ResourceChecksum] = []
+    unmanaged: list[Path] = []
     for path in sorted(policies_root.glob("*.md")):
         try:
             contents = read_regular_text(path)
         except (FileNotFoundError, OSError) as error:
             raise SkillMetadataError(f"unable to read {path}: {error}") from error
         if not _has_specle_policy_text(contents):
+            unmanaged.append(Path("policies") / path.name)
             continue
         resources.append(
             ResourceChecksum(Path("policies") / path.name, _checksum_path(path))
         )
-    return tuple(resources)
+    return tuple(resources), tuple(unmanaged)
 
 
 def _checksum_path(path: Path) -> str:
@@ -736,41 +915,10 @@ def initialise_distribution(
             "unable to stage the Specle distribution"
         ) from error
 
-    backups: list[tuple[Path, Path]] = []
-    created_destinations: list[Path] = []
-    destination: Path | None = None
-    try:
-        for destination in obsolete_skills:
-            _backup_existing_destination(destination, backups)
-        for destination in obsolete_policies:
-            _backup_existing_destination(destination, backups)
-        for temporary, destination in staged:
-            if _replace_staged_destination(temporary, destination, backups):
-                created_destinations.append(destination)
-        destination = index_destination
-        if _replace_staged_destination(index_temporary, index_destination, backups):
-            created_destinations.append(index_destination)
-        if ignore_temporary is not None:
-            destination = ignore_destination
-            if _replace_staged_destination(
-                ignore_temporary, ignore_destination, backups
-            ):
-                created_destinations.append(ignore_destination)
-    except OSError as error:
-        _clean_up_temporary(created_destinations, None)
-        unrestored = _restore_backups(backups)
-        _clean_up_temporary(
-            [temporary for temporary, _ in staged], index_temporary, ignore_temporary
-        )
-        recovery = ""
-        if unrestored:
-            recovery = "; retained recovery backup(s): " + ", ".join(
-                str(backup) for backup in unrestored
-            )
-        raise SkillInstallationError(
-            f"unable to replace managed destination: {destination}{recovery}"
-        ) from error
-    _clean_up_temporary([backup for _, backup in backups], None)
+    all_staged = [*staged, (index_temporary, index_destination)]
+    if ignore_temporary is not None:
+        all_staged.append((ignore_temporary, ignore_destination))
+    _apply_staged_changes(all_staged, [*obsolete_skills, *obsolete_policies])
     return tuple(destinations)
 
 
@@ -875,6 +1023,72 @@ def _replace_staged_destination(
         _backup_existing_destination(destination, backups)
     temporary.replace(destination)
     return not existed
+
+
+def _apply_staged_changes(
+    staged: list[tuple[Path, Path]],
+    removals: list[Path],
+    *,
+    after_apply: Callable[[], None] | None = None,
+    cleanup_directories: list[Path] | None = None,
+) -> None:
+    """Apply staged replacements and removals with shared backup recovery."""
+    backups: list[tuple[Path, Path]] = []
+    created_destinations: list[Path] = []
+    destination: Path | None = None
+    try:
+        for destination in removals:
+            if destination.exists():
+                _backup_existing_destination(destination, backups)
+        for temporary, destination in staged:
+            if _replace_staged_destination(temporary, destination, backups):
+                created_destinations.append(destination)
+        if after_apply is not None:
+            after_apply()
+    except OSError as error:
+        _clean_up_temporary(created_destinations, None)
+        _remove_empty_directories(cleanup_directories or [])
+        unrestored = _restore_backups(backups)
+        _clean_up_temporary([temporary for temporary, _ in staged], None)
+        recovery = ""
+        if unrestored:
+            recovery = "; retained recovery backup(s): " + ", ".join(
+                str(backup) for backup in unrestored
+            )
+        raise SkillInstallationError(
+            f"unable to replace managed destination: {destination}{recovery}"
+        ) from error
+    _clean_up_temporary([backup for _, backup in backups], None)
+
+
+def _remove_empty_parents(removals: list[Path], root: Path) -> None:
+    """Remove only now-empty managed parent directories after safe file removals."""
+    for removed in removals:
+        parent = removed.parent
+        while parent != root:
+            try:
+                parent.rmdir()
+            except OSError:
+                break
+            parent = parent.parent
+
+
+def _missing_parent_directories(directory: Path, root: Path) -> tuple[Path, ...]:
+    """Return the absent parent directories that staging will create below root."""
+    missing: list[Path] = []
+    while directory != root and not directory.exists():
+        missing.append(directory)
+        directory = directory.parent
+    return tuple(missing)
+
+
+def _remove_empty_directories(directories: list[Path]) -> None:
+    """Remove only explicitly recorded directories when they remain empty."""
+    for directory in sorted(
+        set(directories), key=lambda path: len(path.parts), reverse=True
+    ):
+        with suppress(OSError):
+            directory.rmdir()
 
 
 def _discover_obsolete_managed_skills(
