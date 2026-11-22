@@ -1,8 +1,9 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
-  "updated_at": 1795339850,
+  "status": "approved",
+  "updated_at": 1795343400,
+  "revision_note": "Canonical release-version and delivery-branch synchronisation requirements added from accepted PR review findings.",
   "created_at": 1795338392,
   "activated_at": 1795338747,
   "progress": {

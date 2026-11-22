@@ -41,8 +41,10 @@ Specle has package version and manifest tooling but no repository-local workflow
 #### Acceptance Criteria
 
 1. The skill SHALL use a version explicitly supplied by the user; otherwise it SHALL request one before making changes.
-2. The skill SHALL read the current version from `pyproject.toml` and validate the proposed version using the project's Python package-version semantics.
-3. The skill SHALL proceed only when the proposed version is greater than the current version; otherwise it SHALL explain the comparison and stop without making changes.
+2. The skill SHALL read the current version from the checked-out `pyproject.toml`, which is the sole authority for release versions, and validate the proposed version using PEP 440 semantics.
+3. The skill SHALL normalise the accepted proposed version to its canonical PEP 440 form and use that exact form for every later release operation, including `pyproject.toml`, branch naming, manifest generation and verification, and commit title.
+4. The skill SHALL reject a canonical version that the manifest format cannot represent before creating a branch or changing files.
+5. The skill SHALL proceed only when the canonical proposed version is greater than the current version; otherwise it SHALL explain the comparison and stop without making changes.
 
 ### Requirement 4: Prepare the release record
 
@@ -50,11 +52,12 @@ Specle has package version and manifest tooling but no repository-local workflow
 
 #### Acceptance Criteria
 
-1. The skill SHALL create a branch named `chore/release_<version>` from the configured delivery branch after all read-only guards pass and before editing release files.
-2. The skill SHALL update the version in `pyproject.toml` to the accepted release version.
-3. The skill SHALL run the package's manifest command using that release version to append the current complete blueprint inventory and checksums to the repository manifest.
-4. The skill SHALL stage and commit all currently unstaged and staged tracked changes and all untracked non-ignored files as one release commit; it SHALL not classify or exclude changes as unrelated.
-5. Before the commit, the skill SHALL show the full proposed commit contents and request explicit user authorisation for the commit.
+1. The skill SHALL fetch and synchronise the configured delivery branch with its upstream before creating a release branch. If synchronisation cannot complete cleanly, it SHALL stop without preparing a release.
+2. The skill SHALL create a branch named `chore/release_<canonical-version>` from that synchronised delivery branch after all read-only guards pass and before editing release files.
+3. The skill SHALL update the version in `pyproject.toml` to the canonical release version.
+4. The skill SHALL run the package's manifest command using that version to append the current complete blueprint inventory and checksums to the repository manifest, and SHALL confirm that the reported version is the same canonical value.
+5. The skill SHALL stage and commit all currently unstaged and staged tracked changes and all untracked non-ignored files as one release commit; it SHALL not classify or exclude changes as unrelated.
+6. Before the commit, the skill SHALL show the full proposed commit contents and request explicit user authorisation for the commit.
 
 ## Non-Functional Requirements
 

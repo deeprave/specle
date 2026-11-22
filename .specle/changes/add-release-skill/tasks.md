@@ -4,8 +4,8 @@
   - [x] 1.1 Create `.agents/skills/release/SKILL.md` with concise release-focused frontmatter and workflow instructions; record its local-only ownership only in this change's requirements.
   - [x] 1.2 Document the read-only selected-change and open-PR preflight, including clear stop behaviour.
 - [x] 2. Define release preparation
-  - [x] 2.1 Document supplied-or-elicited PEP 440 version validation and strict greater-than comparison with `pyproject.toml`.
-  - [x] 2.2 Document the ordered release-branch creation, `pyproject.toml` update, and metadata-verified `uv run specle manifest src/specle/blueprints/manifest` invocation.
+  - [x] 2.1 Document canonical PEP 440 version validation, manifest-format acceptance, and strict greater-than comparison with the checked-out `pyproject.toml`.
+  - [x] 2.2 Document delivery-branch synchronisation, canonical release-branch creation, `pyproject.toml` update, and metadata-verified `uv run specle manifest src/specle/blueprints/manifest` invocation.
 - [x] 3. Define the release commit boundary
   - [x] 3.1 Document the full candidate-diff display and explicit commit authorisation.
   - [x] 3.2 Document broad staging of tracked and non-ignored untracked files, one release commit, and the deliberate stop before push, PR, tags, publishing, or release creation.

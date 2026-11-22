@@ -10,7 +10,7 @@ Add a repository-local `release` skill that prepares an authorised release commi
 
 ## Direction
 
-The skill accepts a user-supplied version or asks for one, reads and compares the current `pyproject.toml` version using Python package-version semantics, then updates the version and appends the current blueprint checksum inventory through `specle manifest`. It creates `chore/release_<version>`, displays the complete release commit contents, receives explicit authorisation, and commits every working-tree change. It does not push, open a PR, publish, tag, or create a GitHub release. The skill is local to this repository and must not enter Specle's managed blueprint or manifest inventory.
+The skill accepts a user-supplied version or asks for one, canonicalises it with PEP 440 semantics, validates that the manifest can represent it, and compares it to the checked-out `pyproject.toml` version. It synchronises the configured delivery branch, then updates the version and appends the current blueprint checksum inventory through `uv run specle manifest`. It creates `chore/release_<canonical-version>`, displays the complete release commit contents, receives explicit authorisation, and commits every working-tree change. It does not push, open a PR, publish, tag, or create a GitHub release. The skill is local to this repository and must not enter Specle's managed blueprint or manifest inventory.
 
 ## Verification
 

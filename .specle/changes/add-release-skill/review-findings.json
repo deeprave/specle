@@ -13,7 +13,195 @@
       "kind": "local-review",
       "revision": "release-skill:7724b4706464c0316677cd4663f3619c009988a1dd177d5abb377144edd5804b",
       "outcome": "approve"
+    },
+    {
+      "id": "sourcery-pr31-20261122",
+      "system": "sourcery-ai",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/31",
+      "revision": "head:d3b0979902fe5ccd4031d4677f9088fc513a5862",
+      "findings": 12,
+      "outcome": "commented"
+    },
+    {
+      "id": "local-review-20261122-add-release-skill-followup",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "release-skill:d750b35425f374dde83eda19d08ab1b83eac7f7f114e9a169e94105d8846808f",
+      "outcome": "approve"
     }
   ],
-  "findings": []
+  "findings": [
+    {
+      "id": "sourcery-pr31-1",
+      "source_ids": ["sourcery-pr31-20261122"],
+      "severity": "P2",
+      "description": "The full-tree release commit can include credentials in tracked or non-ignored files.",
+      "evidence": ".agents/skills/release/SKILL.md:33",
+      "analysis": "The release contract deliberately stages all non-ignored working-tree content. The project's security policy prohibits committing secrets, but the release skill does not itself run a dedicated secret scanner before staging.",
+      "recommendation": "Decide whether the existing repository secret controls are sufficient or release preparation should run an explicit configured secret check before commit.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The repository already prohibits committing secrets and uses its established controls. A release-only scanner adds unnecessary process.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr31-2",
+      "source_ids": ["sourcery-pr31-20261122"],
+      "severity": "P3",
+      "description": "A GitHub query failure is not explicitly described as a release blocker.",
+      "evidence": ".agents/skills/release/SKILL.md:20",
+      "analysis": "The skill requires querying GitHub before branch creation but does not state what to do when that query cannot establish the open-PR state.",
+      "recommendation": "Make a failed or incomplete GitHub query stop release preparation.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "A failed GitHub query is surfaced as an operational error. The workflow does not need an additional defensive branch for a hypothetical incomplete result.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr31-3",
+      "source_ids": ["sourcery-pr31-20261122"],
+      "severity": "P3",
+      "description": "A stale local delivery branch can omit already delivered upstream commits.",
+      "evidence": ".agents/skills/release/SKILL.md:27",
+      "analysis": "The skill creates the release branch from the configured delivery branch but does not explicitly synchronise or compare it with its upstream first.",
+      "recommendation": "Fetch and ensure the delivery branch is current before branching for the release.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "A release branch must start from the current delivery branch so it contains every delivered commit.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "sourcery-pr31-4",
+      "source_ids": ["sourcery-pr31-20261122"],
+      "severity": "P4",
+      "description": "Manifest generation executes the local package before the full candidate is shown.",
+      "evidence": ".agents/skills/release/SKILL.md:29",
+      "analysis": "The command intentionally runs the repository's current package to produce its manifest. Treating this as an untrusted-execution boundary conflicts with the developer-directed release workflow.",
+      "recommendation": "Retain the local manifest command unless the project establishes a separate trusted release tool.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "`uv run specle manifest` is the intended project-scoped command resolution. A separate trusted release tool is not required.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr31-5",
+      "source_ids": ["sourcery-pr31-20261122"],
+      "severity": "P3",
+      "description": "PEP 440 epoch versions are accepted by comparison but rejected by the manifest format.",
+      "evidence": ".agents/skills/release/SKILL.md:22-30",
+      "analysis": "The manifest version grammar excludes `!`, so an epoch can pass the stated PEP 440 comparison and fail only after release preparation has begun.",
+      "recommendation": "Validate the proposed version against both PEP 440 and the manifest format during preflight.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "The release version must be valid for both package metadata and the manifest before release preparation changes files.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "sourcery-pr31-6",
+      "source_ids": ["sourcery-pr31-20261122"],
+      "severity": "P3",
+      "description": "A valid non-canonical PEP 440 spelling can differ from the normalized reported package version.",
+      "evidence": ".agents/skills/release/SKILL.md:22-30",
+      "analysis": "The skill compares the manifest command's raw reported value with the raw proposal, so normalization may appear as a false mismatch after files have changed.",
+      "recommendation": "Normalize the accepted proposed version before writing and comparing it.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Derive one canonical PEP 440 form and use it consistently for pyproject.toml, branch naming, manifest generation, manifest verification, and the commit title.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "sourcery-pr31-7",
+      "source_ids": ["sourcery-pr31-20261122"],
+      "severity": "P4",
+      "description": "A selected change or open PR can appear after preflight but before the release commit.",
+      "evidence": ".agents/skills/release/SKILL.md:19-33",
+      "analysis": "This is a concurrency scenario between preflight and commit. The repository is presently single-user and does not establish concurrent release preparation as a supported workflow.",
+      "recommendation": "Retain the single preflight unless concurrent release actors become an established delivery model.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The repository's current single-user delivery model does not support or require concurrent release preparation.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr31-8",
+      "source_ids": ["sourcery-pr31-20261122"],
+      "severity": "P3",
+      "description": "Version comparison can use a different branch's pyproject version than the branch later used for release.",
+      "evidence": ".agents/skills/release/SKILL.md:22,27",
+      "analysis": "The skill's order reads the current checkout before switching to the delivery branch, so a non-main checkout could supply a stale or lower comparison baseline.",
+      "recommendation": "Read the version from the configured delivery branch before accepting the release version.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The checked-out pyproject.toml is the sole authority for release versions. Release preparation does not infer a competing value from another branch.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr31-9",
+      "source_ids": ["sourcery-pr31-20261122"],
+      "severity": "P3",
+      "description": "The deliberately broad release commit does not require project checks or local review immediately before committing.",
+      "evidence": ".agents/skills/release/SKILL.md:31-33",
+      "analysis": "The skill presents and commits every working-tree change, but it does not establish which verification evidence applies to that assembled candidate.",
+      "recommendation": "Decide whether release preparation should require a fresh project quality-gate run for the final candidate.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The release workflow's explicit full-candidate review and user authorisation are the intended control. It does not require a second local-review lifecycle for the assembled release commit.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr31-10",
+      "source_ids": ["sourcery-pr31-20261122"],
+      "severity": "P4",
+      "description": "Concurrent manifest generation can lose another release's appended records.",
+      "evidence": ".agents/skills/release/SKILL.md:29",
+      "analysis": "This assumes concurrent release runs writing one manifest. The repository does not establish concurrent release preparation as supported.",
+      "recommendation": "Retain the current manifest operation unless concurrent releases become a supported model.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Concurrent release preparation is outside the repository's delivery model.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr31-11",
+      "source_ids": ["sourcery-pr31-20261122"],
+      "severity": "P3",
+      "description": "A manifest version mismatch can append a record before release preparation stops.",
+      "evidence": ".agents/skills/release/SKILL.md:29-30",
+      "analysis": "The current order runs the append-only command before checking its reported version, so a mismatch leaves a durable manifest entry even though no release commit is made.",
+      "recommendation": "Validate the accepted normalized version before invocation, or otherwise ensure a mismatch cannot append a manifest generation.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Preflight canonicalisation and manifest-format validation are sufficient. The manifest command remains the authoritative append-only operation.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr31-12",
+      "source_ids": ["sourcery-pr31-20261122"],
+      "severity": "P4",
+      "description": "A selected but complete change can unnecessarily block release preparation.",
+      "evidence": ".agents/skills/release/SKILL.md:19",
+      "analysis": "The skill blocks whenever a selector exists, whereas the lifecycle treats externally delivered work as effectively complete pending archival finalisation.",
+      "recommendation": "Inspect the selected record and block only when its state is not effectively complete.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Any .specle/current-change selector blocks release preparation. The selector is the deliberate boundary regardless of the selected change's lifecycle status.",
+      "route": "none"
+    }
+  ]
 }
