@@ -1,0 +1,19 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261122-add-release-skill",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "release-skill:770cde366ebc2883643216960fa24e820aa6d038b1e6714db1bc2094aff8ccde",
+      "outcome": "approve"
+    },
+    {
+      "id": "local-review-20261122-add-release-skill-concise",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "release-skill:7724b4706464c0316677cd4663f3619c009988a1dd177d5abb377144edd5804b",
+      "outcome": "approve"
+    }
+  ],
+  "findings": []
+}
