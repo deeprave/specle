@@ -23,7 +23,14 @@
     "head_branch": "feature/link-sidecar-completion",
     "target_branch": "main",
     "commit": "59bef45",
-    "event": "pull-request-updated"
+    "event": "pull-request-updated",
+    "completion": {
+      "reference": "https://github.com/deeprave/specle/pull/43",
+      "head_branch": "feature/link-sidecar-completion-completion",
+      "target_branch": "main",
+      "commit": "944d3ab",
+      "event": "pull-request-open"
+    }
   },
   "relationships": [],
   "dependencies": []
