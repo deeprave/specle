@@ -1,0 +1,27 @@
+{
+  "sources": [
+    {
+      "id": "local-20261123-link-sidecar-completion",
+      "kind": "local-review",
+      "revision": "working-tree-bc9a085",
+      "findings": 1
+    }
+  ],
+  "items": [
+    {
+      "id": "reciprocal-link-missing-updated-at",
+      "source_ids": [
+        "local-20261123-link-sidecar-completion"
+      ],
+      "severity": "P3",
+      "description": "Reciprocal sidecar linking mutates an active parent record without updating updated_at.",
+      "evidence": "src/specle/sidecars.py:38-53 writes both status.json records, but neither updated payload receives current Unix-second updated_at.",
+      "analysis": "Lifecycle policy requires an activated active record to write updated_at whenever its durable status record changes. The new parent-side relationship is required for joint delivery, so omitting the timestamp leaves its handoff state stale even though the relationship changed.",
+      "recommendation": "Have the reciprocal-link mutation write updated_at on every activated active record it changes, and cover that timestamp behaviour in the production test.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "updated_at records lifecycle status changes only. Reciprocal relationship linking changes delivery metadata and does not change lifecycle status.",
+      "route": null
+    }
+  ]
+}

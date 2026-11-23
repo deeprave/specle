@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from specle.change_state import ChangeStateSnapshot, read_change_state
+from specle.change_state import ChangeRecord, ChangeStateSnapshot, read_change_state
 from specle.file_reading import read_regular_text
 from specle.inventory import (
     LifecycleDiagnostic,
@@ -16,6 +16,7 @@ from specle.inventory import (
     analyse_lifecycle,
     scan_managed_inventory,
 )
+from specle.sidecars import CONCURRENT_DELIVERY
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,6 +25,116 @@ class RuntimeSnapshot:
 
     state: ChangeStateSnapshot
     diagnostics: tuple[LifecycleDiagnostic, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class DeliverySidecars:
+    """Explicit, validated sidecars eligible for one parent delivery operation."""
+
+    sidecars: tuple[ChangeRecord, ...]
+    diagnostics: tuple[LifecycleDiagnostic, ...]
+
+
+def discover_delivery_sidecars(
+    snapshot: ChangeStateSnapshot,
+    parent: ChangeRecord,
+    *,
+    required_status: str,
+) -> DeliverySidecars:
+    """Return parent-declared sidecars that reciprocally approve concurrent delivery."""
+    diagnostics: list[LifecycleDiagnostic] = []
+    sidecars: list[ChangeRecord] = []
+    active_by_name = {record.name: record for record in snapshot.active}
+    declared_names: set[str] = set()
+    relationships = parent.status.get("relationships")
+    if not isinstance(relationships, list):
+        return DeliverySidecars(
+            (),
+            (
+                _sidecar_diagnostic(
+                    parent, "invalid-sidecar-relationship", "relationships"
+                ),
+            ),
+        )
+
+    for relationship in relationships:
+        if not isinstance(relationship, dict):
+            continue
+        if relationship.get("delivery") != CONCURRENT_DELIVERY:
+            continue
+        name = relationship.get("change")
+        relation_kind = relationship.get("type")
+        if not isinstance(name, str) or not isinstance(relation_kind, str):
+            diagnostics.append(
+                _sidecar_diagnostic(
+                    parent, "invalid-sidecar-relationship", "relationship"
+                )
+            )
+            continue
+        if name in declared_names:
+            continue
+        declared_names.add(name)
+        if _concurrent_declaration_count(relationships, name) != 1:
+            diagnostics.append(_sidecar_diagnostic(parent, "duplicate-sidecar", name))
+            continue
+        sidecar = active_by_name.get(name)
+        if sidecar is None:
+            diagnostics.append(_sidecar_diagnostic(parent, "missing-sidecar", name))
+            continue
+        sidecar_kind = sidecar.status.get("kind")
+        if sidecar_kind not in {"bugfix", "refactor"} or relation_kind != sidecar_kind:
+            diagnostics.append(
+                _sidecar_diagnostic(parent, "sidecar-kind-mismatch", name)
+            )
+            continue
+        reciprocal_count = _reciprocal_relationship_count(sidecar, parent.name)
+        if reciprocal_count != 1:
+            diagnostics.append(
+                _sidecar_diagnostic(
+                    parent,
+                    "duplicate-reciprocal-sidecar"
+                    if reciprocal_count > 1
+                    else "missing-reciprocal-sidecar",
+                    name,
+                )
+            )
+            continue
+        if sidecar.status.get("status") != required_status:
+            diagnostics.append(_sidecar_diagnostic(parent, "sidecar-not-ready", name))
+            continue
+        sidecars.append(sidecar)
+    return DeliverySidecars(tuple(sidecars), tuple(diagnostics))
+
+
+def _concurrent_declaration_count(
+    relationships: list[object], sidecar_name: str
+) -> int:
+    return sum(
+        isinstance(relationship, dict)
+        and relationship.get("change") == sidecar_name
+        and relationship.get("delivery") == CONCURRENT_DELIVERY
+        for relationship in relationships
+    )
+
+
+def _reciprocal_relationship_count(sidecar: ChangeRecord, parent_name: str) -> int:
+    relationships = sidecar.status.get("relationships")
+    if not isinstance(relationships, list):
+        return 0
+    return sum(
+        isinstance(relationship, dict)
+        and relationship.get("change") == parent_name
+        and relationship.get("delivery") == CONCURRENT_DELIVERY
+        for relationship in relationships
+    )
+
+
+def _sidecar_diagnostic(
+    parent: ChangeRecord, code: str, detail: str
+) -> LifecycleDiagnostic:
+    return LifecycleDiagnostic(
+        code, f"{parent.directory / 'status.json'}: {code.replace('-', ' ')}: {detail}"
+    )
 
 
 def validate_installed_skill_inventory(

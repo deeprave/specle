@@ -130,6 +130,19 @@ def test_change_status_validates_completion_delivery_evidence() -> None:
         validate_instance(instance)
 
 
+def test_change_status_accepts_a_concurrent_delivery_relationship() -> None:
+    instance = _change_status(created_at=1_795_252_440)
+    instance["relationships"] = [
+        {
+            "change": "fix-example",
+            "type": "bugfix",
+            "delivery": "with-related-change",
+        }
+    ]
+
+    assert validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
+
+
 def _change_status(*, created_at: str | float) -> dict[str, object]:
     return {
         "$schema": SCHEMA_IDENTIFIERS["change-status"],

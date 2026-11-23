@@ -73,7 +73,7 @@ Use JSON for operational state that agents must update, query, compare, or valid
 - `findings.json` for a spike's time-boxed investigation question, effort budget, findings, risks, recommendations, and optional outcome change.
 - `review-findings.json` for source-aware review findings, triage decisions, and routes.
 - `tracker-links.json` for external work-source links and the optional delivery destination for that change.
-- A sidecar may include `relationships` with its origin stable change name, relationship type, and delivery mode. This is required before executing it alongside a selected origin.
+- A sidecar may include `relationships` with its origin stable change name, relationship type, and delivery mode. This is required before executing it alongside a selected origin. For concurrent delivery, both records declare `delivery: "with-related-change"`: the parent names the sidecar with `type: "bugfix"` or `"refactor"`, and the sidecar names the parent with `type: "origin"`. The optional `delivery` property is a non-empty string in the `change-status/1.0` schema. Only this reciprocal pair permits the parent to deliver and archive the sidecar with it.
 
 ## External work links
 
