@@ -19,3 +19,11 @@
 - [x] 6. Use package-owned schema identifiers
   - [x] 6.1 Replace GitHub-shaped schema identifiers with `specle://schemas/<name>/1.0` in the registry and every packaged contract, and remove the unused `common/1.0` resource and registry entry. (`src/specle/schema_registry.py`, `src/specle/schemas/`)
   - [x] 6.2 Add focused production coverage for resolving and exporting the package-owned schema identifiers. (`tests/test_schema_registry.py`)
+- [x] 7. Make completion-PR delivery resumable and isolated
+  - [x] 7.1 Update complete and wrapup guidance for the same-branch archival commit → completion PR → delivery-evidence commit sequence, direct-delivery selector removal, and one ignored-inclusive stash retained through finalisation. (`.agents/skills/{complete,wrapup}/`, blueprint copies)
+  - [x] 7.2 Align lifecycle and commit guidance so every delivery model records `committed` with `updated_at`, and complete alone records completion and `archived_at`. Its metadata and introduction must apply to every committed delivery model. (`.agents/policies/`, `.agents/skills/{commit,complete}/`, blueprint copies, `docs/LIFECYCLE.md`)
+- [x] 8. Protect and expose pending archival delivery
+  - [x] 8.1 Prevent activate from replacing a selected archived pending-wrapup record, and add pending completion delivery to changelist reporting. (`.agents/skills/{activate,changelist}/`, blueprint copies)
+  - [x] 8.2 Allow explicitly named archived completion triage to update only `review-findings.json`; reject archived targets from revise, build, and local review. Route accepted findings through related bugfix/refactor work, then let commit deliver that work and the triage record to the existing completion branch. (`.agents/skills/{triage,resolve,revise,build,review,commit}/`, blueprint copies)
+- [x] 9. Verify the revised completion workflow
+  - [x] 9.1 Run focused production tests, then `pytest`, `ruff check`, `ruff format`, `ty`, pre-commit, and installed and blueprint Specle validation.

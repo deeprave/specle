@@ -2,12 +2,12 @@
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
   "status": "committed",
-  "updated_at": 1795424462,
+  "updated_at": 1795431920,
   "created_at": 1795331098,
   "activated_at": 1795399573,
   "progress": {
-    "tasks_completed": 6,
-    "tasks_total": 6
+    "tasks_completed": 9,
+    "tasks_total": 9
   },
   "verification": {
     "status": "pass"
@@ -21,7 +21,7 @@
     "head_branch": "feature/add-wrapup-skill",
     "target_branch": "main",
     "commit": "3afd4a3",
-    "event": "pull-request-open"
+    "event": "pull-request-updated"
   },
   "relationships": [],
   "dependencies": []

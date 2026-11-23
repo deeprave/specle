@@ -21,10 +21,10 @@ For branch-and-pull-request delivery, archival work must be committed in a compl
 
 1. `complete` SHALL confirm or perform the configured final delivery event for a committed change, including authorised implementation-PR merge and local delivery-branch synchronisation.
 2. `complete` SHALL record an already-evidenced final delivery without attempting to merge it again.
-3. After final delivery, `complete` SHALL generate the concise human-facing `summary.md`, set `archived_at`, move the change directory to `.specle/archive/<change-name>/`, retain the local selector through completion-PR delivery, and preserve every durable artefact and delivery field.
-4. When archival finalisation must be committed separately, `complete` SHALL create a dedicated completion branch from the retained delivery head, commit only the archival finalisation, push it, and open or update its completion PR to the configured delivery branch.
-5. `complete` SHALL preserve unrelated tracked, untracked, and ignored work with a named recoverable stash before any required branch switch or synchronisation, then restore it afterwards. On restore failure it SHALL retain the stash and report recovery steps.
-6. `complete` SHALL avoid duplicate completion branches, completion PRs, summaries, or directory moves when re-entered after an interrupted or already-created finalisation.
+3. After final delivery, `complete` SHALL generate the concise human-facing `summary.md`, set `archived_at`, move the change directory to `.specle/archive/<change-name>/`, and preserve every durable artefact and delivery field. It SHALL retain the local selector only while completion-PR delivery remains outstanding; otherwise it SHALL remove its matching selector during archival finalisation.
+4. When archival finalisation must be committed separately, `complete` SHALL create a dedicated completion branch from the retained delivery head, commit and push only the archival finalisation, then open or identify one completion PR to the configured delivery branch. It SHALL record the resulting `delivery.completion` reference and event in a follow-up commit pushed to that same branch.
+5. `complete` SHALL preserve unrelated tracked, untracked, and ignored work with one named recoverable stash before any required branch switch or synchronisation. It SHALL retain that stash through every finalisation and completion-branch operation, then restore it only after the sequence succeeds or safely stops. On restore failure it SHALL retain the stash and report recovery steps.
+6. `complete` SHALL avoid duplicate completion branches, completion PRs, summaries, directory moves, or delivery-evidence commits when re-entered after an interruption at any completion-PR step.
 7. Once a completion PR is open, the active lifecycle state SHALL direct the next action to `wrapup`.
 
 ### Requirement 2: Provide a wrapup skill
@@ -36,7 +36,7 @@ For branch-and-pull-request delivery, archival work must be committed in a compl
 1. `wrapup` SHALL operate only when a completion PR has been recorded for a change already stored in `.specle/archive/`.
 2. With explicit user authorisation and subject to delivery policy, `wrapup` SHALL merge the recorded completion PR and synchronise the local delivery branch.
 3. `wrapup` SHALL recognise an externally merged completion PR and synchronise the local delivery branch without attempting another merge.
-4. `wrapup` SHALL report an open completion PR with unresolved external feedback as requiring `triage`, rather than merging it.
+4. `wrapup` SHALL report an open completion PR with unresolved external feedback as requiring explicit archived triage, rather than merging it.
 5. `wrapup` SHALL clear `.specle/current-change` after a successful completion-PR merge and delivery-branch synchronisation, but SHALL not alter `status.json`, generate a summary, move directories, create commits, create pull requests, or otherwise mutate the archived change record.
 6. `wrapup` SHALL be a Specle-managed skill, present in the package blueprints and the repository's managed `.agents/skills` inventory.
 
@@ -64,6 +64,9 @@ For branch-and-pull-request delivery, archival work must be committed in a compl
 2. `complete`, `wrapup`, `status`, `summary`, `commit`, and delivery guidance SHALL use consistent terms for final delivery, archival finalisation, and completion PRs.
 3. The workflow SHALL not direct a developer to rerun `complete` solely because a submitted completion PR remains outstanding.
 4. The lifecycle SHALL provide a recoverable path when a completion PR is already open, merged externally, or has unresolved external feedback.
+5. `commit` SHALL record every delivery model as `committed` with current Unix-second `updated_at`; only `complete` SHALL transition a record to `complete` and write `archived_at` during archival finalisation.
+6. `activate` SHALL treat a selected archived record with pending `wrapup` as unfinished and SHALL not replace its selector. `wrapup` alone may remove its matching selector after final delivery.
+7. `changelist` SHALL include an archived complete record with an open recorded completion PR and identify `wrapup` as its next action.
 
 ### Requirement 5: Preserve usable final-stage context
 
@@ -77,7 +80,19 @@ For branch-and-pull-request delivery, archival work must be committed in a compl
 4. `.specle/.gitignore` SHALL ignore root-level JSON scratch files with `/*.json` while continuing to allow JSON in change and archive subdirectories.
 5. The shared `.agents/AGENTS.md` guidance and its blueprint SHALL state that zsh snippets must not use `path` as a variable name.
 
-### Requirement 6: Use package-owned schema identifiers
+### Requirement 6: Preserve archived-record immutability during external triage
+
+**User Story:** As a developer, I want to triage feedback on an open completion PR without reopening or otherwise changing the archived change.
+
+#### Acceptance Criteria
+
+1. `triage <change-name>` SHALL allow an explicit archived complete record with open completion-PR evidence, without replacing `.specle/current-change` or changing its `status.json`, timestamps, delivery evidence, summary, or archive location.
+2. For that explicit archival case, triage SHALL modify only `review-findings.json`. Its completed decisions and resolved related corrective work SHALL be committed and pushed separately to the existing completion branch before wrapup resumes.
+3. `revise`, `build`, and local `review` SHALL reject archived targets. An accepted corrective finding from archived triage SHALL become an independent related bugfix or refactor rather than modifying the archive.
+4. When archived triage has only terminal no-action decisions, it SHALL preserve the archived state and direct the user to `wrapup`.
+5. `commit` SHALL use the selected archived completion record by default, or an explicitly named equivalent, to deliver only that record's `review-findings.json` and its resolved related corrective work to the recorded completion branch and existing completion PR.
+
+### Requirement 7: Use package-owned schema identifiers
 
 **User Story:** As a developer, I want schema identifiers to describe Specle's packaged contracts without implying that GitHub hosts a schema retrieval endpoint.
 

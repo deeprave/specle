@@ -31,7 +31,7 @@ in sync.
 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.specle/current-change` when present, the selected target's `status.json`, `.agents/policies/lifecycle.md`, applicable `.agents/steering/` overrides, and the relevant authoritative `.agents/project/` documents. Default to the selected normal change. A named non-selected committed normal target is permitted only when explicitly requested; update only that target and preserve the local selection.
+1. Read `.specle/current-change` when present, the selected target's `status.json`, `.agents/policies/lifecycle.md`, applicable `.agents/steering/` overrides, and the relevant authoritative `.agents/project/` documents. Default to the selected normal change. A named non-selected committed normal target is permitted only when explicitly requested; update only that target and preserve the local selection. Reject archived targets: archival records are immutable and cannot be built.
 2. Run a lifecycle preflight before reading or changing `tasks.md`:
    - `defined` — stop and advise `estimate`, or `design`/`tasks` only for small, understood work.
    - `estimated` — stop and advise `design`.

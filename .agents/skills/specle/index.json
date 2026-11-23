@@ -136,8 +136,8 @@
         },
         {
           "name": "complete",
-          "description": "Confirm final delivery of a committed Specle change.",
-          "usage": "Use for a committed branch-and-pull-request delivery after external review is settled, to confirm or perform the policy-authorised final delivery event."
+          "description": "Finalise archival delivery for a committed Specle change.",
+          "usage": "Use after any committed delivery to confirm its final event when needed, archive the durable change record, and create any required completion PR."
         },
         {
           "name": "track",
