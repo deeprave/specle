@@ -1,10 +1,10 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "approved",
+  "status": "committed",
   "created_at": 1795434467,
   "activated_at": 1795434952,
-  "updated_at": 1795436268,
+  "updated_at": 1795439455,
   "progress": {
     "tasks_completed": 6,
     "tasks_total": 6
@@ -16,7 +16,13 @@
     "status": "resolved",
     "findings": 0
   },
-  "delivery": null,
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/42",
+    "head_branch": "feature/link-sidecar-completion",
+    "target_branch": "main",
+    "commit": "a8a04e5416582e7704870ac8d0569f5c73b62b2d",
+    "event": "pull-request-open"
+  },
   "relationships": [],
   "dependencies": []
 }
