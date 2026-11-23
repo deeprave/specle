@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "complete",
   "updated_at": 1795398827,
   "created_at": 1795390503,
   "activated_at": 1795390654,
@@ -21,8 +21,10 @@
     "head_branch": "feature/rename-status-to-changelist",
     "target_branch": "main",
     "commit": "53dc7f8",
-    "event": "pull-request-update"
+    "event": "merged-and-main-synchronised",
+    "merge_commit": "bc225932b691d30156ce9173b3901aafa8ca365d"
   },
+  "archived_at": 1795399031,
   "relationships": [],
   "dependencies": []
 }
