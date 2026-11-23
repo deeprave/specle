@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/deeprave/specle/schemas/skill-index/1.0",
+  "$id": "specle://schemas/skill-index/1.0",
   "type": "object",
   "required": ["$schema", "groups"],
   "properties": {
-    "$schema": {"const": "https://github.com/deeprave/specle/schemas/skill-index/1.0"},
+    "$schema": {"const": "specle://schemas/skill-index/1.0"},
     "groups": {
       "type": "array",
       "items": {

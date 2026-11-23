@@ -16,7 +16,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import SchemaError, ValidationError
 from referencing import Registry, Resource
 
-SCHEMA_BASE_URI = "https://github.com/deeprave/specle/schemas"
+SCHEMA_BASE_URI = "specle://schemas"
 SCHEMA_IDENTIFIERS = {
     "change-status": f"{SCHEMA_BASE_URI}/change-status/1.0",
     "findings": f"{SCHEMA_BASE_URI}/findings/1.0",
@@ -28,7 +28,6 @@ _RESOURCE_PATHS = {
         identifier: f"{name}/1.0.json"
         for name, identifier in SCHEMA_IDENTIFIERS.items()
     },
-    f"{SCHEMA_BASE_URI}/common/1.0": "common/1.0.json",
 }
 
 

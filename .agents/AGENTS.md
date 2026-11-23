@@ -27,6 +27,10 @@ Alternative paths are `bugfix` for a bounded defect, `refactor` for behaviour-pr
 
 When each step ends, suggest the next step and any alternatives, if they exist. When the user explicitly says `next`, automatically invoke the previously suggested next step; do not require them to restate its command.
 
+## Shell execution
+
+In zsh shell snippets, do not use `path` as a variable name: it is the special array that backs `PATH`.
+
 ## Root bootstrap block
 
 When adding this framework to a repository without a project overlay, add the following temporary block to the root `AGENTS.md` immediately after its pointer to this file. The `onboard` skill removes the marked block only after it has created and validated the overlay; the durable pointer to this file remains.

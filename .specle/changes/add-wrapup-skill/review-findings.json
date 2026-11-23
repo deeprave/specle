@@ -1,0 +1,228 @@
+{
+  "sources": [
+    {
+      "id": "local-20261123-add-wrapup-skill",
+      "kind": "local-review",
+      "revision": "working-tree-2f387af",
+      "findings": 0
+    },
+    {
+      "id": "user-20261123-schema-contract-review",
+      "kind": "user-review",
+      "revision": "working-tree-2f387af",
+      "findings": 2
+    },
+    {
+      "id": "local-20261123-add-wrapup-schema-revision",
+      "kind": "local-review",
+      "revision": "working-tree-schema-revision",
+      "findings": 0
+    },
+    {
+      "id": "github-pr-37-sourcery-fdee161",
+      "system": "github",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/37",
+      "revision": "fdee161",
+      "findings": 9
+    },
+    {
+      "id": "local-20261123-add-wrapup-finalisation-review",
+      "kind": "local-review",
+      "revision": "working-tree-wrapup-finalisation",
+      "findings": 1
+    },
+    {
+      "id": "local-20261123-add-wrapup-final-review",
+      "kind": "local-review",
+      "revision": "working-tree-wrapup-final-metadata",
+      "findings": 0
+    }
+  ],
+  "items": [
+    {
+      "id": "custom-schema-uri-base",
+      "source_ids": [
+        "user-20261123-schema-contract-review"
+      ],
+      "severity": "P4",
+      "description": "Use a Specle-owned custom URI base for packaged JSON Schema identifiers.",
+      "evidence": "src/specle/schema_registry.py:19; src/specle/schemas/common/1.0.json:3",
+      "analysis": "The former GitHub-shaped base identified packaged schemas but misleadingly resembled a downloadable repository URL. `specle://schemas/` is a stable logical identifier resolved only by Specle's registry.",
+      "recommendation": "Change every packaged schema `$id`, registry identifier, and generated registry entry to the `specle://schemas/<name>/1.0` scheme, without introducing network resolution.",
+      "state": "decided",
+      "decision": "accept",
+      "route": "revise active change",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-wrapup-skill"
+      }
+    },
+    {
+      "id": "unused-common-record-path",
+      "source_ids": [
+        "user-20261123-schema-contract-review"
+      ],
+      "severity": "P4",
+      "description": "Remove or justify the unused common schema record shape, including its path field.",
+      "evidence": "src/specle/schemas/common/1.0.json:5-18; no `$ref` or runtime consumer outside schema registration.",
+      "analysis": "The `record` definition requires `name`, `path`, and `status`, but no packaged schema references it and no runtime code consumes it. Its `path` property has no current purpose.",
+      "recommendation": "Remove `common/1.0` from the packaged registry and distribution unless a concrete shared contract needs it; do not retain an unused generic path field.",
+      "state": "decided",
+      "decision": "accept",
+      "route": "revise active change",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-wrapup-skill"
+      }
+    },
+    {
+      "id": "completion-pr-evidence-and-resumption",
+      "source_ids": ["github-pr-37-sourcery-fdee161"],
+      "severity": "P2",
+      "description": "Completion-PR finalisation cannot reliably record or later resolve its own PR evidence.",
+      "evidence": "PR #37 comments 4663690877, 4663690888, 4663690897; complete and wrapup skills.",
+      "analysis": "The current ordering records completion evidence before a newly created PR has a reference, has no resume path after an interrupted archive commit, and then synchronises main where the unmerged archive record is unavailable to wrapup.",
+      "recommendation": "Define one resumable completion-PR sequence that creates or identifies the PR, records its evidence durably, and leaves a resolvable archived record until wrapup completes.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Create and push the archival completion branch first, open one completion PR, then commit and push its recorded URL and delivery evidence to that same branch. The workflow must be resumable at each point.",
+      "route": "revise active change",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "resulting_change": "add-wrapup-skill"}
+    },
+    {
+      "id": "completion-pr-feedback-route",
+      "source_ids": ["github-pr-37-sourcery-fdee161"],
+      "severity": "P2",
+      "description": "External feedback on a completion PR has no valid triage route for its archived record.",
+      "evidence": "PR #37 comment 4663690882; wrapup directs triage while triage reads active change records.",
+      "analysis": "A completion PR can be blocked by review feedback, but the current triage workflow cannot operate on the archived complete record selected by wrapup.",
+      "recommendation": "Extend the relevant review/triage path to handle an explicitly named archived completion record, without altering its archival lifecycle incorrectly.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "An archived change is immutable except for explicitly named external triage that updates only review-findings.json. That record is committed and pushed separately on the existing completion branch. Revise, build, and local review reject archived targets; accepted corrective work becomes an independent follow-up change.",
+      "route": "revise active change",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "resulting_change": "add-wrapup-skill"}
+    },
+    {
+      "id": "delivery-timestamp-all-models",
+      "source_ids": ["github-pr-37-sourcery-fdee161"],
+      "severity": "P3",
+      "description": "Local-only and direct delivery instructions omit required updated_at writes.",
+      "evidence": "PR #37 comment 4663690907; commit skill local-only and direct-delivery paths.",
+      "analysis": "The lifecycle policy requires every active status mutation to update `updated_at`, but the explicit instruction currently names it only for branch-and-PR delivery.",
+      "recommendation": "Require current Unix-second `updated_at` whenever any delivery model records delivery evidence or changes status.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Do not add completed_at: completion and archival are one operation, represented by archived_at. Any active delivery-evidence mutation writes updated_at; complete alone writes status complete and archived_at while preserving updated_at.",
+      "route": "revise active change",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "resulting_change": "add-wrapup-skill"}
+    },
+    {
+      "id": "direct-delivery-selector-cleanup",
+      "source_ids": ["github-pr-37-sourcery-fdee161"],
+      "severity": "P3",
+      "description": "A direct-main completion without a completion PR leaves current-change selected with no cleanup owner.",
+      "evidence": "PR #37 comment 4663690915; complete retains selector while wrapup requires completion-PR evidence.",
+      "analysis": "Selector retention is needed only for the conditional completion-PR path. A finalised direct delivery has no wrapup action capable of removing it.",
+      "recommendation": "Clear the matching selector as part of complete when no completion PR is required.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Complete removes the matching selector only for direct delivery that requires no completion PR; branch-and-PR delivery retains it for wrapup.",
+      "route": "revise active change",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "resulting_change": "add-wrapup-skill"}
+    },
+    {
+      "id": "completion-stash-lifetime",
+      "source_ids": ["github-pr-37-sourcery-fdee161"],
+      "severity": "P3",
+      "description": "Completion finalisation does not preserve ignored files or retain the stash through every branch operation.",
+      "evidence": "PR #37 comments 4663690927 and 4663690940; complete skill steps 6-9.",
+      "analysis": "The required branch switches can overwrite ignored collisions, and restoring work before completion-branch creation can block or contaminate that delivery work.",
+      "recommendation": "Use one recoverable stash that includes ignored files and restore it only after the full finalisation sequence succeeds or stops safely.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "A branch switch can silently overwrite an ignored local path when the target branch tracks that pathname. Use one recoverable stash including ignored files and restore it only after the full finalisation sequence.",
+      "route": "revise active change",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "resulting_change": "add-wrapup-skill"}
+    },
+    {
+      "id": "pending-wrapup-selector-ownership",
+      "source_ids": ["github-pr-37-sourcery-fdee161"],
+      "severity": "P3",
+      "description": "Activation can replace a selected pending-wrapup record, and selector ownership is stated inconsistently.",
+      "evidence": "PR #37 comments 4663690947 and 4663690980; activate and wrapup skills.",
+      "analysis": "A pending completion PR remains unfinished by design, so activation must not replace its selector. The policy must also state wrapup's sole terminal-removal exception to activate's selector ownership.",
+      "recommendation": "Treat pending wrapup as unfinished during activation and explicitly reserve selector removal for wrapup after successful final delivery.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "A selected archived record with pending wrapup remains unfinished. Activate must not replace it; wrapup is the only workflow permitted to remove that matching selector after successful final delivery.",
+      "route": "revise active change",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "resulting_change": "add-wrapup-skill"}
+    },
+    {
+      "id": "changelist-pending-wrapup",
+      "source_ids": ["github-pr-37-sourcery-fdee161"],
+      "severity": "P3",
+      "description": "Changelist omits archived complete records that still need wrapup.",
+      "evidence": "PR #37 comment 4663690960; changelist only inventories active changes.",
+      "analysis": "The conditional wrapup action is pending work but is invisible from the lifecycle inventory.",
+      "recommendation": "Include archived complete records with open completion delivery and report wrapup as their next action.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "An archived complete record with an open recorded completion PR has pending work and must appear in changelist with wrapup as its next action.",
+      "route": "revise active change",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "resulting_change": "add-wrapup-skill"}
+    },
+    {
+      "id": "complete-accepts-direct-delivery",
+      "source_ids": ["github-pr-37-sourcery-fdee161"],
+      "severity": "P2",
+      "description": "Local-only and direct delivery cannot invoke complete under the declared lifecycle contract.",
+      "evidence": "PR #37 comment 4663690992; commit transitions direct final delivery to complete while complete accepts only committed.",
+      "analysis": "The skill frontmatter and policy disagree, leaving direct delivery unable to reach its required archive finalisation.",
+      "recommendation": "Align complete's accepted lifecycle state with the direct and local delivery result.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Local-only and direct delivery must hand off to complete under the same declared lifecycle contract that assigns archive finalisation to complete.",
+      "route": "revise active change",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "resulting_change": "add-wrapup-skill"}
+    },
+    {
+      "id": "summary-mutates-pending-archive",
+      "source_ids": ["github-pr-37-sourcery-fdee161"],
+      "severity": "P3",
+      "description": "Summary can rewrite an archived record while its completion PR remains open.",
+      "evidence": "PR #37 comment 4663691008; summary selects archived pending-wrapup records and writes summary.md.",
+      "analysis": "That creates a local archive state which diverges from the completion PR and lacks a documented redelivery path.",
+      "recommendation": "Make summary read-only for archived records awaiting wrapup, or route an intentional amendment through the completion-PR delivery workflow.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "summary.md is a permitted convenience artifact for every completed change. It may be varied after follow-up work and committed deliberately when needed.",
+      "route": null
+    },
+    {
+      "id": "complete-delivery-model-scope",
+      "source_ids": ["local-20261123-add-wrapup-finalisation-review"],
+      "severity": "P4",
+      "description": "Complete's user-facing metadata still limits it to branch-and-pull-request delivery.",
+      "evidence": ".agents/skills/complete/SKILL.md:9-24 and matching blueprint describe only branch-and-pull-request completion, while the revised lifecycle makes complete archive every committed delivery model.",
+      "analysis": "The workflow steps can archive direct and local committed delivery, but agents use skill metadata and introductory instructions to decide applicability. The mismatch can leave those delivery models without an apparent completion path.",
+      "recommendation": "Broaden complete's title, description, usage, and introductory text to cover every committed delivery, retaining branch-and-pull-request-specific instructions only where they apply.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Complete owns archive finalisation for every committed delivery model, so its metadata and introduction must describe that scope accurately.",
+      "route": "revise active change",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-wrapup-skill"
+      }
+    }
+  ]
+}

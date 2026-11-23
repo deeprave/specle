@@ -36,7 +36,7 @@ Changes are independent by default. A queued or future change must not create a 
 
 ## Workflow
 
-1. Identify the target from `.specle/current-change` and per-change `status.json`. Default to the selected normal change. A `bugfix` or `refactor`, or a committed normal change, is valid only when the user explicitly names it; preserve the local selection throughout that non-selected revision. Do not create a new change, switch to an unrelated one, or split accepted review feedback into a separate change.
+1. Identify the target from `.specle/current-change` and per-change `status.json`. Default to the selected normal change. A `bugfix` or `refactor`, or a committed normal change, is valid only when the user explicitly names it; preserve the local selection throughout that non-selected revision. Reject archived targets: they are immutable except for explicitly named triage updating `review-findings.json`. Do not create a new change, switch to an unrelated one, or split accepted review feedback into a separate change.
 2. Read the feedback and its accepted disposition. For a normal target, read `requirements.md`, `spec.md`, `design.md`, and `tasks.md` when present. For an abbreviated target, read its `spec.md` and `tasks.md`.
    Read the applicable lifecycle and authoritative `.agents/project/` documents before revising architecture or contracts.
 3. Classify each accepted finding:
@@ -59,7 +59,7 @@ Changes are independent by default. A queued or future change must not create a 
      tasks whose claimed outcome is invalidated, and add precise unchecked tasks for new work.
      Remove only tasks made genuinely obsolete, noting why when that would otherwise be unclear.
    - For an abbreviated target, revise only its `spec.md` and `tasks.md`. Preserve valid completed tasks, reopen invalidated tasks, and add precise unchecked tasks for accepted changes.
-5. Regenerate a normal target's `spec.md` if the requirements changed. Update only its `status.json` with a concise revision note. For a selected normal target, invalidate prior verification and review, then set the lifecycle status according to the revised artifacts. When requirements, design, and tasks are all reconciled, the target is `planned`. For a named committed normal target, update only its matching status to `planned`, retain its delivery reference, and preserve the local selection. For an abbreviated target, update only its `spec.md`, `tasks.md`, and status to `planned`; do not alter `.specle/current-change`.
+5. Regenerate a normal target's `spec.md` if the requirements changed. Update only its `status.json` with a concise revision note and current Unix-second `updated_at`. For a selected normal target, invalidate prior verification and review, then set the lifecycle status according to the revised artifacts. When requirements, design, and tasks are all reconciled, the target is `planned`. For a named committed normal target, update only its matching status to `planned`, retain its delivery reference, and preserve the local selection. For an abbreviated target, update only its `spec.md`, `tasks.md`, and status to `planned`; do not alter `.specle/current-change`.
 6. Report the accepted feedback, which artifacts changed, any reopened or added tasks, and the
    resulting next step.
 7. After a successful revision, read `.agents/project/automation.md`. In `decision-gated` mode, invoke the recorded next local skill with the selected target name; otherwise report it and wait.

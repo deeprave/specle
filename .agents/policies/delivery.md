@@ -10,15 +10,15 @@ Specle separates local implementation quality from the event that delivers work 
 
 ### Local-only Git
 
-Git is local to the project. A successful local review makes work `approved`. The applicable `commit` operation records the local commit as the final delivery event and moves the work to `complete`.
+Git is local to the project. A successful local review makes work `approved`. The applicable `commit` operation records the local commit as the delivery event and moves the work to `committed`. `complete` then records completion and performs archival finalisation.
 
 ### Shared upstream, direct to the delivery branch
 
-Git has a shared upstream, but work is committed directly to the configured delivery branch without peer review. A successful local review makes work `approved`. The applicable `commit` operation creates or updates the authorised shared-upstream commit and, once that event is confirmed, moves the work to `complete`.
+Git has a shared upstream, but work is committed directly to the configured delivery branch without peer review. A successful local review makes work `approved`. The applicable `commit` operation creates or updates the authorised shared-upstream commit, records that delivery event, and moves the work to `committed`. `complete` then records completion and performs archival finalisation.
 
 ### Shared upstream, branch and pull request
 
-Git has a shared upstream and work is delivered through a branch and reviewable pull request or equivalent change request. A successful local review makes work `approved`. The `commit` operation creates or updates the approved branch delivery and records it as `committed`. The `complete` operation confirms the configured final event, normally merge, before moving the work to `complete`.
+Git has a shared upstream and work is delivered through a branch and reviewable pull request or equivalent change request. A successful local review makes work `approved`. The `commit` operation creates or updates the approved branch delivery and records it as `committed`. The `complete` operation confirms the configured final event, normally merge, and prepares archival finalisation. When that archival work requires its own completion PR, `wrapup` merges the recorded completion PR and synchronises the delivery branch.
 
 ## Policy boundary
 
@@ -29,7 +29,7 @@ Unknown policy remains explicitly unestablished. Skills must not infer it from t
 ## Lifecycle meanings
 
 - `approved` means the local Specle review passed. It is not evidence that shared delivery or peer review is finished.
-- `committed` applies to the branch-and-pull-request model after a reviewable delivery reference is created or updated. It remains addressable for later external feedback.
-- `complete` means the project's configured final delivery event has been confirmed. A spike is an exception: its recorded findings complete it without implementation delivery.
+- `committed` applies to every delivery model after its delivery event is recorded. It remains addressable for later external feedback.
+- `complete` means the project's configured final delivery event has been confirmed. An archived complete record with an open recorded completion PR has a conditional final action, `wrapup`; otherwise it is terminal. A spike is an exception: its recorded findings complete it without implementation delivery.
 
 External writes require both project policy and explicit user authorisation. A skill may provide exact instructions when either is absent.

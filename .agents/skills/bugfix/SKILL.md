@@ -50,8 +50,8 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - Implement the fix.
    - Confirm existing tests still pass.
 6. Before implementation while active work exists, require the user to establish the explicit relationship in step 4; otherwise prepare the bugfix without implementation and direct later named execution in a separate worktree.
-7. If the user asks to prepare the bugfix without implementation, update only the matching status to `planned`, then report its generated change name and stop. Later `bugfix` and `verify` requests must name that bugfix explicitly.
-8. Otherwise, execute the linked tasks immediately (TDD); mark them `- [x]` as you go. Update only the matching status to `building` when implementation starts.
+7. If the user asks to prepare the bugfix without implementation, update only the matching status to `planned` with current Unix-second `updated_at`, then report its generated change name and stop. Later `bugfix` and `verify` requests must name that bugfix explicitly.
+8. Otherwise, execute the linked tasks immediately (TDD); mark them `- [x]` as you go. Update only the matching status to `building` with current Unix-second `updated_at` when implementation starts.
 
 ## Critical
 

@@ -48,8 +48,8 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - Run focused checks after every cycle, then repeat until the target structure is reached.
    - Run the documented quality gates before verification.
 6. Before implementation while active work exists, require the user to establish the explicit relationship in step 4; otherwise prepare the refactor without implementation and direct later named execution in a separate worktree.
-7. If the user asks to prepare the refactor without implementation, update only the matching status to `planned`, then report its generated timestamped name and stop. Later `refactor` and `verify` requests must name that refactor explicitly.
-8. Otherwise, execute the linked tasks immediately; mark them `- [x]` as you go. Update only the matching status to `building` when implementation starts.
+7. If the user asks to prepare the refactor without implementation, update only the matching status to `planned` with current Unix-second `updated_at`, then report its generated name and stop. Later `refactor` and `verify` requests must name that refactor explicitly.
+8. Otherwise, execute the linked tasks immediately; mark them `- [x]` as you go. Update only the matching status to `building` with current Unix-second `updated_at` when implementation starts.
 
 ## Critical
 

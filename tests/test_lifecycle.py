@@ -147,6 +147,14 @@ def test_validates_per_change_state_and_ignored_selection(tmp_path: Path) -> Non
     assert validate_runtime_records(target, _runtime_skills()) == ()
 
 
+def test_accepts_a_selected_archived_change_awaiting_wrapup(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "example", status="complete", archived=True)
+    (target / ".specle" / "current-change").write_text("example\n")
+
+    assert validate_runtime_records(target, _runtime_skills()) == ()
+
+
 def test_accepts_unicode_change_names_with_ascii_hyphen_separators(
     tmp_path: Path,
 ) -> None:

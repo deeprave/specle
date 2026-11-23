@@ -38,7 +38,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - **Error handling** — map each failure to its documented policy.
    - **Report/output rendering** — if the feature has output, show relevant output shapes.
    - **Test strategy** — the behavioural tests and project quality gates to run.
-5. For a selected target, update its `status.json` according to `lifecycle.md`: record that design is present and set its status to `designed`. For a named unselected target, write only its design artifact and retain `status: "defined"`.
+5. For a selected target, update its `status.json` according to `lifecycle.md`: record that design is present, set its status to `designed`, and write `updated_at` as current Unix seconds. For a named unselected target, write only its design artifact and retain `status: "defined"`.
 
 Keep the design faithful to every requirement — `verify` later checks design coverage.
 

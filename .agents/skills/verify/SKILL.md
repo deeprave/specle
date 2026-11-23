@@ -95,7 +95,7 @@ Produce a clear verification report:
 - **Next step** — if PASS, use `review`; if FAIL, list the specific fixes needed before
   re-verifying (use `build` to fix, then re-run `verify`).
 
-After reporting, update only the target `status.json` according to `lifecycle.md`. For a selected normal change, a PASS records verification as `pass`, resets a stale review to `not-run`, and sets status `verified`; a FAIL records verification as `fail` and sets status `building`. For a named committed normal target, a PASS sets only its matching status to `verified`; a FAIL leaves only that status `building`. For a named abbreviated change, a PASS sets only its status to `verified`; a FAIL leaves only that status `building`. Verification alone never marks a change complete.
+After reporting, update only the target `status.json` according to `lifecycle.md`, writing current Unix-second `updated_at` with every status mutation. For a selected normal change, a PASS records verification as `pass`, resets a stale review to `not-run`, and sets status `verified`; a FAIL records verification as `fail` and sets status `building`. For a named committed normal target, a PASS sets only its matching status to `verified`; a FAIL leaves only that status `building`. For a named abbreviated change, a PASS sets only its status to `verified`; a FAIL leaves only that status `building`. Verification alone never marks a change complete.
 
 Keep evidence concrete (cite files, lines, and test names). Do not report PASS on a criterion whose
 only support is a checked task box or a claim in `spec.md`.

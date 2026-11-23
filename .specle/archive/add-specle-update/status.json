@@ -1,5 +1,5 @@
 {
-  "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
+  "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
   "status": "complete",
   "completed_at": 1795331098,
@@ -10,7 +10,15 @@
   },
   "verification": {
     "status": "pass",
-    "evidence": ["uv run pytest (129 passed)", "uv run ruff check", "uv run ruff format --check", "uv run ty check", "uv run specle validate --blueprint", "uv run specle validate .", "uv run specle update . --dry-run (exact 29/29; no changes)"]
+    "evidence": [
+      "uv run pytest (129 passed)",
+      "uv run ruff check",
+      "uv run ruff format --check",
+      "uv run ty check",
+      "uv run specle validate --blueprint",
+      "uv run specle validate .",
+      "uv run specle update . --dry-run (exact 29/29; no changes)"
+    ]
   },
   "review": {
     "status": "pass",
@@ -29,5 +37,6 @@
     "add-specle-manifest"
   ],
   "created_at": 1795242840,
-  "activated_at": 1795295254
+  "activated_at": 1795295254,
+  "archived_at": 1795331527
 }

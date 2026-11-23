@@ -44,7 +44,7 @@ Write `estimate.md` in the change folder with:
 - **Recommendation**: describe the planning risks and any reason to split the work. Active normal work always continues through design before tasks.
 - **Similar past work**: reference relevant memory/changes.
 
-If estimating the selected change, update its lifecycle status to `estimated`. A named unselected
+If estimating the selected change, update its lifecycle status to `estimated` and write `updated_at` as current Unix seconds. A named unselected
 estimate records only that change's artifact; it does not change `.specle/current-change`.
 
 ## Next

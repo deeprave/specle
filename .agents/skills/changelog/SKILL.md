@@ -12,7 +12,7 @@ This is a Specle-project workflow, not a distributable Specle skill. It publishe
 
 ## Select and validate the target
 
-1. Require an explicit stable change name. Resolve that exact name in `.specle/archive/`; do not use `.specle/current-change` or choose an active item implicitly.
+1. Use an explicit stable change name, or the selected name from `.specle/current-change` when it resolves in `.specle/archive/`. Do not choose an active item implicitly.
 2. Stop unless the selected record has `status: "complete"`. State the recorded next workflow if it is not complete. Do not infer completion or advance lifecycle state.
 3. Read the selected work item's artifacts and its existing `.specle/archive/<target>/summary.md`. Stop if the summary is absent; direct the user to explicitly invoke `summary <target>` and deliver that source-repository change before publishing.
 
