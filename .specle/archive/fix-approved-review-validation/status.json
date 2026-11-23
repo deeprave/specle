@@ -1,11 +1,12 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "bugfix",
-  "status": "committed",
+  "status": "complete",
   "revision_note": "Accepted Sourcery finding requires resolved reviews to prove every recorded finding is terminally settled.",
   "created_at": 1795436567,
   "activated_at": null,
-  "updated_at": 1795437770,
+  "updated_at": 1795437967,
+  "archived_at": 1795437967,
   "progress": {
     "tasks_completed": 3,
     "tasks_total": 3
@@ -22,7 +23,15 @@
     "head_branch": "bugfix/fix-approved-review-validation",
     "target_branch": "main",
     "commit": "1eb2c37",
-    "event": "pull-request-updated"
+    "event": "pull-request-merged",
+    "merge_commit": "2241ac78a132c8b21d8a3372994cc50864489c9a",
+    "completion": {
+      "reference": "https://github.com/deeprave/specle/pull/41",
+      "head_branch": "bugfix/fix-approved-review-validation-completion",
+      "target_branch": "main",
+      "commit": "58a21dc",
+      "event": "pull-request-open"
+    }
   },
   "relationships": [],
   "dependencies": []
