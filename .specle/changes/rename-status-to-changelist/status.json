@@ -1,8 +1,8 @@
 {
   "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
   "kind": "change",
-  "status": "approved",
-  "updated_at": 1795398727,
+  "status": "committed",
+  "updated_at": 1795398827,
   "created_at": 1795390503,
   "activated_at": 1795390654,
   "progress": {
@@ -20,8 +20,8 @@
     "reference": "https://github.com/deeprave/specle/pull/35",
     "head_branch": "feature/rename-status-to-changelist",
     "target_branch": "main",
-    "commit": "57439f4",
-    "event": "pull-request-open"
+    "commit": "53dc7f8",
+    "event": "pull-request-update"
   },
   "relationships": [],
   "dependencies": []
