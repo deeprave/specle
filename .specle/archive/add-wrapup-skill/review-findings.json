@@ -37,6 +37,12 @@
       "kind": "local-review",
       "revision": "working-tree-wrapup-final-metadata",
       "findings": 0
+    },
+    {
+      "id": "user-20261123-completion-stash-policy",
+      "kind": "user-review",
+      "revision": "completion-pr-38",
+      "findings": 1
     }
   ],
   "items": [
@@ -222,6 +228,25 @@
         "workflow": "revise",
         "execution": "in-place",
         "resulting_change": "add-wrapup-skill"
+      }
+    },
+    {
+      "id": "completion-stash-all-cache-churn",
+      "source_ids": ["user-20261123-completion-stash-policy"],
+      "severity": "P4",
+      "description": "Completion and wrapup use git stash --all, needlessly shuffling ignored caches and virtual environments.",
+      "evidence": "Completion stash restoration attempted to restore 1,771 .venv files and 227 other ignored/generated files despite only queued changes and the selector needing preservation.",
+      "analysis": "Preserving ignored content protects a rare collision case but introduces routine large, noisy restoration failures for generated local state. Git already protects tracked and ordinary untracked collisions during branch switching.",
+      "recommendation": "Use plain git stash for tracked work only and accept the rare ignored-file collision risk.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Avoid broad cache and virtual-environment shuffling for a rare edge case. Preserve tracked work only.",
+      "route": "prepare-bugfix",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "bugfix",
+        "execution": "execute",
+        "resulting_change": "fix-completion-stash"
       }
     }
   ]

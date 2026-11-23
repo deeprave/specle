@@ -1,0 +1,11 @@
+{
+  "sources": [
+    {
+      "id": "local-20261123-fix-completion-stash",
+      "kind": "local-review",
+      "revision": "working-tree-narrow-stash",
+      "findings": 0
+    }
+  ],
+  "items": []
+}

@@ -1,8 +1,9 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "complete",
   "updated_at": 1795431920,
+  "archived_at": 1795432582,
   "created_at": 1795331098,
   "activated_at": 1795399573,
   "progress": {
@@ -20,8 +21,15 @@
     "reference": "https://github.com/deeprave/specle/pull/37",
     "head_branch": "feature/add-wrapup-skill",
     "target_branch": "main",
-    "commit": "3afd4a3",
-    "event": "pull-request-updated"
+    "commit": "714f6d2dab329804965ca99e0c5f55ab32ec37b5",
+    "event": "pull-request-merged",
+    "completion": {
+      "reference": "https://github.com/deeprave/specle/pull/38",
+      "head_branch": "feature/add-wrapup-skill-completion",
+      "target_branch": "main",
+      "commit": "f5db4db",
+      "event": "pull-request-open"
+    }
   },
   "relationships": [],
   "dependencies": []
