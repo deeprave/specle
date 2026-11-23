@@ -56,6 +56,6 @@ A fresh successful verification resets the review to `not-run`; a fresh review a
 
 ## Dependency visibility
 
-`status` lists unfinished changes and also includes a completed change when a pending change explicitly
+`changelist` lists unfinished changes and also includes a completed change when a pending change explicitly
 depends on it. This preserves a readable dependency graph without treating a completed dependency
 as pending work.

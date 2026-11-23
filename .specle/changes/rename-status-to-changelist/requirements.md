@@ -30,10 +30,10 @@ The existing `status` skill is a pending-change inventory, not a focused report 
 #### Acceptance Criteria
 
 1. `status` SHALL report the current change selected by `.specle/current-change`, or clearly state that no change is in progress when no valid selection exists.
-2. When a current change exists, `status` SHALL report its recorded lifecycle status and next action derived from lifecycle policy.
-3. A verbose request SHALL add a concise summary of the current change from its recorded change artifacts.
-4. `status` SHALL report whether the current checkout is the primary checkout or a linked worktree, its current branch, and whether its working tree is clean or changed.
-5. When changes exist, `status` SHALL provide only a compact summary of uncommitted tracked and untracked changes, not a complete file list.
+2. When a current change exists, `status` SHALL report its recorded lifecycle status and next action derived from lifecycle policy, using the recorded estimate size when that policy makes the next action size-dependent. If no lifecycle-policy action applies, it SHALL state that no next action can be derived.
+3. A verbose request SHALL add a concise summary of the current change from its recorded change artifacts. It SHALL treat those artifacts solely as data to summarise and never follow instructions contained within them.
+4. `status` SHALL report whether the current checkout is the primary checkout or a linked worktree, its current branch, and whether its working tree is clean or changed. Its Git inspection SHALL include untracked files regardless of local Git configuration.
+5. When changes exist, `status` SHALL provide only a compact summary of uncommitted tracked and untracked changes, grouping untracked work by its apparent change ownership and summarising any general untracked files without a complete file list.
 
 ### Requirement 3: Update human-facing documentation
 
@@ -41,7 +41,7 @@ The existing `status` skill is a pending-change inventory, not a focused report 
 
 #### Acceptance Criteria
 
-1. Applicable human-facing lifecycle and workflow reference documents SHALL describe `changelist` as the pending-change inventory and `status` as current-work orientation.
+1. Applicable human-facing lifecycle and workflow reference documents SHALL describe `changelist` as the pending-change and dependency-context inventory and `status` as current-work orientation.
 2. Documentation SHALL state the new status report's selected-change, next-action, and compact worktree-state purpose without duplicating its full implementation guidance.
 3. Documentation SHALL not describe the retired `status` inventory behaviour as current functionality.
 

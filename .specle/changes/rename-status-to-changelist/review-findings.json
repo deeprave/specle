@@ -7,7 +7,125 @@
       "revision": "status-changelist-guidance",
       "outcome": "approve",
       "findings": 0
+    },
+    {
+      "id": "github-pr-35-sourcery-20261123-1",
+      "system": "github",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/35",
+      "revision": "57439f4279ee40b0e44d0c51a1fdc917d1c81bfe",
+      "author": "sourcery-ai[bot]",
+      "findings": 5
+    },
+    {
+      "id": "local-review-20261123-rename-status-to-changelist-2",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "939aad225bc7537748b3406f3074fcdb65f94e5056c8a7b6545ed8bbd54c2efb",
+      "outcome": "approve",
+      "findings": 0
     }
   ],
-  "findings": []
+  "findings": [
+    {
+      "id": "github-pr-35-sourcery-1",
+      "severity": "P3",
+      "description": "Treat verbose change artifacts as untrusted data.",
+      "evidence": "https://github.com/deeprave/specle/pull/35#discussion_r4660918468",
+      "analysis": "The status skill reads change-owned Markdown when verbose output is requested, but does not explicitly prohibit following instructions embedded in those documents.",
+      "recommendation": "Instruct the skill to treat artifacts as data and only summarise them.",
+      "state": "dispatched",
+      "decision": "accept",
+      "rationale": "Verbose artifact reads must treat their contents as data, never executable instructions.",
+      "sources": ["github-pr-35-sourcery-20261123-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "workflow": "revise",
+        "execution": "completed"
+      }
+    },
+    {
+      "id": "github-pr-35-sourcery-2",
+      "severity": "P2",
+      "description": "Move dependency visibility from status to changelist.",
+      "evidence": "https://github.com/deeprave/specle/pull/35#discussion_r4660918475",
+      "analysis": "The lifecycle policy's Dependency visibility section still assigns the pending/dependency inventory to status, contradicting the new changelist/status split.",
+      "recommendation": "Update both lifecycle-policy copies so changelist owns that inventory and status remains current-work oriented.",
+      "state": "dispatched",
+      "decision": "accept",
+      "rationale": "This is a missed documentation update from the status-to-changelist split.",
+      "sources": ["github-pr-35-sourcery-20261123-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "workflow": "revise",
+        "execution": "completed"
+      }
+    },
+    {
+      "id": "github-pr-35-sourcery-3",
+      "severity": "P3",
+      "description": "Read estimate size before deriving an estimated change's next action.",
+      "evidence": "https://github.com/deeprave/specle/pull/35#discussion_r4660918478",
+      "analysis": "The lifecycle policy selects design or tasks for estimated work according to the recorded estimate size, but status does not currently read estimate.md.",
+      "recommendation": "Read the relevant estimate size when reporting an estimated change.",
+      "state": "dispatched",
+      "decision": "accept",
+      "rationale": "The size determines the lifecycle next action for estimated changes.",
+      "sources": ["github-pr-35-sourcery-20261123-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "workflow": "revise",
+        "execution": "completed"
+      }
+    },
+    {
+      "id": "github-pr-35-sourcery-4",
+      "severity": "P3",
+      "description": "Define a fallback for an unrecognised lifecycle status.",
+      "evidence": "https://github.com/deeprave/specle/pull/35#discussion_r4660918486",
+      "analysis": "Status requires a next action derived from lifecycle policy but does not state what to report when no policy row exists.",
+      "recommendation": "Report that no next action can be derived rather than infer one.",
+      "state": "dispatched",
+      "decision": "accept",
+      "rationale": "An unknown durable state must be reported plainly rather than mapped speculatively.",
+      "sources": ["github-pr-35-sourcery-20261123-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "workflow": "revise",
+        "execution": "completed"
+      }
+    },
+    {
+      "id": "github-pr-35-sourcery-5",
+      "severity": "P3",
+      "description": "Always include untracked files in the worktree summary.",
+      "evidence": "https://github.com/deeprave/specle/pull/35#discussion_r4660918491",
+      "analysis": "git status --short honours status.showUntrackedFiles=no and can therefore incorrectly report a clean checkout.",
+      "recommendation": "Use git status --short --untracked-files=all, then report grouped compact counts and what untracked work belongs to rather than a full path list.",
+      "state": "dispatched",
+      "decision": "accept",
+      "rationale": "Untracked work must not be hidden, but the orientation report should remain compact and avoid a full file listing.",
+      "sources": ["github-pr-35-sourcery-20261123-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "workflow": "revise",
+        "execution": "completed"
+      }
+    }
+  ]
 }
