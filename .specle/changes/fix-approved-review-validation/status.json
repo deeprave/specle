@@ -2,9 +2,10 @@
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "bugfix",
   "status": "approved",
+  "revision_note": "Accepted Sourcery finding requires resolved reviews to prove every recorded finding is terminally settled.",
   "created_at": 1795436567,
   "activated_at": null,
-  "updated_at": 1795437042,
+  "updated_at": 1795437665,
   "progress": {
     "tasks_completed": 3,
     "tasks_total": 3

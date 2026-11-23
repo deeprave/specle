@@ -6,11 +6,11 @@ After every review finding is terminally declined, deferred, skipped, or duplica
 
 ## Expected behaviour
 
-An approved active change with a terminally resolved review must validate and remain ready for `commit`, just like a review that found no actionable items.
+An approved active change with `review.status: "resolved"` must validate and remain ready for `commit` only when its readable `review-findings.json` shows every finding has a terminal no-action decision or a completed dispatch. An unresolved, unreadable, or missing findings record must be rejected.
 
 ## Actual behaviour
 
-`specle validate` emits `invalid review`, causing the pre-commit hook to reject the otherwise approved delivery.
+`specle validate` rejects every resolved review because it accepts `approved` only with `review.status: "pass"`. A naïve repair that accepts the label alone would also allow an unresolved findings record through validation.
 
 ## Reproduction
 
@@ -21,8 +21,8 @@ An approved active change with a terminally resolved review must validate and re
 
 ## Root cause and fix approach
 
-The lifecycle policy and `resolve` distinguish an initially passing review from a resolved review, but runtime validation recognises only the former. Update the production validator to accept the documented resolved review outcome for `approved` work, with focused regression coverage.
+The lifecycle policy and `resolve` distinguish an initially passing review from a resolved review, but runtime validation recognises only the former. Update the production validator to load and validate the matching `review-findings.json` when it sees `review.status: "resolved"`, accepting only terminally settled findings with focused regression coverage.
 
 ## Regression evidence
 
-A runtime-state test will construct an approved change with `review.status: "resolved"` and require validation to pass, while retaining rejection for unsupported review states.
+Runtime-state tests will cover a terminally settled resolved review, unresolved findings, missing or unreadable findings records, and unsupported review states.

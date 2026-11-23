@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
 from specle.change_state import ChangeStateSnapshot, read_change_state
+from specle.file_reading import read_regular_text
 from specle.inventory import (
     LifecycleDiagnostic,
     SkillMetadata,
@@ -87,10 +89,11 @@ def _validate_record(
         diagnostics.append(_diagnostic(path, "invalid-status", "status"))
     if status == "verified" and _nested_status(record, "verification") != "pass":
         diagnostics.append(_diagnostic(path, "missing-evidence", "verification"))
-    if status == "approved" and _nested_status(record, "review") not in {
-        "pass",
-        "resolved",
-    }:
+    review_status = _nested_status(record, "review")
+    if status == "approved" and review_status == "resolved":
+        if not _has_settled_resolved_review(path.parent / "review-findings.json"):
+            diagnostics.append(_diagnostic(path, "missing-evidence", "review"))
+    elif status == "approved" and review_status != "pass":
         diagnostics.append(_diagnostic(path, "missing-evidence", "review"))
     if status == "committed":
         delivery = record.get("delivery")
@@ -105,6 +108,33 @@ def _validate_record(
 def _nested_status(record: dict[str, object], name: str) -> object:
     value = record.get(name)
     return value.get("status") if isinstance(value, dict) else None
+
+
+def _has_settled_resolved_review(path: Path) -> bool:
+    try:
+        value = json.loads(read_regular_text(path))
+    except (FileNotFoundError, OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return False
+    if not isinstance(value, dict):
+        return False
+    items = value.get("items")
+    if not isinstance(items, list):
+        return False
+    return all(_is_terminal_review_item(item) for item in items)
+
+
+def _is_terminal_review_item(item: object) -> bool:
+    if not isinstance(item, dict):
+        return False
+    decision = item.get("decision")
+    if decision in {"decline", "defer", "skip", "duplicate"}:
+        return True
+    dispatch = item.get("dispatch")
+    return (
+        decision == "accept"
+        and isinstance(dispatch, dict)
+        and dispatch.get("state") == "complete"
+    )
 
 
 def _lifecycle_statuses(skills: Iterable[SkillMetadata]) -> set[str]:

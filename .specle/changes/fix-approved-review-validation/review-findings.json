@@ -5,7 +5,42 @@
       "kind": "local-review",
       "revision": "working-tree-bc9a085",
       "findings": 0
+    },
+    {
+      "id": "sourcery-pr-40",
+      "system": "sourcery",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/40",
+      "revision": "338a684",
+      "findings": 1
+    },
+    {
+      "id": "local-20261123-fix-approved-review-validation-resolution",
+      "kind": "local-review",
+      "revision": "working-tree-338a684-resolved-review",
+      "findings": 0
     }
   ],
-  "items": []
+  "items": [
+    {
+      "id": "resolved-review-requires-terminal-findings",
+      "source_ids": [
+        "sourcery-pr-40"
+      ],
+      "severity": "P3",
+      "description": "Resolved review evidence can validate while recorded findings remain actionable.",
+      "evidence": "src/specle/lifecycle.py:_validate_record accepts review.status resolved for approved state without inspecting review-findings.json.",
+      "analysis": "The repair accepts the lifecycle outcome produced by resolve, but the validator must also confirm that every recorded review finding has a terminal decision before treating resolved evidence as eligible for commit.",
+      "recommendation": "Validate review-findings.json for an approved resolved review and reject missing, unreadable, or unsettled findings.",
+      "state": "decided",
+      "decision": "accept",
+      "route": "revise active change",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "fix-approved-review-validation"
+      }
+    }
+  ]
 }
