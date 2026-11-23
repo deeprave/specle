@@ -44,7 +44,7 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 | `bugfix` / `refactor` | When executed, move only the named abbreviated item to `building`; when called through `prepare`, they create artifacts without executing them. |
 | `spike` | Creates an unselected spike or, when invoked by `activate`, moves it through `defined` → `spiking` → `complete` while recording durable findings and a stable outcome-change name. |
 
-`analyse`, `specle`, `status`, `summary`, and `track` do not themselves transition lifecycle status. `summary` requires a completed target but does not alter it.
+`analyse`, `specle`, `changelist`, `status`, `summary`, and `track` do not themselves transition lifecycle status. `changelist` inventories pending and dependency-context work, while `status` reports the selected change and compact local worktree state. `summary` requires a completed target but does not alter it.
 
 ## Transition audit
 

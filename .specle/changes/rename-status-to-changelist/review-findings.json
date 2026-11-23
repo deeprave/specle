@@ -1,0 +1,13 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261123-rename-status-to-changelist-1",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "status-changelist-guidance",
+      "outcome": "approve",
+      "findings": 0
+    }
+  ],
+  "findings": []
+}

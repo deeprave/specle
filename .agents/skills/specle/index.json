@@ -30,9 +30,14 @@
       "name": "Coordination",
       "skills": [
         {
+          "name": "changelist",
+          "description": "List pending and active Specle changes with next stages.",
+          "usage": "Use to inventory unfinished, selected, unselected, or dependent changes and report their recorded next steps; it never changes lifecycle state."
+        },
+        {
           "name": "status",
-          "description": "List pending and active Specle work with next stages.",
-          "usage": "Use to inventory unfinished, selected, unselected, or dependent work and report its recorded next step; it never changes lifecycle state."
+          "description": "Report the current Specle change and local worktree state.",
+          "usage": "Use to orient current work: show the selected change, its lifecycle next action, and a compact Git worktree summary without changing anything."
         }
       ]
     },
