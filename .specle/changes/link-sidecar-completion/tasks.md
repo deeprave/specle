@@ -24,3 +24,11 @@
 - [x] 6. Verify the completed behaviour
   - [x] 6.1 Run focused lifecycle and schema tests, then `uv run pytest`, `uv run ruff check`, `uv run ruff format --check`, and `uv run ty`.
   - [x] 6.2 Run installed and blueprint Specle validation and confirm that no unrelated active changes or project-owned files were altered.
+
+- [x] 7. Correct reciprocal state mutation and validation after PR #42 triage
+  - [x] 7.1 Reread current status records before adding reciprocal relationships, and preserve the existing no-half-link I/O failure handling without adding concurrent-update or crash-recovery machinery. (`src/specle/sidecars.py`)
+  - [x] 7.2 Require the sidecar reciprocal `type: "origin"` and report declared malformed or missing reciprocal relationships through runtime validation without duplicating delivery-readiness checks. (`src/specle/lifecycle.py`)
+
+- [x] 8. Align the sidecar completion contract and guidance after PR #42 triage
+  - [x] 8.1 Clarify that `updated_at` tracks lifecycle-status transitions, and that every jointly archived linked record records completion-PR evidence. (`.agents/policies/lifecycle.md`, `src/specle/blueprints/policies/lifecycle.md`, `.agents/skills/`, `src/specle/blueprints/skills/`, `docs/LIFECYCLE.md`)
+  - [x] 8.2 Confirm the managed skill index remains current after blueprint changes. (`.agents/skills/specle/index.json`)

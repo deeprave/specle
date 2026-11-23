@@ -55,11 +55,11 @@ Any source, test, task, or accepted-requirement change after a successful verifi
 that verification and any review based on it. The next build transition records both as `stale`.
 A fresh successful verification resets the review to `not-run`; a fresh review and the applicable delivery operation are required before the change can become `complete`.
 
-Every lifecycle owner that mutates an activated active record writes numeric Unix-second `updated_at` in the same update. Archiving writes `archived_at` and preserves `updated_at`. Archived records are immutable except for explicit completion-PR triage updating only `review-findings.json`.
+Every lifecycle owner that changes an activated active record's lifecycle status writes numeric Unix-second `updated_at` in the same update. Relationship-only metadata updates do not change `updated_at`. Archiving writes `archived_at` and preserves `updated_at`. Archived records are immutable except for explicit completion-PR triage updating only `review-findings.json`.
 
 ## Concurrent sidecars
 
-A bugfix or refactor can accompany selected normal work only through an explicit reciprocal relationship. The parent record names the sidecar with its `kind` and `delivery: "with-related-change"`; the sidecar names the same parent with `type: "origin"` and the same delivery value. Creation updates both records as one recoverable operation. `commit` and `complete` discover candidates only from the parent declaration, then require exactly one matching reciprocal active record in the required lifecycle state. They never infer a sidecar from ordering, shared files, or a reverse scan. A valid sidecar shares the parent's delivery and archival completion PR and has no separate `complete` or `wrapup` lifecycle.
+A bugfix or refactor can accompany selected normal work only through an explicit reciprocal relationship. The parent record names the sidecar with its `kind` and `delivery: "with-related-change"`; the sidecar names the same parent with `type: "origin"` and the same delivery value. Creation updates both records as one recoverable operation. `commit` and `complete` discover candidates only from the parent declaration, then require exactly one matching reciprocal active record in the required lifecycle state. They never infer a sidecar from ordering, shared files, or a reverse scan. A valid sidecar shares the parent's delivery and archival completion PR, including its completion reference and event, and has no separate `complete` or `wrapup` lifecycle.
 
 ## Dependency visibility
 

@@ -24,6 +24,7 @@ Related bugfix and refactor sidecars can be delivered with a parent change, but 
 3. Creation SHALL not leave only one relationship side written when the companion record is writable; a failure SHALL leave an actionable diagnostic rather than silently creating an incomplete link.
 4. Unlinked bugfixes and refactors SHALL remain independent work and SHALL never be treated as parent sidecars through ordering, shared files, or directory scanning.
 5. The unreleased `change-status/1.0` schema SHALL explicitly describe the optional relationship `delivery` property and permit `with-related-change` as its concurrent-delivery value; no schema-version increment is required.
+6. Relationship creation SHALL reread each current durable status record and update only its relationship data; it SHALL NOT replace a whole status document from an earlier in-memory snapshot.
 
 ### Requirement 2: Validate explicit delivery membership
 
@@ -32,9 +33,10 @@ Related bugfix and refactor sidecars can be delivered with a parent change, but 
 #### Acceptance Criteria
 
 1. Package-owned lifecycle code SHALL identify a parent's candidate sidecars from the parent record's inverse relationships.
-2. A candidate sidecar SHALL be eligible only when its reciprocal record names the same parent and declares `delivery: "with-related-change"`.
+2. A candidate sidecar SHALL be eligible only when its reciprocal record names the same parent, declares `type: "origin"`, and declares `delivery: "with-related-change"`.
 3. Missing, mismatched, duplicate, unapproved, or otherwise ineligible sidecars SHALL be excluded and reported with an actionable diagnostic before parent delivery or archival proceeds.
 4. The implementation SHALL not infer sidecar membership by scanning all active records for matching names alone.
+5. Runtime validation SHALL report a malformed or missing reciprocal relationship wherever an active record declares concurrent delivery, without duplicating delivery-readiness checks or retroactively constraining archived legacy records.
 
 ### Requirement 3: Archive concurrent sidecars atomically
 
@@ -44,7 +46,7 @@ Related bugfix and refactor sidecars can be delivered with a parent change, but 
 
 1. When `complete` finalises a parent delivery, it SHALL jointly archive every eligible delivered sidecar with that parent in the same archival commit.
 2. Joint archival SHALL move each eligible sidecar to `.specle/archive/<name>/`, set its status to `complete`, and write its `archived_at` without changing its prior `updated_at`.
-3. Each jointly archived sidecar SHALL retain its reciprocal relationship and record delivery evidence consistent with the parent finalisation.
+3. Each jointly archived sidecar SHALL retain its reciprocal relationship and record delivery evidence consistent with the parent finalisation, including the same completion-PR reference and event where a completion PR is used.
 4. When archival uses a completion PR, the sidecars and parent SHALL be present in that one PR; `wrapup` SHALL finalise that shared delivery without a separate sidecar completion cycle.
 5. A sidecar that is not eligible for joint archival SHALL remain active with its own recorded next step and SHALL not block unrelated queued changes.
 

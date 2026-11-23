@@ -5,23 +5,263 @@
       "kind": "local-review",
       "revision": "working-tree-bc9a085",
       "findings": 1
+    },
+    {
+      "id": "sourcery-pr42-a8a04e5",
+      "system": "GitHub",
+      "kind": "automated-review",
+      "url": "https://github.com/deeprave/specle/pull/42",
+      "revision": "a8a04e5416582e7704870ac8d0569f5c73b62b2d",
+      "findings": 14
+    },
+    {
+      "id": "local-20261124-link-sidecar-completion-revision",
+      "kind": "local-review",
+      "revision": "working-tree-pr42-resolution",
+      "findings": 0
     }
   ],
   "items": [
     {
       "id": "reciprocal-link-missing-updated-at",
       "source_ids": [
-        "local-20261123-link-sidecar-completion"
+        "local-20261123-link-sidecar-completion",
+        "sourcery-pr42-a8a04e5"
+      ],
+      "severity": "P5",
+      "description": "Lifecycle wording ambiguously implies that relationship-only mutations must update updated_at.",
+      "evidence": "Local review and https://github.com/deeprave/specle/pull/42#discussion_r4666317433 identify the missing timestamp update; the current lifecycle policy says every active-record mutation writes updated_at.",
+      "analysis": "The intended semantics, already decided in local review, are that updated_at records lifecycle-status transitions rather than relationship metadata changes.",
+      "recommendation": "Clarify the lifecycle policy wording; do not change relationship mutation code to update updated_at.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "User decision: retain status-change-only timestamp semantics and remove the contradictory broader policy wording.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "target": "link-sidecar-completion"
+      }
+    },
+    {
+      "id": "relationship-update-uses-stale-status-snapshot",
+      "source_ids": [
+        "sourcery-pr42-a8a04e5"
       ],
       "severity": "P3",
-      "description": "Reciprocal sidecar linking mutates an active parent record without updating updated_at.",
-      "evidence": "src/specle/sidecars.py:38-53 writes both status.json records, but neither updated payload receives current Unix-second updated_at.",
-      "analysis": "Lifecycle policy requires an activated active record to write updated_at whenever its durable status record changes. The new parent-side relationship is required for joint delivery, so omitting the timestamp leaves its handoff state stale even though the relationship changed.",
-      "recommendation": "Have the reciprocal-link mutation write updated_at on every activated active record it changes, and cover that timestamp behaviour in the production test.",
+      "description": "Relationship mutation replaces whole status records captured before the mutation.",
+      "evidence": "https://github.com/deeprave/specle/pull/42#discussion_r4666317301",
+      "analysis": "Concurrent lifecycle operations are out of scope, but a state update should not write a cached complete status document. It should reread the durable record immediately before mutation, change only the relationship field, and save that current record.",
+      "recommendation": "Refactor state-related updates to operate on a freshly read status document and mutate only their precise fields; do not add locking or concurrent-update machinery.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "User decision: concurrent updates are out of scope, but avoiding stale whole-document writes is required correctness for all state-related updates.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "target": "link-sidecar-completion"
+      }
+    },
+    {
+      "id": "symlinked-sidecar-records-escape-worktree",
+      "source_ids": [
+        "sourcery-pr42-a8a04e5"
+      ],
+      "severity": "P6",
+      "description": "A symlinked active record could make a relationship mutation write outside the checkout.",
+      "evidence": "https://github.com/deeprave/specle/pull/42#discussion_r4666317315",
+      "analysis": "This requires a deliberately symlinked internal change directory. Specle does not need to defend ordinary lifecycle work from a user intentionally sabotaging their own checkout.",
+      "recommendation": "No change.",
       "state": "decided",
       "decision": "decline",
-      "rationale": "updated_at records lifecycle status changes only. Reciprocal relationship linking changes delivery metadata and does not change lifecycle status.",
+      "rationale": "User decision: fanciful, adversarial scenario outside realistic operating conditions.",
       "route": null
+    },
+    {
+      "id": "interrupted-paired-write-is-not-recoverable",
+      "source_ids": [
+        "sourcery-pr42-a8a04e5"
+      ],
+      "severity": "P6",
+      "description": "An interruption between replacing two status files can leave a one-sided relationship.",
+      "evidence": "https://github.com/deeprave/specle/pull/42#discussion_r4666317330",
+      "analysis": "Sudden termination between ordinary file writes is plausible but unlikely. A durable transaction and restart-recovery protocol is disproportionate for this local workflow.",
+      "recommendation": "Reuse the accepted fresh read–modify–write correction; do not add crash-recovery state.",
+      "state": "decided",
+      "decision": "duplicate",
+      "rationale": "User decision: no additional complexity beyond the state-update approach already accepted for relationship writes.",
+      "route": null
+    },
+    {
+      "id": "sidecar-can-link-to-multiple-parents",
+      "source_ids": [
+        "sourcery-pr42-a8a04e5"
+      ],
+      "severity": "P6",
+      "description": "A sidecar could be manually linked to more than one parent.",
+      "evidence": "https://github.com/deeprave/specle/pull/42#discussion_r4666317342",
+      "analysis": "A linked sidecar is delivered with its selected parent and is not a reusable active work item for another parent. The proposed case requires disregarding that lifecycle model.",
+      "recommendation": "No change.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "User decision: once linked, a sidecar is delivered with its parent and will not remain available when another parent becomes active.",
+      "route": null
+    },
+    {
+      "id": "committed-sidecar-delivery-evidence-can-mismatch-parent",
+      "source_ids": [
+        "sourcery-pr42-a8a04e5"
+      ],
+      "severity": "P6",
+      "description": "A committed sidecar could have delivery evidence different from its parent.",
+      "evidence": "https://github.com/deeprave/specle/pull/42#discussion_r4666317356",
+      "analysis": "A with-related-change sidecar is committed only by its parent-owned joint delivery operation, which writes identical delivery evidence to all included members. Independently delivered work must not retain that relationship.",
+      "recommendation": "No change.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "User decision: the proposed mismatch violates the delivery contract rather than exposing a realistic supported state.",
+      "route": null
+    },
+    {
+      "id": "reciprocal-link-role-is-not-validated",
+      "source_ids": [
+        "sourcery-pr42-a8a04e5"
+      ],
+      "severity": "P4",
+      "description": "Discovery accepts a reciprocal relationship whose type is not origin.",
+      "evidence": "https://github.com/deeprave/specle/pull/42#discussion_r4666317368",
+      "analysis": "The supported writer emits origin correctly, but discovery should enforce the relationship role it relies on.",
+      "recommendation": "Require type: origin in the reciprocal-link predicate and add one malformed-link regression test.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "User decision: small, contained semantic validation of the reciprocal contract.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "target": "link-sidecar-completion"
+      }
+    },
+    {
+      "id": "delivery-can-use-stale-sidecar-approval",
+      "source_ids": [
+        "sourcery-pr42-a8a04e5"
+      ],
+      "severity": "P6",
+      "description": "A sidecar could change after delivery discovery but before delivery is recorded.",
+      "evidence": "https://github.com/deeprave/specle/pull/42#discussion_r4666317382",
+      "analysis": "The proposed race needs another agent, process, or direct edit between a single sequential commit operation's discovery and delivery record.",
+      "recommendation": "No change.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "User decision: concurrent lifecycle updates are unsupported; do not add serialization or versioning.",
+      "route": null
+    },
+    {
+      "id": "ambiguous-sidecar-name-is-not-rejected",
+      "source_ids": [
+        "sourcery-pr42-a8a04e5"
+      ],
+      "severity": "P6",
+      "description": "Discovery does not independently reject a sidecar name involved in duplicate inventory state.",
+      "evidence": "https://github.com/deeprave/specle/pull/42#discussion_r4666317421",
+      "analysis": "Global runtime validation already detects duplicate durable identities before ordinary lifecycle operations proceed, as observed in the fix-approved-review-validation reconciliation.",
+      "recommendation": "No change.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "User decision: repeat duplicate-name validation would be redundant.",
+      "route": null
+    },
+    {
+      "id": "linked-workflow-bypasses-relationship-helper",
+      "source_ids": [
+        "sourcery-pr42-a8a04e5"
+      ],
+      "severity": "P6",
+      "description": "Workflow guidance does not direct agents to call the Python relationship helper.",
+      "evidence": "https://github.com/deeprave/specle/pull/42#discussion_r4666317448",
+      "analysis": "The helper is not an agent-accessible workflow API. Skills can define the durable outcome but cannot prescribe a direct helper call that an agent has no supported mechanism to make.",
+      "recommendation": "No change.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "User decision: direct Python API invocation is unavailable to the agent workflow.",
+      "route": null
+    },
+    {
+      "id": "sidecars-miss-completion-pr-evidence",
+      "source_ids": [
+        "sourcery-pr42-a8a04e5"
+      ],
+      "severity": "P5",
+      "description": "Completion guidance can be read as recording completion-PR evidence only on the archived parent.",
+      "evidence": "https://github.com/deeprave/specle/pull/42#discussion_r4666317468",
+      "analysis": "Joint archival is parent-owned, but each archived sidecar remains an independently durable record whose completion history should be self-contained.",
+      "recommendation": "State explicitly that completion reference and event are written to every jointly archived linked record.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "User decision: completion applies to all linked changes.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "target": "link-sidecar-completion"
+      }
+    },
+    {
+      "id": "status-replacement-does-not-preserve-mode",
+      "source_ids": [
+        "sourcery-pr42-a8a04e5"
+      ],
+      "severity": "P6",
+      "description": "Replacement status files can lose special shared-worktree permissions.",
+      "evidence": "https://github.com/deeprave/specle/pull/42#discussion_r4666317475",
+      "analysis": "Specle has no shared-checkout or multi-user permission model; ordinary Git worktrees are user-owned.",
+      "recommendation": "No change.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "User decision: preserving shared-worktree modes is outside the supported operating model.",
+      "route": null
+    },
+    {
+      "id": "runtime-validation-does-not-enforce-reciprocal-contract",
+      "source_ids": [
+        "sourcery-pr42-a8a04e5"
+      ],
+      "severity": "P4",
+      "description": "Runtime validation does not report malformed or missing reciprocal concurrent relationships.",
+      "evidence": "https://github.com/deeprave/specle/pull/42#discussion_r4666317492",
+      "analysis": "Global validation should enforce the structural reciprocal contract wherever a concurrent relationship exists. Delivery discovery remains responsible for targeted readiness and delivery-state checks.",
+      "recommendation": "Add structural reciprocal-relationship diagnostics to runtime validation without duplicating delivery eligibility validation.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "User decision: validate reciprocal relationships where they exist, while avoiding duplicate targeted validation.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "target": "link-sidecar-completion"
+      }
+    },
+    {
+      "id": "relationship-delivery-schema-test-is-not-discriminating",
+      "source_ids": [
+        "sourcery-pr42-a8a04e5"
+      ],
+      "severity": "P4",
+      "description": "The schema test accepts delivery without proving that the schema declares or constrains it.",
+      "evidence": "https://github.com/deeprave/specle/pull/42#discussion_r4666317509",
+      "analysis": "The production schema already declares the field, but additional properties mean the existing positive test would still pass if that declaration were removed.",
+      "recommendation": "Add a discriminating invalid-value or declaration regression test for relationships[].delivery.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "User decision: focused test coverage for the existing schema contract.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "target": "link-sidecar-completion"
+      }
     }
   ]
 }

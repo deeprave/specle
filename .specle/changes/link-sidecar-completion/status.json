@@ -1,19 +1,20 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "approved",
   "created_at": 1795434467,
   "activated_at": 1795434952,
-  "updated_at": 1795439455,
+  "updated_at": 1795451754,
+  "revision_note": "PR #42 triage clarified state mutation, reciprocal validation, completion evidence, and schema coverage.",
   "progress": {
-    "tasks_completed": 6,
-    "tasks_total": 6
+    "tasks_completed": 8,
+    "tasks_total": 8
   },
   "verification": {
     "status": "pass"
   },
   "review": {
-    "status": "resolved",
+    "status": "pass",
     "findings": 0
   },
   "delivery": {

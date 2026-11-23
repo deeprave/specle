@@ -142,6 +142,11 @@ def test_change_status_accepts_a_concurrent_delivery_relationship() -> None:
 
     assert validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
 
+    instance["relationships"][0]["delivery"] = ""
+
+    with pytest.raises(SchemaRegistryError, match="minLength"):
+        validate_instance(instance)
+
 
 def _change_status(*, created_at: str | float) -> dict[str, object]:
     return {

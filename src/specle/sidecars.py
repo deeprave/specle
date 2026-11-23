@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 from specle.change_state import ChangeRecord
+from specle.file_reading import read_regular_text
 
 CONCURRENT_DELIVERY = "with-related-change"
 _SIDECAR_KINDS = frozenset(("bugfix", "refactor"))
@@ -24,8 +25,12 @@ def record_sidecar_relationship(parent: ChangeRecord, sidecar: ChangeRecord) -> 
     Replacement stages both complete JSON documents before either destination changes. If the
     second replacement fails, the first destination is restored from its captured original bytes.
     """
-    _require_active_parent(parent)
-    sidecar_kind = sidecar.status.get("kind")
+    parent_path = parent.directory / "status.json"
+    sidecar_path = sidecar.directory / "status.json"
+    parent_status = _read_current_status(parent_path)
+    sidecar_status = _read_current_status(sidecar_path)
+    _require_active_parent(parent, parent_status)
+    sidecar_kind = sidecar_status.get("kind")
     if (
         sidecar.archived
         or not isinstance(sidecar_kind, str)
@@ -36,28 +41,40 @@ def record_sidecar_relationship(parent: ChangeRecord, sidecar: ChangeRecord) -> 
         )
 
     parent_status = _with_relationship(
-        parent.status,
+        parent_status,
         {"change": sidecar.name, "type": sidecar_kind, "delivery": CONCURRENT_DELIVERY},
-        parent.directory / "status.json",
+        parent_path,
     )
     sidecar_status = _with_relationship(
-        sidecar.status,
+        sidecar_status,
         {"change": parent.name, "type": "origin", "delivery": CONCURRENT_DELIVERY},
-        sidecar.directory / "status.json",
+        sidecar_path,
     )
     _replace_statuses_atomically(
         {
-            parent.directory / "status.json": parent_status,
-            sidecar.directory / "status.json": sidecar_status,
+            parent_path: parent_status,
+            sidecar_path: sidecar_status,
         }
     )
 
 
-def _require_active_parent(parent: ChangeRecord) -> None:
-    if parent.archived or parent.status.get("kind") != "change":
+def _require_active_parent(parent: ChangeRecord, status: dict[str, object]) -> None:
+    if parent.archived or status.get("kind") != "change":
         raise SidecarRelationshipError(
             f"{parent.directory}: expected an active normal parent change"
         )
+
+
+def _read_current_status(path: Path) -> dict[str, object]:
+    try:
+        value = json.loads(read_regular_text(path))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise SidecarRelationshipError(
+            f"{path}: unreadable current status: {error}"
+        ) from error
+    if not isinstance(value, dict):
+        raise SidecarRelationshipError(f"{path}: expected a status object")
+    return value
 
 
 def _with_relationship(

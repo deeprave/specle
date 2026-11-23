@@ -541,6 +541,133 @@ def test_reports_missing_and_duplicate_reciprocal_relationships(tmp_path: Path) 
     }
 
 
+def test_rejects_a_reciprocal_relationship_without_origin_role(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(
+        target,
+        "parent",
+        status="approved",
+        relationships=[
+            {
+                "change": "fix-parent",
+                "type": "bugfix",
+                "delivery": "with-related-change",
+            }
+        ],
+    )
+    _write_status(
+        target,
+        "fix-parent",
+        status="approved",
+        kind="bugfix",
+        relationships=[
+            {
+                "change": "parent",
+                "type": "bugfix",
+                "delivery": "with-related-change",
+            }
+        ],
+    )
+
+    snapshot = read_change_state(target)
+    result = discover_delivery_sidecars(
+        snapshot, resolve_change(snapshot, "parent"), required_status="approved"
+    )
+
+    assert result.sidecars == ()
+    assert {diagnostic.code for diagnostic in result.diagnostics} == {
+        "missing-reciprocal-sidecar"
+    }
+
+
+def test_runtime_validation_reports_malformed_reciprocal_relationship(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "project"
+    _write_status(
+        target,
+        "parent",
+        status="approved",
+        review_status="pass",
+        relationships=[
+            {
+                "change": "fix-parent",
+                "type": "bugfix",
+                "delivery": "with-related-change",
+            }
+        ],
+    )
+    _write_status(
+        target,
+        "fix-parent",
+        status="approved",
+        kind="bugfix",
+        review_status="pass",
+        relationships=[
+            {
+                "change": "parent",
+                "type": "bugfix",
+                "delivery": "with-related-change",
+            }
+        ],
+    )
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {
+        "invalid-sidecar-relationship",
+        "missing-reciprocal-sidecar",
+    }
+
+
+def test_runtime_validation_reports_an_orphaned_sidecar_relationship(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "project"
+    _write_status(
+        target,
+        "fix-parent",
+        status="approved",
+        kind="bugfix",
+        review_status="pass",
+        relationships=[
+            {
+                "change": "parent",
+                "type": "origin",
+                "delivery": "with-related-change",
+            }
+        ],
+    )
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {
+        "missing-reciprocal-parent"
+    }
+
+
+def test_runtime_validation_preserves_legacy_archived_relationships(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "project"
+    _write_status(
+        target,
+        "legacy-fix",
+        status="complete",
+        archived=True,
+        kind="bugfix",
+        relationships=[
+            {
+                "change": "legacy-parent",
+                "type": "completion-review-fix",
+                "delivery": "with-related-change",
+            }
+        ],
+    )
+
+    assert validate_runtime_records(target, _runtime_skills()) == ()
+
+
 def test_records_reciprocal_sidecar_relationships(tmp_path: Path) -> None:
     target = tmp_path / "project"
     _write_status(target, "parent", status="building")
@@ -565,6 +692,31 @@ def test_records_reciprocal_sidecar_relationships(tmp_path: Path) -> None:
         {
             "change": "parent",
             "type": "origin",
+            "delivery": "with-related-change",
+        }
+    ]
+
+
+def test_relationship_mutation_uses_current_status_records(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "parent", status="building")
+    _write_status(target, "fix-parent", status="defined", kind="bugfix")
+    snapshot = read_change_state(target)
+    parent = resolve_change(snapshot, "parent")
+    sidecar = resolve_change(snapshot, "fix-parent")
+    parent_path = parent.directory / "status.json"
+    current_parent = json.loads(parent_path.read_text())
+    current_parent["revision_note"] = "written after snapshot"
+    parent_path.write_text(json.dumps(current_parent))
+
+    record_sidecar_relationship(parent, sidecar)
+
+    refreshed = json.loads(parent_path.read_text())
+    assert refreshed["revision_note"] == "written after snapshot"
+    assert refreshed["relationships"] == [
+        {
+            "change": "fix-parent",
+            "type": "bugfix",
             "delivery": "with-related-change",
         }
     ]

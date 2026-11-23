@@ -2,7 +2,7 @@
 
 ## Overview
 
-Make concurrent bugfix and refactor delivery explicit and symmetric. A sidecar is eligible for joint delivery only when the active parent and sidecar each carry matching relationship records with the same delivery mode. The lifecycle package will read this durable data once, validate the reciprocal relationship, and provide the eligible sidecar set to the delivery workflows. `complete` will then archive the parent and every eligible sidecar as one recoverable finalisation delivery; `wrapup` will finalise the resulting single completion PR.
+Make concurrent bugfix and refactor delivery explicit and symmetric. A sidecar is eligible for joint delivery only when the active parent and sidecar each carry matching relationship records with the same delivery mode and reciprocal role. Discovery uses the supplied state snapshot for reporting, while relationship mutation rereads each durable status record immediately before changing only its relationship data. Runtime validation enforces the structural reciprocal contract and delivery workflows provide the eligible sidecar set. `complete` then archives the parent and every eligible sidecar as one recoverable finalisation delivery; `wrapup` finalises the resulting single completion PR.
 
 ## Architecture
 
@@ -49,13 +49,13 @@ For a parent `example-change` and bugfix `fix-example`, the durable records are:
 }
 ```
 
-The creation workflow writes both records as one planned mutation. If either record cannot be written, it reports an actionable failure and does not continue to execution with a silently half-created relationship.
+The creation workflow rereads both current records, appends only the reciprocal relationship data, and writes both records as one planned mutation. If either record cannot be written, it reports an actionable failure and does not continue to execution with a silently half-created relationship. Specle does not support concurrent lifecycle updates or a crash-recovery transaction protocol.
 
-The lifecycle helper validates that each parent declaration names a unique active bugfix/refactor, that the candidate’s type agrees, that it names the same parent with `with-related-change`, and that it is in the delivery-ready state required by the caller. It reports missing, duplicate, mismatched, unsupported, or unready declarations; these candidates are never included automatically.
+The lifecycle helper validates that each parent declaration names a unique active bugfix/refactor, that the candidate’s type agrees, that it names the same parent with `type: "origin"` and `with-related-change`, and that it is in the delivery-ready state required by the caller. Runtime validation applies the structural relationship checks to active records that declare concurrent delivery; it does not duplicate caller-specific readiness checks or retroactively constrain archived legacy records. Missing, duplicate, mismatched, unsupported, or unready declarations are never included automatically.
 
 ## Delivery and archival flow
 
-`commit` obtains the validated eligible sidecars from the parent record and records the same authorised delivery evidence on each delivered record. `complete` obtains the same set, moves the parent and eligible sidecars together from `.specle/changes/` to `.specle/archive/`, sets each to `complete`, and writes `archived_at` while preserving `updated_at`. Its completion PR contains the entire joint archival mutation. The parent remains the local selector; sidecars never replace it. `wrapup` merges or confirms the one recorded completion PR, synchronises the delivery branch, then clears the matching parent selector without modifying archives.
+`commit` obtains the validated eligible sidecars from the parent record and records the same authorised delivery evidence on each delivered record. `complete` obtains the same set, moves the parent and eligible sidecars together from `.specle/changes/` to `.specle/archive/`, sets each to `complete`, and writes `archived_at` while preserving `updated_at`. Its completion PR contains the entire joint archival mutation, and its completion reference and event are recorded on every archived member. The parent remains the local selector; sidecars never replace it. `wrapup` merges or confirms the one recorded completion PR, synchronises the delivery branch, then clears the matching parent selector without modifying archives.
 
 An ineligible sidecar stays in `.specle/changes/` with its own status and next workflow action. It is not an error to have an independent sidecar; it is an error to attempt joint parent delivery with a declared sidecar whose reciprocal contract is malformed or not ready.
 

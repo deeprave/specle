@@ -124,6 +124,7 @@ def _reciprocal_relationship_count(sidecar: ChangeRecord, parent_name: str) -> i
     return sum(
         isinstance(relationship, dict)
         and relationship.get("change") == parent_name
+        and relationship.get("type") == "origin"
         and relationship.get("delivery") == CONCURRENT_DELIVERY
         for relationship in relationships
     )
@@ -173,7 +174,99 @@ def validate_runtime_records(
                     f"{record.directory / 'status.json'}: archived change is not complete",
                 )
             )
+    _validate_concurrent_relationships(snapshot.state, diagnostics)
     return tuple(diagnostics)
+
+
+def _validate_concurrent_relationships(
+    snapshot: ChangeStateSnapshot, diagnostics: list[LifecycleDiagnostic]
+) -> None:
+    for records in (snapshot.active,):
+        by_name = {record.name: record for record in records}
+        for parent in records:
+            if parent.status.get("kind") != "change":
+                continue
+            relationships = parent.status.get("relationships")
+            if not isinstance(relationships, list):
+                continue
+            for relationship in relationships:
+                if not isinstance(relationship, dict):
+                    continue
+                if relationship.get("delivery") != CONCURRENT_DELIVERY:
+                    continue
+                name = relationship.get("change")
+                relation_kind = relationship.get("type")
+                if not isinstance(name, str) or relation_kind not in {
+                    "bugfix",
+                    "refactor",
+                }:
+                    diagnostics.append(
+                        _sidecar_diagnostic(
+                            parent, "invalid-sidecar-relationship", "relationship"
+                        )
+                    )
+                    continue
+                sidecar = by_name.get(name)
+                if sidecar is None or sidecar.status.get("kind") != relation_kind:
+                    diagnostics.append(
+                        _sidecar_diagnostic(parent, "missing-sidecar", name)
+                    )
+                    continue
+                reciprocal_count = _reciprocal_relationship_count(sidecar, parent.name)
+                if reciprocal_count != 1:
+                    diagnostics.append(
+                        _sidecar_diagnostic(
+                            parent,
+                            "duplicate-reciprocal-sidecar"
+                            if reciprocal_count > 1
+                            else "missing-reciprocal-sidecar",
+                            name,
+                        )
+                    )
+        for sidecar in records:
+            sidecar_kind = sidecar.status.get("kind")
+            if sidecar_kind not in {"bugfix", "refactor"}:
+                continue
+            relationships = sidecar.status.get("relationships")
+            if not isinstance(relationships, list):
+                continue
+            for relationship in relationships:
+                if not isinstance(relationship, dict):
+                    continue
+                if relationship.get("delivery") != CONCURRENT_DELIVERY:
+                    continue
+                parent_name = relationship.get("change")
+                if (
+                    not isinstance(parent_name, str)
+                    or relationship.get("type") != "origin"
+                ):
+                    diagnostics.append(
+                        _sidecar_diagnostic(
+                            sidecar, "invalid-sidecar-relationship", "relationship"
+                        )
+                    )
+                    continue
+                parent = by_name.get(parent_name)
+                if parent is None or parent.status.get("kind") != "change":
+                    diagnostics.append(
+                        _sidecar_diagnostic(
+                            sidecar, "missing-reciprocal-parent", parent_name
+                        )
+                    )
+                    continue
+                parent_relationships = parent.status.get("relationships")
+                if not isinstance(parent_relationships, list) or not any(
+                    isinstance(candidate, dict)
+                    and candidate.get("change") == sidecar.name
+                    and candidate.get("type") == sidecar_kind
+                    and candidate.get("delivery") == CONCURRENT_DELIVERY
+                    for candidate in parent_relationships
+                ):
+                    diagnostics.append(
+                        _sidecar_diagnostic(
+                            sidecar, "missing-reciprocal-parent", parent_name
+                        )
+                    )
 
 
 def read_runtime_snapshot(target_directory: Path) -> RuntimeSnapshot:
