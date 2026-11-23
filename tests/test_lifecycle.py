@@ -202,6 +202,53 @@ def test_reports_invalid_status_and_archived_non_completion(tmp_path: Path) -> N
     assert {"invalid-status", "archived-not-complete"} <= codes
 
 
+def test_accepts_resolved_review_evidence_for_an_approved_change(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "example", status="approved", review_status="resolved")
+    _write_review_findings(
+        target,
+        "example",
+        [
+            {"decision": "decline"},
+            {
+                "decision": "accept",
+                "dispatch": {"state": "complete"},
+            },
+        ],
+    )
+
+    assert validate_runtime_records(target, _runtime_skills()) == ()
+
+
+def test_rejects_unsettled_or_missing_resolved_review_evidence(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "missing", status="approved", review_status="resolved")
+    _write_status(target, "unsettled", status="approved", review_status="resolved")
+    _write_review_findings(target, "unsettled", [{"decision": None}])
+    _write_status(target, "unreadable", status="approved", review_status="resolved")
+    (target / ".specle" / "changes" / "unreadable" / "review-findings.json").mkdir()
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"missing-evidence"}
+    assert len(diagnostics) == 3
+    assert all("invalid review" in diagnostic.message for diagnostic in diagnostics)
+
+
+def test_rejects_unsupported_review_evidence_for_an_approved_change(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "example", status="approved", review_status="not-run")
+
+    diagnostics = validate_runtime_records(target, _runtime_skills())
+
+    assert {diagnostic.code for diagnostic in diagnostics} == {"missing-evidence"}
+    assert "invalid review" in diagnostics[0].message
+
+
 def test_reports_duplicate_change_names_across_active_and_archive(
     tmp_path: Path,
 ) -> None:
@@ -349,6 +396,7 @@ def _write_status(
     status: str,
     archived: bool = False,
     kind: str = "change",
+    review_status: str = "not-run",
 ) -> None:
     root = "archive" if archived else "changes"
     directory = target / ".specle" / root / name
@@ -363,13 +411,20 @@ def _write_status(
                 "activated_at": None,
                 "progress": {},
                 "verification": {"status": "not-run"},
-                "review": {"status": "not-run"},
+                "review": {"status": review_status},
                 "delivery": None,
                 "relationships": [],
                 "dependencies": [],
             }
         )
     )
+
+
+def _write_review_findings(
+    target: Path, name: str, items: list[dict[str, object]]
+) -> None:
+    path = target / ".specle" / "changes" / name / "review-findings.json"
+    path.write_text(json.dumps({"sources": [], "items": items}))
 
 
 def _skill(name: str, lifecycle: LifecycleDeclaration | None) -> SkillMetadata:
