@@ -22,7 +22,14 @@
     "head_branch": "feature/add-wrapup-skill",
     "target_branch": "main",
     "commit": "714f6d2dab329804965ca99e0c5f55ab32ec37b5",
-    "event": "pull-request-merged"
+    "event": "pull-request-merged",
+    "completion": {
+      "reference": "https://github.com/deeprave/specle/pull/38",
+      "head_branch": "feature/add-wrapup-skill-completion",
+      "target_branch": "main",
+      "commit": "f5db4db",
+      "event": "pull-request-open"
+    }
   },
   "relationships": [],
   "dependencies": []
