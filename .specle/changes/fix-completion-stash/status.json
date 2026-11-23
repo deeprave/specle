@@ -1,0 +1,33 @@
+{
+  "$schema": "specle://schemas/change-status/1.0",
+  "kind": "bugfix",
+  "status": "committed",
+  "updated_at": 1795433900,
+  "created_at": 1795433447,
+  "activated_at": null,
+  "progress": {
+    "tasks_completed": 2,
+    "tasks_total": 2
+  },
+  "verification": {
+    "status": "pass"
+  },
+  "review": {
+    "status": "pass",
+    "findings": 0
+  },
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/38",
+    "head_branch": "feature/add-wrapup-skill-completion",
+    "target_branch": "main",
+    "event": "pull-request-updated"
+  },
+  "relationships": [
+    {
+      "change": "add-wrapup-skill",
+      "type": "completion-review-fix",
+      "delivery": "with-related-change"
+    }
+  ],
+  "dependencies": []
+}

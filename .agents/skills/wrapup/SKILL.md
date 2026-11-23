@@ -22,7 +22,7 @@ Finish the externally delivered archival finalisation for one archived completed
 1. Read `.specle/current-change` when present, `.agents/policies/{lifecycle,delivery}.md`, applicable project delivery guidance, and the named or selected archived change's `status.json`.
 2. Resolve the target under `.specle/archive/`. Require `status: "complete"` and a `delivery.completion` object containing the completion PR reference, head branch, target branch, and event. Do not infer a completion PR.
 3. Inspect the recorded completion PR. If it has unresolved external feedback, report `triage <change-name>` and stop. If it is open but cannot merge or lacks required checks, report that external state and stop. If it is already merged, do not attempt another merge.
-4. Before an authorised merge or synchronisation, preserve tracked, untracked, and ignored work in one named recoverable `git stash --all`. If stashing fails, stop.
+4. Before an authorised merge or synchronisation, preserve tracked staged and unstaged work in one named recoverable `git stash`. If stashing fails, stop. Do not stash untracked or ignored generated files; accept the rare ignored-file collision risk.
 5. With explicit delivery authority, merge the open completion PR when necessary, switch to the recorded completion target branch, and fast-forward it from upstream without reset or force operations.
 6. Restore the stash. If restoration fails, retain it and report recovery steps; do not remove `.specle/current-change`.
 7. After successful merge, synchronisation, and restoration, remove `.specle/current-change` only when its current contents still name this archived change. Do not write `status.json`, summary files, archive contents, commits, or pull requests.
