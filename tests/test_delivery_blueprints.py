@@ -29,7 +29,7 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
     commit = (BLUEPRINTS / "skills" / "commit" / "SKILL.md").read_text()
     complete = (BLUEPRINTS / "skills" / "complete" / "SKILL.md").read_text()
     bugfix = (BLUEPRINTS / "skills" / "bugfix" / "SKILL.md").read_text()
-    status = (BLUEPRINTS / "skills" / "status" / "SKILL.md").read_text()
+    changelist = (BLUEPRINTS / "skills" / "changelist" / "SKILL.md").read_text()
 
     assert all(
         model in delivery
@@ -72,7 +72,7 @@ def test_delivery_blueprints_define_the_required_workflow_safeguards() -> None:
         in (BLUEPRINTS / "skills" / "build" / "SKILL.md").read_text()
     )
     assert '"delivery": "with-related-change"' in bugfix
-    assert "declared related sidecars" in status
+    assert "declared related sidecars" in changelist
     assert "related approved sidecars" in commit
     assert "unlinked abbreviated work" in bugfix
     assert (

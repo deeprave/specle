@@ -45,7 +45,8 @@ skills apply these transitions and must not replace them with local rules.
 | `triage` | Consolidate review sources and record decisions without implementation. When all current findings are decided, set the target to `triaged`. A named `committed` normal target or abbreviated target is updated in place and never replaces the local selection. |
 | `resolve` | Reconcile recorded accepted-action dispatches, then dispatch any pending accepted decisions through their selected workflows. Downstream workflows own their transitions, so dispatching accepted work does not complete the originating target. A `committed` target with accepted implementation work returns through build, verify, review, approval, and commit. An independent-change route creates unselected `defined` normal work after other findings are settled, then restores the origin according to delivery history. When every current finding is terminally no-action or has a completed dispatched follow-up, record the review as `resolved`: restore a locally reviewed target to `approved` with next `commit`, or restore a previously committed target to `committed` with next `complete`. Mark a target complete only when its configured delivery outcome is already confirmed. |
 | `revise` | For a selected normal change, accepted requirement changes invalidate verification and review, then set the state to `defined`, `designed`, or `planned` according to the updated artifacts. For a named committed normal target, revise it in place and set only that record to `planned` with next `build`, retaining its delivery reference. For a named unselected abbreviated change, revise only its `spec.md` and `tasks.md`, then set only that record to `planned` with next `bugfix` or `refactor`. |
-| `status` | Report the recorded state and the next skill from this table; it never advances state. |
+| `changelist` | List pending and dependency-context changes with their recorded next stages; it never advances state. |
+| `status` | Report the selected change's recorded state and next action, plus compact local worktree state; it never advances state. |
 
 ## Invalidation
 
@@ -55,6 +56,6 @@ A fresh successful verification resets the review to `not-run`; a fresh review a
 
 ## Dependency visibility
 
-`status` lists unfinished changes and also includes a completed change when a pending change explicitly
+`changelist` lists unfinished changes and also includes a completed change when a pending change explicitly
 depends on it. This preserves a readable dependency graph without treating a completed dependency
 as pending work.
