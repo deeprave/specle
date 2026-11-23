@@ -38,7 +38,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - Logical ordering (data/records → processor → report/output → CLI wiring).
    - Note the files each task touches.
    - Do not mark a task complete solely because a diff or existing code appears to satisfy it; reconcile that evidence into the plan and leave completion to `build` and `verify`.
-5. For a selected target, update its `status.json` with the top-level task count (`0/N`) and set its status to `planned` according to `lifecycle.md`. For a named unselected target, write only its task plan and retain `status: "defined"`.
+5. For a selected target, update its `status.json` with the top-level task count (`0/N`), set its status to `planned` according to `lifecycle.md`, and write `updated_at` as current Unix seconds. For a named unselected target, write only its task plan and retain `status: "defined"`.
 
 Tasks must be atomic and independently verifiable — one behaviour per cycle.
 

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
+  "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
   "status": "complete",
   "progress": {
@@ -21,5 +21,6 @@
   "relationships": [],
   "dependencies": [],
   "created_at": 1795245120,
-  "activated_at": 1795260825
+  "activated_at": 1795260825,
+  "archived_at": 1795266181
 }

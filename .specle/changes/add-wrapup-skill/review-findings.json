@@ -1,0 +1,64 @@
+{
+  "sources": [
+    {
+      "id": "local-20261123-add-wrapup-skill",
+      "kind": "local-review",
+      "revision": "working-tree-2f387af",
+      "findings": 0
+    },
+    {
+      "id": "user-20261123-schema-contract-review",
+      "kind": "user-review",
+      "revision": "working-tree-2f387af",
+      "findings": 2
+    },
+    {
+      "id": "local-20261123-add-wrapup-schema-revision",
+      "kind": "local-review",
+      "revision": "working-tree-schema-revision",
+      "findings": 0
+    }
+  ],
+  "items": [
+    {
+      "id": "custom-schema-uri-base",
+      "source_ids": [
+        "user-20261123-schema-contract-review"
+      ],
+      "severity": "P4",
+      "description": "Use a Specle-owned custom URI base for packaged JSON Schema identifiers.",
+      "evidence": "src/specle/schema_registry.py:19; src/specle/schemas/common/1.0.json:3",
+      "analysis": "The former GitHub-shaped base identified packaged schemas but misleadingly resembled a downloadable repository URL. `specle://schemas/` is a stable logical identifier resolved only by Specle's registry.",
+      "recommendation": "Change every packaged schema `$id`, registry identifier, and generated registry entry to the `specle://schemas/<name>/1.0` scheme, without introducing network resolution.",
+      "state": "decided",
+      "decision": "accept",
+      "route": "revise active change",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-wrapup-skill"
+      }
+    },
+    {
+      "id": "unused-common-record-path",
+      "source_ids": [
+        "user-20261123-schema-contract-review"
+      ],
+      "severity": "P4",
+      "description": "Remove or justify the unused common schema record shape, including its path field.",
+      "evidence": "src/specle/schemas/common/1.0.json:5-18; no `$ref` or runtime consumer outside schema registration.",
+      "analysis": "The `record` definition requires `name`, `path`, and `status`, but no packaged schema references it and no runtime code consumes it. Its `path` property has no current purpose.",
+      "recommendation": "Remove `common/1.0` from the packaged registry and distribution unless a concrete shared contract needs it; do not retain an unused generic path field.",
+      "state": "decided",
+      "decision": "accept",
+      "route": "revise active change",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-wrapup-skill"
+      }
+    }
+  ]
+}

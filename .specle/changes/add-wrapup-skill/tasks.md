@@ -1,0 +1,21 @@
+# Tasks: Add wrapup skill
+
+- [x] 1. Extend the durable change-status contract
+  - [x] 1.1 Add focused production tests for optional numeric `updated_at` and `archived_at` fields and for any completion-delivery validation added to runtime state handling. (`tests/test_schema_registry.py`, `tests/test_lifecycle.py`)
+  - [x] 1.2 Update the versioned change-status schema, registry-backed validation, and runtime diagnostics to support timestamps and the completion-delivery record. (`src/specle/schemas/change-status/1.0.json`, `src/specle/schema_registry.py`, `src/specle/lifecycle.py`)
+- [x] 2. Add the managed `wrapup` workflow
+  - [x] 2.1 Create matching blueprint and installed `wrapup` skills with archived-record, completion-PR, unresolved-feedback, already-merged, branch-guard, stash, merge, sync, and selector-removal rules. (`src/specle/blueprints/skills/wrapup/SKILL.md`, `.agents/skills/wrapup/SKILL.md`)
+  - [x] 2.2 Update lifecycle metadata and policy so an archived complete record with an open completion PR directs to `wrapup`, while ordinary completion remains terminal. (`.agents/policies/lifecycle.md`, blueprint copy)
+- [x] 3. Refactor archival finalisation ownership
+  - [x] 3.1 Update matching `complete` skills to perform final delivery, summary creation, timestamped archival, completion-branch commit, and completion-PR creation exactly once, recording completion-delivery evidence before the archive commit while retaining the selector. (`.agents/skills/complete/SKILL.md`, blueprint copy)
+  - [x] 3.2 Update every activated-record lifecycle owner to write `updated_at` with its status mutation and preserve it during archival. (`.agents/skills/`, `src/specle/blueprints/skills/`)
+  - [x] 3.3 Add the targeted one-off timestamp backfill for existing archives and an activated active record, using pre-change `status.json` modification times. (`.specle/archive/`, `.specle/changes/`)
+- [x] 4. Align reporting and package inventory
+  - [x] 4.1 Update status, summary, commit, changelog, delivery, and lifecycle guidance with the conditional final-stage, final-delivery, archival-finalisation, and completion-PR terminology. (`.agents/`, `src/specle/blueprints/`, `docs/`)
+  - [x] 4.2 Regenerate `.agents/skills/specle/index.json` and confirm `wrapup` is present as a managed Integration skill.
+  - [x] 4.3 Change `.specle/.gitignore` to ignore root-level JSON scratch files and synchronise the zsh `path` safeguard in `.agents/AGENTS.md` and `src/specle/blueprints/AGENTS.md`.
+- [x] 5. Verify the completed change
+  - [x] 5.1 Run focused production tests, then `pytest`, `ruff check`, `ruff format`, `ty`, pre-commit, and installed and blueprint Specle validation.
+- [x] 6. Use package-owned schema identifiers
+  - [x] 6.1 Replace GitHub-shaped schema identifiers with `specle://schemas/<name>/1.0` in the registry and every packaged contract, and remove the unused `common/1.0` resource and registry entry. (`src/specle/schema_registry.py`, `src/specle/schemas/`)
+  - [x] 6.2 Add focused production coverage for resolving and exporting the package-owned schema identifiers. (`tests/test_schema_registry.py`)

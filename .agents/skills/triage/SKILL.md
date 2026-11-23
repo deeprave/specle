@@ -32,7 +32,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - **Batch:** present all findings in severity order and record the user's decisions.
    - **Automatic:** record automatic decisions only where project policy permits; present any decision or open question using the one-at-a-time format.
 7. Record decisions in `review-findings.json`. Accepted findings must have a proposed route; declined, skipped, deferred, and duplicate findings retain their rationale and source history. Do not implement anything.
-8. When every current finding has a decision, set the target to `triaged`. For a non-selected target, update only its matching status with `status: "triaged"`; preserve `.specle/current-change`. For a selected normal target, set its status to `triaged`.
+8. When every current finding has a decision, set the target to `triaged` and write current Unix-second `updated_at`. For a non-selected target, update only its matching status with `status: "triaged"`; preserve `.specle/current-change`. For a selected normal target, set its status to `triaged`.
 9. Present a complete decision-and-route summary: every current finding's severity, decision, recorded rationale, and proposed route. Stop and wait for explicit `resolve` or a user-requested decision revision, including in decision-gated progression mode.
 
 ## Boundaries

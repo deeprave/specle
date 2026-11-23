@@ -1,5 +1,5 @@
 {
-  "$schema": "https://github.com/deeprave/specle/schemas/change-status/1.0",
+  "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
   "status": "complete",
   "updated_at": 1795398827,

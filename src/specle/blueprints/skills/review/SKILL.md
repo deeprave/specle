@@ -38,7 +38,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
 
 `APPROVE` or `REQUEST_CHANGES`, with specific, actionable findings (cite `file:line`) and a P1–P6 severity. Keep findings concrete; separate must-fix from nice-to-have.
 
-After reporting, record raw findings in `.specle/changes/<target>/review-findings.json`. Add a source record for this review with a stable local identifier and revision or diff fingerprint. Each raw finding records its source ID, severity, description, evidence, state `new`, and empty decision and route fields. Then record the review outcome in the target `status.json` as required by `lifecycle.md`:
+After reporting, record raw findings in `.specle/changes/<target>/review-findings.json`. Add a source record for this review with a stable local identifier and revision or diff fingerprint. Each raw finding records its source ID, severity, description, evidence, state `new`, and empty decision and route fields. Then record the review outcome and current Unix-second `updated_at` in the target `status.json` as required by `lifecycle.md`:
 
 - `APPROVE` records review `pass` and changes the selected target to `approved`. `REQUEST_CHANGES` records the finding count and changes it to `review-findings`.
 - For a named non-selected target, update only its matching status and never change the local selection. A re-reviewed committed target must retain its delivery reference for the later `commit` update.

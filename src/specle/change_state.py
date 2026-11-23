@@ -62,7 +62,7 @@ def read_change_state(target_directory: Path) -> ChangeStateSnapshot:
         target / ".specle" / "current-change", diagnostics
     )
     if selected_name is not None and selected_name not in {
-        record.name for record in active
+        record.name for record in (*active, *archived)
     }:
         diagnostics.append(
             f"{target / '.specle' / 'current-change'}: selected change is not active: {selected_name}"
@@ -93,10 +93,10 @@ def resolve_change(
 
 
 def selected_change(snapshot: ChangeStateSnapshot) -> ChangeRecord | None:
-    """Return the selected active record when a local selector exists."""
+    """Return the selected active or archived record when a selector exists."""
     if snapshot.selected_name is None:
         return None
-    return resolve_change(snapshot, snapshot.selected_name)
+    return resolve_change(snapshot, snapshot.selected_name, allow_archived=True)
 
 
 def _read_change_collection(

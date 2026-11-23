@@ -50,7 +50,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    b. Implement the minimum code to pass — no speculative code.
    c. Run the focused test and any project checks needed to keep the change safe.
    d. Mark the task complete: change `- [ ]` to `- [x]` in `tasks.md`.
-   e. Update the target `status.json` with the new progress and the `building` transition. Invalidate
+   e. Update the target `status.json` with the new progress, the `building` transition, and current Unix-second `updated_at`. Invalidate
       prior verification and review evidence as `stale` when this task changes implementation.
 
 ## Critical

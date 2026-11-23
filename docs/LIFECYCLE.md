@@ -19,7 +19,7 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 | `committed` | A branch-and-pull-request delivery awaits its configured final event. | `complete`, or named `triage` for external feedback |
 | `review-findings` | Review has findings that need decisions. | `triage` |
 | `triaged` | Every current finding has a recorded decision and routing is ready. | `resolve` |
-| `complete` | The configured delivery outcome was confirmed, or a spike delivered its findings. | None |
+| `complete` | The configured delivery outcome was confirmed, or a spike delivered its findings. | `wrapup <change-name>` only while an archived record has an open completion PR; otherwise none |
 
 `review.status` is separate from lifecycle status. It is `pass` after local approval and `resolved` when every current finding has a terminal no-action disposition or completed follow-up. Resolve returns a local no-action outcome to `approved` and a previously submitted no-action outcome to `committed`; neither outcome alone completes delivery.
 
@@ -36,7 +36,8 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 | `verify` | Sets a passing target `verified`; a failed target is `building`. A named committed normal target or unselected abbreviated target changes only its own record. |
 | `review` | On approval, sets the selected target `approved` with next `commit`. On findings, sets the selected target `review-findings`. |
 | `commit` | Applies the selected delivery model: local-only and direct delivery record their final event; branch-and-pull-request delivery becomes `committed`. Every final event proceeds to archive finalisation. |
-| `complete` | Confirms the configured final event when necessary, then performs the authorised recoverable archive finalisation for every delivery model. |
+| `complete` | Confirms the configured final event when necessary, then performs the authorised recoverable archive finalisation and opens any required completion PR while retaining the selector. |
+| `wrapup` | Merges the recorded archival completion PR, synchronises the delivery branch, and clears the matching selector without changing the archived record. |
 | `triage` | Sets a fully decided target `triaged`. |
 | `resolve` | Reconciles previously dispatched accepted work, then dispatches any pending accepted follow-up. It reports `resolve <target>` as the later reconciliation step for incomplete follow-ups. A local no-action outcome returns to `approved`; a previously committed no-action outcome returns to `committed`. An independent-change hand-off creates unselected normal work and preserves the origin for its own delivery. |
 | `revise` | Reconciles accepted feedback and returns a selected normal change to the earliest viable planning state; a named committed normal target becomes `planned` with `next: "build"`, and a named abbreviated item becomes unselected `planned` with its owning next skill. |
@@ -44,7 +45,7 @@ Local approval and final delivery are distinct. `approved` records a passing loc
 | `bugfix` / `refactor` | When executed, move only the named abbreviated item to `building`; when called through `prepare`, they create artifacts without executing them. |
 | `spike` | Creates an unselected spike or, when invoked by `activate`, moves it through `defined` → `spiking` → `complete` while recording durable findings and a stable outcome-change name. |
 
-`analyse`, `specle`, `changelist`, `status`, `summary`, and `track` do not themselves transition lifecycle status. `changelist` inventories pending and dependency-context work, while `status` reports the selected change and compact local worktree state. `summary` requires a completed target but does not alter it.
+`analyse`, `specle`, `changelist`, `status`, `summary`, and `track` do not themselves transition lifecycle status. `changelist` inventories pending and dependency-context work, while `status` reports the selected active or archived change and compact local worktree state. `summary` requires a completed target but does not alter it.
 
 ## Transition audit
 
@@ -63,7 +64,7 @@ Every non-terminal state has an owning workflow command and a valid next transit
 | `committed` | `complete` confirms delivery, or named `triage` handles external feedback. | Has an exit. |
 | `review-findings` | `triage` records decisions. | Has an exit. |
 | `triaged` | `resolve` dispatches pending actions, waits for incomplete follow-ups, creates unselected independent work where required, restores a local no-action result to `approved`, or restores a submitted no-action result to `committed`. | Has an exit; no-action review and hand-off do not bypass delivery. |
-| `complete` | Terminal. | Intentional terminal state. |
+| `complete` | Terminal, except for the conditional archival completion-PR delivery owned by `wrapup`. | Intentional terminal state with a conditional final delivery action. |
 
 ## Current flows
 
@@ -83,7 +84,9 @@ flowchart TB
   verified -->|review approves| approved
   approved -->|commit: local or direct final event| complete
   approved -->|commit: branch and pull request| committed
-  committed -->|complete: final event| complete
+  committed -->|complete: final event and archival PR| complete
+  complete -->|open completion PR| wrapup
+  wrapup -->|merge and sync| complete
   committed -->|external feedback| review_findings
   verified -->|review finds issues| review_findings[review-findings]
   review_findings -->|triage| triaged
@@ -131,4 +134,4 @@ flowchart TB
   spiking -->|spike records findings| complete
 ```
 
-Resolve preserves `.specle/current-change` for every explicitly named non-selected target. `complete` archives a target only after its selected delivery policy's final event.
+Resolve preserves `.specle/current-change` for every explicitly named non-selected target. `complete` archives a target only after its selected delivery policy's final event and retains its selector until `wrapup` merges the recorded completion PR.
