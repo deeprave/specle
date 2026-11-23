@@ -1,0 +1,29 @@
+{
+  "$schema": "specle://schemas/change-status/1.0",
+  "kind": "change",
+  "status": "committed",
+  "created_at": 1795434467,
+  "activated_at": 1795434952,
+  "updated_at": 1795451938,
+  "revision_note": "PR #42 triage clarified state mutation, reciprocal validation, completion evidence, and schema coverage.",
+  "progress": {
+    "tasks_completed": 8,
+    "tasks_total": 8
+  },
+  "verification": {
+    "status": "pass"
+  },
+  "review": {
+    "status": "pass",
+    "findings": 0
+  },
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/42",
+    "head_branch": "feature/link-sidecar-completion",
+    "target_branch": "main",
+    "commit": "59bef45",
+    "event": "pull-request-updated"
+  },
+  "relationships": [],
+  "dependencies": []
+}

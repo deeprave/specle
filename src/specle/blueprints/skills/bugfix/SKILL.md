@@ -41,10 +41,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - Root-cause analysis and fix approach.
    - Regression-test evidence to establish during the work.
 4. Add a matching versioned `status.json` with `kind: "bugfix"`, `status: "defined"`, `created_at` set to current Unix seconds as a JSON number, `activated_at: null`, empty progress, `not-run` verification/review, `delivery: null`, and empty relationships/dependencies. Do not change `.specle/current-change`.
-   When active work exists, do not execute unlinked abbreviated work in that worktree. Require an
-   explicit relationship to the selected change before execution, or direct the user to `prepare` it
-   for later named execution in a separate worktree. A linked sidecar records its origin stable name,
-   relationship `type`, and `"delivery": "with-related-change"` in `relationships`.
+   When selected parent work exists and the user intends concurrent delivery, record a reciprocal relationship in both records as one recoverable mutation: the parent names this change with `type: "bugfix"` and `delivery: "with-related-change"`; this sidecar names the parent with `type: "origin"` and the same delivery value. If both records cannot be updated, stop with an actionable diagnostic; do not execute a half-linked sidecar. Otherwise, do not execute unlinked abbreviated work in that worktree and direct the user to `prepare` it for later named execution in a separate worktree.
 5. Create `tasks.md` (test-first):
    - Write a failing test that reproduces the bug.
    - Implement the fix.

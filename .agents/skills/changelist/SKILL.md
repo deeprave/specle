@@ -35,9 +35,7 @@ Produce a read-only inventory of actionable changes under `.specle/changes/` and
 5. After the table, state the count and identify the locally selected change and its recorded lifecycle status.
    If there are no pending entries, say so directly.
 
-For the selected change, also list declared related sidecars: active records whose `relationships[].change`
-matches its stable name. Show their relationship type, delivery mode, status, and next step. Do not infer
-sidecars from shared files, ordering, or worktree state.
+For a selected normal parent, also list only sidecars declared by the parent's own `relationships` entries with `delivery: "with-related-change"`. Show each named sidecar's declared kind, reciprocal-link validity, status, and next step. Report missing, mismatched, duplicate, or unready declarations rather than inferring sidecars from shared files, ordering, or worktree state.
 
 Also include any completed change that is an explicit dependency of a pending change, with `Next` shown
 as `—`. Do not count that dependency-context row as pending work.

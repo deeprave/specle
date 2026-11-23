@@ -25,7 +25,7 @@ Finish the externally delivered archival finalisation for one archived completed
 4. Before an authorised merge or synchronisation, preserve tracked staged and unstaged work in one named recoverable `git stash`. If stashing fails, stop. Do not stash untracked or ignored generated files; accept the rare ignored-file collision risk.
 5. With explicit delivery authority, merge the open completion PR when necessary, switch to the recorded completion target branch, and fast-forward it from upstream without reset or force operations.
 6. Restore the stash. If restoration fails, retain it and report recovery steps; do not remove `.specle/current-change`.
-7. After successful merge, synchronisation, and restoration, remove `.specle/current-change` only when its current contents still name this archived change. Do not write `status.json`, summary files, archive contents, commits, or pull requests.
+7. After successful merge, synchronisation, and restoration, remove `.specle/current-change` only when its current contents still name this archived parent change. A completion PR that also contains reciprocal sidecars finalises the whole delivery set; do not run wrapup separately for those sidecars. Do not write `status.json`, summary files, archive contents, commits, or pull requests.
 
 ## Boundaries
 
