@@ -24,7 +24,14 @@
     "target_branch": "main",
     "commit": "1eb2c37",
     "event": "pull-request-merged",
-    "merge_commit": "2241ac78a132c8b21d8a3372994cc50864489c9a"
+    "merge_commit": "2241ac78a132c8b21d8a3372994cc50864489c9a",
+    "completion": {
+      "reference": "https://github.com/deeprave/specle/pull/41",
+      "head_branch": "bugfix/fix-approved-review-validation-completion",
+      "target_branch": "main",
+      "commit": "58a21dc",
+      "event": "pull-request-open"
+    }
   },
   "relationships": [],
   "dependencies": []
