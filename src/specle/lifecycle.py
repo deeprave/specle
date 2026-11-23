@@ -87,7 +87,10 @@ def _validate_record(
         diagnostics.append(_diagnostic(path, "invalid-status", "status"))
     if status == "verified" and _nested_status(record, "verification") != "pass":
         diagnostics.append(_diagnostic(path, "missing-evidence", "verification"))
-    if status == "approved" and _nested_status(record, "review") != "pass":
+    if status == "approved" and _nested_status(record, "review") not in {
+        "pass",
+        "resolved",
+    }:
         diagnostics.append(_diagnostic(path, "missing-evidence", "review"))
     if status == "committed":
         delivery = record.get("delivery")

@@ -1,0 +1,11 @@
+{
+  "sources": [
+    {
+      "id": "local-20261123-fix-approved-review-validation",
+      "kind": "local-review",
+      "revision": "working-tree-bc9a085",
+      "findings": 0
+    }
+  ],
+  "items": []
+}
