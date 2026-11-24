@@ -118,13 +118,18 @@ def test_change_status_validates_completion_delivery_evidence() -> None:
             "reference": "https://github.com/deeprave/specle/pull/36",
             "head_branch": "feature/example-completion",
             "target_branch": "main",
-            "event": "pull-request-open",
         }
     }
 
     assert validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
 
+    instance["delivery"]["completion"]["event"] = "pull-request-open"
+
+    with pytest.raises(SchemaRegistryError, match="failed additionalProperties"):
+        validate_instance(instance)
+
     del instance["delivery"]["completion"]["event"]
+    del instance["delivery"]["completion"]["reference"]
 
     with pytest.raises(SchemaRegistryError, match="failed required"):
         validate_instance(instance)

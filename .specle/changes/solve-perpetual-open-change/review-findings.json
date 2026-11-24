@@ -1,0 +1,152 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261124-solve-perpetual-open-change",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree:7289cb14b1605226dda50b4f5f733a85bae9c447b52ca9b9e21adbe7b87d52e7",
+      "outcome": "approve"
+    },
+    {
+      "id": "local-review-20261124-solve-perpetual-open-change-schema-tightening",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree:390953156e7871b9180faf19113639f0c1d566b686fc07084b88acec0a081a11",
+      "outcome": "approve"
+    },
+    {
+      "id": "local-review-20261124-solve-perpetual-open-change-dependency-reconciliation",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree:cd84d16d825f85ccfc148975fdea12cf5977172f94cee6b542e990af46ff6372",
+      "outcome": "approve"
+    },
+    {
+      "id": "sourcery-pr44-20261124",
+      "system": "sourcery-ai",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/44",
+      "revision": "head:5e1192df1ab9b9aae61ccc113e3b34b4f7835d4d",
+      "findings": 8,
+      "outcome": "commented"
+    },
+    {
+      "id": "local-review-20261124-solve-perpetual-open-change-wrapup-documentation",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree:5817279f3165361e8ad31d337d4582a2b59aea33dc77a9f62a0cfff2185481ab",
+      "outcome": "approve"
+    }
+  ],
+  "findings": [
+    {
+      "id": "sourcery-pr44-1",
+      "source_ids": ["sourcery-pr44-20261124"],
+      "severity": "P2",
+      "description": "Existing workspaces with nested completion events fail validation after the schema is tightened.",
+      "evidence": "tests/test_schema_registry.py:126",
+      "analysis": "The schema now rejects `delivery.completion.event`. This change migrates the three known historical archives, but other pre-existing workspace records would require equivalent reconciliation before validation succeeds.",
+      "recommendation": "Either retain legacy acceptance or provide a migration path for all existing records.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The completion event is deliberately invalid. This repository's known historical records were migrated; broad legacy tolerance would leave the prohibited field valid.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr44-2",
+      "source_ids": ["sourcery-pr44-20261124"],
+      "severity": "P3",
+      "description": "Dependency updates could remain partially applied if finalisation stops after reconciliation.",
+      "evidence": ".agents/skills/complete/SKILL.md:37",
+      "analysis": "The new rule changes active dependency records before the existing archive move and finalisation commit complete.",
+      "recommendation": "Make dependency reconciliation part of one recoverable finalisation operation that restores all edits on failure.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The established recoverable finalisation flow is sufficient; rollback machinery for independently edited active records adds disproportionate complexity for speculative interruption handling.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr44-3",
+      "source_ids": ["sourcery-pr44-20261124"],
+      "severity": "P3",
+      "description": "Concurrent completion runs could overwrite one another's dependency removals.",
+      "evidence": ".agents/skills/complete/SKILL.md:37",
+      "analysis": "This requires two overlapping completion operations writing the same active record from different snapshots.",
+      "recommendation": "Serialize completion updates or add another read-and-merge step before writing.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Concurrent completion actors are outside the repository's supported workflow. Each normal update already re-reads the target record before changing its exact dependency field.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr44-4",
+      "source_ids": ["sourcery-pr44-20261124"],
+      "severity": "P3",
+      "description": "Dependency edits can block the later switch to the archival completion branch.",
+      "evidence": ".agents/skills/complete/SKILL.md:37-39",
+      "analysis": "The documented order edits active records after synchronising the delivery target but before creating or reusing the completion branch from the retained delivery head. If either branch differs in an edited file, Git can refuse that switch.",
+      "recommendation": "Create or reuse the completion branch before dependency reconciliation.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "This depends on divergent concurrent delivery state between the retained head and synchronised target. The supported workflow does not require another branch-ordering path for that scenario.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr44-5",
+      "source_ids": ["sourcery-pr44-20261124"],
+      "severity": "P3",
+      "description": "Overlapping completion runs could create duplicate archival completion PRs.",
+      "evidence": ".agents/skills/complete/SKILL.md:39",
+      "analysis": "This assumes concurrent completion operations pass discovery before either records the completion PR.",
+      "recommendation": "Serialize per-change finalisation or add an atomic create-or-find guard.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Overlapping completion actors are outside the supported delivery model. The existing create-or-reuse instruction is sufficient for normal single-operator delivery.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr44-6",
+      "source_ids": ["sourcery-pr44-20261124"],
+      "severity": "P4",
+      "description": "Lifecycle documentation still depicts wrapup as a transition from complete.",
+      "evidence": "docs/LIFECYCLE.md:87",
+      "analysis": "The status table now makes wrapup explicit and optional, while the flow diagram still draws a complete-to-wrapup path.",
+      "recommendation": "Clarify the diagram and transition audit so wrapup is not presented as required lifecycle work.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Wrapup is required only to deliver a separate archival completion PR; it is not a lifecycle transition out of the terminal complete state. The public flow and audit must say so consistently.",
+      "route": "revise",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place"
+      }
+    },
+    {
+      "id": "sourcery-pr44-7",
+      "source_ids": ["sourcery-pr44-20261124"],
+      "severity": "P3",
+      "description": "Dependencies fulfilled before this rule was introduced are not automatically removed.",
+      "evidence": ".agents/skills/complete/SKILL.md:37",
+      "analysis": "The rule runs only as a new delivery completes. Existing stale dependencies need a separate reconciliation or manual correction.",
+      "recommendation": "Reconcile pre-existing fulfilled dependencies.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The one known stale dependency was reconciled directly. A repository-wide historical rewrite is unnecessary churn; future completion will keep dependencies current.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr44-8",
+      "source_ids": ["sourcery-pr44-20261124"],
+      "severity": "P3",
+      "description": "Fulfilled prerequisites recorded in estimate Dependencies sections remain visible to changelist.",
+      "evidence": ".agents/skills/complete/SKILL.md:37",
+      "analysis": "Changelist can read dependencies from either a status record or an estimate. The new rule only changes status records.",
+      "recommendation": "Also update supported estimate Dependencies sections during completion.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Status records are the authoritative dependency state. Updating estimate prose during completion would broaden the finalisation mutation without a current operational need.",
+      "route": "none"
+    }
+  ]
+}

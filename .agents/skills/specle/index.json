@@ -147,7 +147,7 @@
         {
           "name": "wrapup",
           "description": "Merge a recorded archival completion PR and synchronise delivery.",
-          "usage": "Use after complete has archived a change and recorded an open completion PR; merge that PR or synchronise an externally merged one without changing the archive."
+          "usage": "Use after complete has archived a change and recorded a completion PR; merge that PR or synchronise an externally merged one without changing the archive."
         }
       ]
     },
