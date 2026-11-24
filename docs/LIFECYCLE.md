@@ -64,7 +64,7 @@ Every non-terminal state has an owning workflow command and a valid next transit
 | `committed` | `complete` archives delivery, or named `triage` handles external feedback. | Has an exit. |
 | `review-findings` | `triage` records decisions. | Has an exit. |
 | `triaged` | `resolve` dispatches pending actions, waits for incomplete follow-ups, creates unselected independent work where required, restores a local no-action result to `approved`, or restores a submitted no-action result to `committed`. | Has an exit; no-action review and hand-off do not bypass delivery. |
-| `complete` | Terminal, except for the conditional archival completion-PR delivery owned by `wrapup`. | Intentional terminal state with a conditional final delivery action. |
+| `complete` | Terminal. `wrapup` may explicitly merge and synchronise a recorded archival completion PR without changing lifecycle state. | Intentional terminal state. |
 
 ## Current flows
 
@@ -84,8 +84,6 @@ flowchart TB
   verified -->|review approves| approved
   approved -->|commit: delivery event| committed
   committed -->|complete: final event and archival PR| complete
-  complete -->|explicit completion PR handling| wrapup
-  wrapup -->|merge and sync| complete
   committed -->|external feedback| review_findings
   verified -->|review finds issues| review_findings[review-findings]
   review_findings -->|triage| triaged
@@ -98,6 +96,8 @@ flowchart TB
   triaged -->|resolve: independent hand-off after external feedback| committed
   triaged -.->|creates unselected normal work| unselected_defined[defined: independent change]
 ```
+
+When archival finalisation has its own completion PR, `wrapup` is an explicit merge-and-synchronise operation on the already complete record. It is not a lifecycle transition and is therefore omitted from the state graph.
 
 ### Unselected abbreviated work: bugfix or refactor
 

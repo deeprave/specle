@@ -1,11 +1,11 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "bugfix",
-  "status": "committed",
+  "status": "approved",
   "created_at": 1795454283,
   "activated_at": null,
-  "updated_at": 1795505649,
-  "revision_note": "Expanded to clear explicitly fulfilled active dependencies during completion finalisation.",
+  "updated_at": 1795507767,
+  "revision_note": "Clarified that wrapup is explicit completion-PR handling, not a lifecycle transition.",
   "progress": {
     "tasks_completed": 3,
     "tasks_total": 3
