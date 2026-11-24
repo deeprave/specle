@@ -9,7 +9,7 @@ usage: >-
 
 # Report current work
 
-Provide a concise, read-only orientation report for this checkout. This is not a pending-work inventory; use `changelist` for that.
+Provide a concise, read-only orientation report for this checkout. This is not a pending-work inventory; use `changes` for that.
 
 ## Workflow
 
@@ -38,5 +38,5 @@ Primary or linked worktree | Branch | Clean or compact change summary
 ## Boundaries
 
 - Do not write `.specle/current-change`, change artifacts, lifecycle records, Git state, or external systems.
-- Do not list all pending work; use `changelist` for that inventory.
+- Do not list all pending work; use `changes` for that inventory.
 - Do not display a complete file-by-file Git status unless the user explicitly asks for it.

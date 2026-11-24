@@ -1,0 +1,11 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261124-rename-changelist-to-changes",
+      "kind": "local-review",
+      "revision": "working-tree-7dc00dcff9bbc05ef24858b115f7b16e94cbfb1ce1caf118c9a2829b67a647d5",
+      "findings": 0
+    }
+  ],
+  "items": []
+}

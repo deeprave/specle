@@ -30,7 +30,7 @@
       "name": "Coordination",
       "skills": [
         {
-          "name": "changelist",
+          "name": "changes",
           "description": "List pending and active Specle changes with next stages.",
           "usage": "Use to inventory unfinished, selected, unselected, or dependent changes and report their recorded next steps; it never changes lifecycle state."
         },
