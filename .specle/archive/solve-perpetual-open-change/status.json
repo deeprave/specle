@@ -1,10 +1,11 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "bugfix",
-  "status": "committed",
+  "status": "complete",
   "created_at": 1795454283,
   "activated_at": null,
   "updated_at": 1795507873,
+  "archived_at": 1795508065,
   "revision_note": "Clarified that wrapup is explicit completion-PR handling, not a lifecycle transition.",
   "progress": {
     "tasks_completed": 3,
@@ -21,7 +22,8 @@
     "head_branch": "bugfix/solve-perpetual-open-change",
     "target_branch": "main",
     "commit": "941b83dbc65ddca04eb5c2538e49a48991a7d8c8",
-    "event": "pull-request-updated"
+    "event": "pull-request-merged",
+    "merge_commit": "6b3c36d45daf3af4cc571cf9a05673883276659c"
   },
   "relationships": [],
   "dependencies": []
