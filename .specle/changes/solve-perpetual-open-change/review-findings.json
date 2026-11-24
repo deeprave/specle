@@ -1,0 +1,26 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261124-solve-perpetual-open-change",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree:7289cb14b1605226dda50b4f5f733a85bae9c447b52ca9b9e21adbe7b87d52e7",
+      "outcome": "approve"
+    },
+    {
+      "id": "local-review-20261124-solve-perpetual-open-change-schema-tightening",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree:390953156e7871b9180faf19113639f0c1d566b686fc07084b88acec0a081a11",
+      "outcome": "approve"
+    },
+    {
+      "id": "local-review-20261124-solve-perpetual-open-change-dependency-reconciliation",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree:cd84d16d825f85ccfc148975fdea12cf5977172f94cee6b542e990af46ff6372",
+      "outcome": "approve"
+    }
+  ],
+  "findings": []
+}

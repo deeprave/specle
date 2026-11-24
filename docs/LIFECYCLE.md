@@ -2,7 +2,7 @@
 
 This is the lifecycle implemented by Specle today. It is a reference for the workflow skills and the per-change state recorded in `.specle/changes/<name>/status.json` or `.specle/archive/<name>/status.json`; `.agents/policies/lifecycle.md` remains the authoritative package policy and project steering may refine it.
 
-Local approval, delivery, and archival finalisation are distinct. `approved` records a passing local review; `commit` records the applicable delivery event and moves work to `committed`; `complete` records completion and archives the durable change record. A completion PR, when required, remains open for `wrapup` to merge and synchronise.
+Local approval, delivery, and archival finalisation are distinct. `approved` records a passing local review; `commit` records the applicable delivery event and moves work to `committed`; `complete` records completion and archives the durable change record. A completion PR, when required, is retained as immutable identity and `wrapup` may inspect, merge, and synchronise it when explicitly invoked.
 
 ## Statuses
 
@@ -19,7 +19,7 @@ Local approval, delivery, and archival finalisation are distinct. `approved` rec
 | `committed` | A delivery event was recorded and archival finalisation remains. | `complete`, or named `triage` for external feedback |
 | `review-findings` | Review has findings that need decisions. | `triage` |
 | `triaged` | Every current finding has a recorded decision and routing is ready. | `resolve` |
-| `complete` | The configured delivery outcome was confirmed, or a spike delivered its findings. | `wrapup <change-name>` only while an archived record has an open completion PR; otherwise none |
+| `complete` | The configured delivery outcome was confirmed, or a spike delivered its findings. | None; `wrapup <change-name>` may be explicitly invoked to inspect a recorded completion PR. |
 
 `review.status` is separate from lifecycle status. It is `pass` after local approval and `resolved` when every current finding has a terminal no-action disposition or completed follow-up. Resolve returns a local no-action outcome to `approved` and a previously submitted no-action outcome to `committed`; neither outcome alone completes delivery.
 
@@ -36,9 +36,9 @@ Local approval, delivery, and archival finalisation are distinct. `approved` rec
 | `verify` | Sets a passing target `verified`; a failed target is `building`. A named committed normal target or unselected abbreviated target changes only its own record. |
 | `review` | On approval, sets the selected target `approved` with next `commit`. On findings, sets the selected target `review-findings`. |
 | `commit` | Applies the selected delivery model, records its delivery event and `updated_at`, and moves every delivered member to `committed`. A normal parent may include only sidecars it declares with concurrent delivery and that reciprocally agree and are ready; it never infers them from a reverse scan. An explicitly selected archived completion record may instead commit only its triage findings and resolved related sidecars to its existing completion branch. |
-| `complete` | Confirms the configured final event when necessary, generates the parent summary, writes `complete` and `archived_at`, then performs authorised recoverable archival finalisation. A parent archives every eligible reciprocal committed sidecar in the same mutation and completion PR. It creates or identifies one required completion PR and records its evidence on every jointly archived record in a follow-up commit on that same branch while retaining the selector. Direct delivery without a completion PR clears the matching selector. |
+| `complete` | Confirms the configured final event when necessary, removes the delivered parent and eligible reciprocal sidecars from matching explicit dependency arrays in other active records, generates the parent summary, writes `complete` and `archived_at`, then performs authorised recoverable archival finalisation. A parent archives every eligible reciprocal committed sidecar in the same mutation and completion PR. It includes the dependency-record updates in that finalisation commit, creates or identifies one required completion PR, and records its evidence on every jointly archived record in a follow-up commit on that same branch while retaining the selector. Direct delivery without a completion PR clears the matching selector. |
 | `wrapup` | Merges the recorded archival completion PR, synchronises the delivery branch, and clears the matching parent selector without changing archived records. One completion PR finalises the parent and all jointly archived sidecars. |
-| `triage` | Sets a fully decided active target `triaged`. An explicitly named archived completion record with an open completion PR may change only `review-findings.json`. |
+| `triage` | Sets a fully decided active target `triaged`. An explicitly named archived completion record with recorded completion PR identity may change only `review-findings.json`. |
 | `resolve` | Reconciles previously dispatched accepted work, then dispatches any pending accepted follow-up. It reports `resolve <target>` as the later reconciliation step for incomplete follow-ups. A local no-action outcome returns to `approved`; a previously committed no-action outcome returns to `committed`. Archived completion triage creates only related bugfix or refactor sidecars and preserves the archive. |
 | `revise` | Reconciles accepted feedback and returns eligible active work to the earliest viable planning state; archived records are immutable. |
 | `prepare` | Creates an unselected bugfix or refactor as `planned` with its owning next skill. |
@@ -84,7 +84,7 @@ flowchart TB
   verified -->|review approves| approved
   approved -->|commit: delivery event| committed
   committed -->|complete: final event and archival PR| complete
-  complete -->|open completion PR| wrapup
+  complete -->|explicit completion PR handling| wrapup
   wrapup -->|merge and sync| complete
   committed -->|external feedback| review_findings
   verified -->|review finds issues| review_findings[review-findings]

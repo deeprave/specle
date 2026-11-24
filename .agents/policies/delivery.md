@@ -30,6 +30,6 @@ Unknown policy remains explicitly unestablished. Skills must not infer it from t
 
 - `approved` means the local Specle review passed. It is not evidence that shared delivery or peer review is finished.
 - `committed` applies to every delivery model after its delivery event is recorded. It remains addressable for later external feedback.
-- `complete` means the project's configured final delivery event has been confirmed. An archived complete record with an open recorded completion PR has a conditional final action, `wrapup`; otherwise it is terminal. A spike is an exception: its recorded findings complete it without implementation delivery.
+- `complete` means the project's configured final delivery event has been confirmed and the archived record is terminal. An explicitly invoked `wrapup` may inspect and merge a recorded completion PR without changing that archival state. A spike is an exception: its recorded findings complete it without implementation delivery.
 
 External writes require both project policy and explicit user authorisation. A skill may provide exact instructions when either is absent.

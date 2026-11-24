@@ -51,15 +51,14 @@
       "properties": {
         "completion": {
           "type": "object",
-          "required": ["reference", "head_branch", "target_branch", "event"],
+          "required": ["reference", "head_branch", "target_branch"],
           "properties": {
             "reference": {"type": "string", "minLength": 1},
             "head_branch": {"type": "string", "minLength": 1},
             "target_branch": {"type": "string", "minLength": 1},
-            "commit": {"type": "string", "minLength": 1},
-            "event": {"type": "string", "minLength": 1}
+            "commit": {"type": "string", "minLength": 1}
           },
-          "additionalProperties": true
+          "additionalProperties": false
         }
       },
       "additionalProperties": true

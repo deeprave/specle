@@ -1,0 +1,22 @@
+{
+  "$schema": "specle://schemas/change-status/1.0",
+  "kind": "bugfix",
+  "status": "approved",
+  "created_at": 1795454283,
+  "activated_at": null,
+  "updated_at": 1795456229,
+  "revision_note": "Expanded to clear explicitly fulfilled active dependencies during completion finalisation.",
+  "progress": {
+    "tasks_completed": 3,
+    "tasks_total": 3
+  },
+  "verification": {
+    "status": "pass"
+  },
+  "review": {
+    "status": "pass"
+  },
+  "delivery": null,
+  "relationships": [],
+  "dependencies": []
+}
