@@ -23,7 +23,13 @@
     "target_branch": "main",
     "commit": "62c6abd22aa6afa71f36c02b7d3cb791fa35efcb",
     "event": "pull-request-merged",
-    "merge_commit": "95ef8fd012ec08536054c97a2e282916389b4d4a"
+    "merge_commit": "95ef8fd012ec08536054c97a2e282916389b4d4a",
+    "completion": {
+      "reference": "https://github.com/deeprave/specle/pull/47",
+      "head_branch": "bugfix/rename-changelist-to-changes-completion",
+      "target_branch": "main",
+      "commit": "c79c3e8"
+    }
   },
   "relationships": [],
   "dependencies": []
