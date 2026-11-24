@@ -46,7 +46,7 @@ skills apply these transitions and must not replace them with local rules.
 | `triage` | Consolidate review sources and record decisions without implementation. An explicit archived complete record with recorded completion delivery changes only `review-findings.json`; active targets become `triaged`. |
 | `resolve` | Dispatch accepted work without completing the origin. Archived completion triage creates only named related bugfix/refactor sidecars and never changes the archive; once settled, commit delivers those sidecars and `review-findings.json` to the existing completion branch. |
 | `revise` | Reconcile accepted feedback into eligible active work; it rejects archived targets. |
-| `changelist` | List pending and dependency-context changes with their recorded next stages; completed archives are not pending solely because they retain completion-delivery identity. It never advances state. |
+| `changes` | List pending and dependency-context changes with their recorded next stages; completed archives are not pending solely because they retain completion-delivery identity. It never advances state. |
 | `status` | Report the selected change's recorded state and next action, plus compact local worktree state; it never advances state. |
 
 ## Invalidation
@@ -63,4 +63,4 @@ A bugfix or refactor can accompany selected normal work only through an explicit
 
 ## Dependency visibility
 
-Active dependency arrays list unresolved explicit prerequisites. Once `complete` confirms a delivery set's final event, it removes those names from matching active arrays in its finalisation commit. `changelist` therefore lists dependency context only until the prerequisite is delivered, without treating that completed dependency as pending work.
+Active dependency arrays list unresolved explicit prerequisites. Once `complete` confirms a delivery set's final event, it removes those names from matching active arrays in its finalisation commit. `changes` therefore lists dependency context only until the prerequisite is delivered, without treating that completed dependency as pending work.

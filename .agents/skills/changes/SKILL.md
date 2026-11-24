@@ -1,5 +1,5 @@
 ---
-name: changelist
+name: changes
 specle_group: Coordination
 description: >-
   List pending and active Specle changes with next stages.
@@ -7,7 +7,7 @@ usage: >-
   Use to inventory unfinished, selected, unselected, or dependent changes and report their recorded next steps; it never changes lifecycle state.
 ---
 
-# Show the changelist
+# Show changes
 
 Produce a read-only inventory of actionable changes under `.specle/changes/` and pending archival delivery under `.specle/archive/`. Do not change
 `.specle/current-change`, per-change `status.json` files, change files, or the working tree.
