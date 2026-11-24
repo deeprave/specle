@@ -1,9 +1,10 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "bugfix",
-  "status": "committed",
+  "status": "complete",
   "created_at": 1795518015,
   "updated_at": 1795518413,
+  "archived_at": 1795518623,
   "activated_at": null,
   "progress": {
     "tasks_completed": 4,
@@ -21,7 +22,14 @@
     "head_branch": "bugfix/rename-changelist-to-changes",
     "target_branch": "main",
     "commit": "62c6abd22aa6afa71f36c02b7d3cb791fa35efcb",
-    "event": "pull-request-open"
+    "event": "pull-request-merged",
+    "merge_commit": "95ef8fd012ec08536054c97a2e282916389b4d4a",
+    "completion": {
+      "reference": "https://github.com/deeprave/specle/pull/47",
+      "head_branch": "bugfix/rename-changelist-to-changes-completion",
+      "target_branch": "main",
+      "commit": "c79c3e8"
+    }
   },
   "relationships": [],
   "dependencies": []
