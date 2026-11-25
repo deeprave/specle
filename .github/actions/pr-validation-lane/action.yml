@@ -1,0 +1,48 @@
+name: PR validation lane
+description: Select archive-only validation only after a successful full PR workflow.
+inputs:
+  event-action:
+    required: true
+  before:
+    required: true
+  head:
+    required: true
+  base:
+    required: true
+  repository:
+    required: true
+  token:
+    required: true
+outputs:
+  archive_only:
+    value: ${{ steps.classify.outputs.archive_only }}
+runs:
+  using: composite
+  steps:
+    - id: classify
+      shell: bash
+      env:
+        EVENT_ACTION: ${{ inputs.event-action }}
+        BEFORE: ${{ inputs.before }}
+        HEAD: ${{ inputs.head }}
+        BASE: ${{ inputs.base }}
+        REPOSITORY: ${{ inputs.repository }}
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        archive_only=false
+        if [[ "$EVENT_ACTION" == synchronize && -n "$BEFORE" && -n "$HEAD" && -n "$BASE" ]]; then
+          git fetch --no-tags origin "$BEFORE" "$HEAD" "$BASE"
+          if git merge-base --is-ancestor "$BASE" "$BEFORE" && git merge-base --is-ancestor "$BEFORE" "$HEAD"; then
+            mapfile -t changed_paths < <(git -c core.quotePath=false diff --name-only "$BEFORE" "$HEAD")
+            if [[ "${#changed_paths[@]}" -gt 0 ]] && printf '%s\n' "${changed_paths[@]}" | grep -Eq '^\.specle/(changes|archive)/' && ! printf '%s\n' "${changed_paths[@]}" | grep -Eqv '^\.specle/(changes|archive)/'; then
+              if curl --fail-with-body --silent --show-error --retry 3 \
+                -H 'Accept: application/vnd.github+json' \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                "https://api.github.com/repos/$REPOSITORY/actions/runs?head_sha=$BEFORE&event=pull_request&status=completed&per_page=100" \
+                | jq -e 'any(.workflow_runs[]; .name == "Test" and .conclusion == "success")' >/dev/null; then
+                archive_only=true
+              fi
+            fi
+          fi
+        fi
+        echo "archive_only=$archive_only" >> "$GITHUB_OUTPUT"

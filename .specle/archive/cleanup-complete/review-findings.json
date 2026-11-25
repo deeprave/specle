@@ -1,0 +1,455 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261124-cleanup-complete",
+      "kind": "local-review",
+      "revision": "working-tree-4bee6cc99f0193b8b0921c8c189a4b5177a57e13592ecc6bd86ae0c7ea4e8e82",
+      "findings": 1
+    },
+    {
+      "id": "local-review-20261124-cleanup-complete-follow-up",
+      "kind": "local-review",
+      "revision": "working-tree-88f455183880af3982bc8fbb3a767732489a3fcac748725fd8de1ce8ef3a6b8f",
+      "findings": 0
+    },
+    {
+      "id": "github-pr-48-sourcery-20261125",
+      "system": "github",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/48",
+      "revision": "76f94ac7b97c1f056d8d60bedc4ca88867c256df",
+      "findings": 11
+    },
+    {
+      "id": "user-request-20261125-fast-lane-test",
+      "kind": "user-feedback",
+      "revision": "75124f143011872321d3b00811985d0392d71e49",
+      "findings": 1
+    },
+    {
+      "id": "local-review-20261125-cleanup-complete-revision",
+      "kind": "local-review",
+      "revision": "working-tree-17b5bf1e43fda46df8b79c0260999730df65c66804afac48590b72fd6f09f5d7",
+      "findings": 0
+    },
+    {
+      "id": "antigravity-pr-48-revised-20261125",
+      "system": "antigravity",
+      "kind": "external-review",
+      "url": "https://github.com/deeprave/specle/pull/48",
+      "revision": "75124f143011872321d3b00811985d0392d71e49+working-tree",
+      "findings": 8
+    },
+    {
+      "id": "local-review-20261125-cleanup-complete-final",
+      "kind": "local-review",
+      "revision": "working-tree-a17e379c23a37c9aae4cc4784ae66184a89d15053f9d983cf5943f1b066ff5ec",
+      "findings": 0
+    }
+  ],
+  "items": [
+    {
+      "id": "local-review-20261124-cleanup-complete-1",
+      "sources": [
+        "local-review-20261124-cleanup-complete"
+      ],
+      "severity": "P3",
+      "description": "Remove obsolete complete-state acceptance from commit, triage, and resolve.",
+      "evidence": ".agents/skills/{commit,triage,resolve}/SKILL.md lifecycle.accepts each still includes complete although their workflows now require approved, review-findings, or triaged active targets and reject archived records.",
+      "analysis": "The old acceptances advertised the archival completion-feedback route that this change removes. Leaving them permits invalid lifecycle dispatches and contradicts the active-only rules in the same skills.",
+      "recommendation": "Remove complete from the lifecycle accepts lists in installed and blueprint copies, and add focused metadata coverage so no retired workflow route remains declared.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Accepted: the retired archival-feedback routes must not remain declared after the workflow that used them is removed.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    },
+    {
+      "id": "github-pr-48-sourcery-1",
+      "sources": ["github-pr-48-sourcery-20261125"],
+      "severity": "P3",
+      "description": "Require explicit authority before enabling auto-merge.",
+      "evidence": ".agents/skills/complete/SKILL.md:36 requests auto-merge after archival delivery.",
+      "analysis": "Auto-merge can merge the PR when external requirements pass.",
+      "recommendation": "Require separate explicit authority for the auto-merge request.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The explicit delivery authority required by complete already covers requesting auto-merge as part of the same finalisation operation; a second approval would add no meaningful decision point.",
+      "route": null
+    },
+    {
+      "id": "github-pr-48-sourcery-2",
+      "sources": ["github-pr-48-sourcery-20261125"],
+      "severity": "P2",
+      "description": "Define completion for delivery models without a pull request.",
+      "evidence": ".agents/skills/complete/SKILL.md:34-35 writes original-PR completion evidence while direct delivery has no PR identity.",
+      "analysis": "The universal instructions cannot be applied to direct delivery without inventing PR fields.",
+      "recommendation": "Specify direct-delivery finalisation evidence separately.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Accepted with variation: direct-delivery finalisation must establish its evidence before or within the final archive commit, without a later archive rewrite.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    },
+    {
+      "id": "github-pr-48-sourcery-3",
+      "sources": ["github-pr-48-sourcery-20261125"],
+      "severity": "P5",
+      "description": "Detect a PR merged during archival finalisation.",
+      "evidence": ".agents/skills/complete/SKILL.md:33-37 checks before archival delivery and later assumes a merged PR contains it.",
+      "analysis": "An external merge between the steps could leave archival work off the target branch.",
+      "recommendation": "Check reachability before clearing the selector and describe recovery.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Declined after clarification: the accepted recovery path covers an original PR already merged before complete starts, not a speculative merge during finalisation. The workflow does not add concurrency machinery for that invented race.",
+      "route": null
+    },
+    {
+      "id": "github-pr-48-sourcery-4",
+      "sources": ["github-pr-48-sourcery-20261125"],
+      "severity": "P3",
+      "description": "Keep interrupted archival finalisation resumable.",
+      "evidence": ".agents/skills/complete/SKILL.md:34-37 archives before delivery but treats an archived target only as a PR inspection/synchronisation case.",
+      "analysis": "An interruption before archival delivery leaves no documented resume path.",
+      "recommendation": "Define recovery for each incomplete archival-delivery step.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Accepted: archived resumption must determine and complete only the missing archival commit, push, evidence, auto-merge, or exceptional recovery-PR step without duplicating completed work.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    },
+    {
+      "id": "github-pr-48-sourcery-5",
+      "sources": ["github-pr-48-sourcery-20261125"],
+      "severity": "P3",
+      "description": "Provide a correction path for new feedback after archival finalisation but before merge.",
+      "evidence": ".agents/skills/{triage,review}/SKILL.md reject archived records while complete reports or synchronises the original PR.",
+      "analysis": "A new blocking PR review after archive finalisation cannot enter the normal corrective loop.",
+      "recommendation": "Document how feedback returns the work to an active corrective delivery path.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Declined after the later workflow decision: archived records are immutable. Feedback must be handled before archive finalisation; later defects are independent work.",
+      "route": null
+    },
+    {
+      "id": "github-pr-48-sourcery-6",
+      "sources": ["github-pr-48-sourcery-20261125"],
+      "severity": "P3",
+      "description": "Do not clear active dependencies before the delivery PR merges.",
+      "evidence": ".agents/skills/complete/SKILL.md:34 removes dependency names before the branch PR has its final merge.",
+      "analysis": "Dependent work can appear unblocked before the prerequisite reaches the final delivery event.",
+      "recommendation": "Reconcile dependency arrays only after the original PR merge is confirmed.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The dependency is satisfied by delivered branch content and should appear unblocked. Activation remains effectively blocked by the selected change's pending completion and merge, so retaining the dependency would misstate the prerequisite.",
+      "route": null
+    },
+    {
+      "id": "github-pr-48-sourcery-7",
+      "sources": ["github-pr-48-sourcery-20261125"],
+      "severity": "P3",
+      "description": "Resume a missing archival evidence commit.",
+      "evidence": ".agents/skills/complete/SKILL.md:35 adds delivery.completion.commit after archival delivery.",
+      "analysis": "An interruption between the two commits leaves no documented repair.",
+      "recommendation": "Resume the missing evidence step or revise the evidence model.",
+      "state": "decided",
+      "decision": "duplicate",
+      "rationale": "Covered by accepted github-pr-48-sourcery-4, which requires archived resumption to complete a missing evidence step without duplicating completed work.",
+      "duplicate_of": "github-pr-48-sourcery-4",
+      "route": null
+    },
+    {
+      "id": "github-pr-48-sourcery-8",
+      "sources": ["github-pr-48-sourcery-20261125"],
+      "severity": "P3",
+      "description": "Avoid post-archive mutation for completion commit evidence.",
+      "evidence": ".agents/skills/complete/SKILL.md:35 writes delivery.completion.commit after records are archived.",
+      "analysis": "This conflicts with the archive immutability rule.",
+      "recommendation": "Record the evidence without rewriting an archived record, or redefine the archival boundary.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Accepted with variation: remove delivery.completion.commit from the current schema without a version bump, and update every existing archived status record that carries it. Completion evidence is the immutable PR identity; Git history identifies the archival commit.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    },
+    {
+      "id": "github-pr-48-sourcery-9",
+      "sources": ["github-pr-48-sourcery-20261125"],
+      "severity": "P3",
+      "description": "Require a completion commit in the status schema.",
+      "evidence": "src/specle/schemas/change-status/1.0.json makes delivery.completion.commit optional.",
+      "analysis": "Schema validation accepts completion evidence without archival commit identity.",
+      "recommendation": "Require commit when commit identity remains part of the contract.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "delivery.completion.commit is being removed from the current schema and all existing archive records; immutable PR identity is the completion evidence and Git history identifies the archival commit.",
+      "route": null
+    },
+    {
+      "id": "github-pr-48-sourcery-10",
+      "sources": ["github-pr-48-sourcery-20261125"],
+      "severity": "P4",
+      "description": "Resume a missed auto-merge request.",
+      "evidence": ".agents/skills/complete/SKILL.md:36 requests auto-merge only in the active-delivery path.",
+      "analysis": "An interruption after archival push can leave an open PR with no retry instruction.",
+      "recommendation": "Make archived completion resumption retry pending auto-merge.",
+      "state": "decided",
+      "decision": "duplicate",
+      "rationale": "Covered by accepted github-pr-48-sourcery-4, which requires archived resumption to identify and complete a pending auto-merge request without repeating delivered steps.",
+      "duplicate_of": "github-pr-48-sourcery-4",
+      "route": null
+    },
+    {
+      "id": "github-pr-48-sourcery-11",
+      "sources": ["github-pr-48-sourcery-20261125"],
+      "severity": "P5",
+      "description": "Restore preserved work on its original branch after synchronisation.",
+      "evidence": ".agents/skills/complete/SKILL.md:37 restores a stash after switching to the target branch without retaining the caller branch.",
+      "analysis": "Tracked unrelated edits could reappear on the target branch when completion starts elsewhere.",
+      "recommendation": "Record and restore the original branch, or restrict the permitted starting branch.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Accepted with variation: resumed PR completion requires the branch recorded for the current delivery phase to be checked out: the original PR head normally, or the recorded <delivery-branch>-complete recovery branch after premature-merge recovery begins. If it is not current, report the current and expected branches and stop; do not stash, switch branches, or infer why the caller selected another branch.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    },
+    {
+      "id": "user-request-20261125-fast-lane-test-1",
+      "sources": ["user-request-20261125-fast-lane-test"],
+      "severity": "P3",
+      "description": "Add a conservative PR fast lane for archive-only completion updates.",
+      "evidence": "User request: apply the fast-lane-test design to this PR.",
+      "analysis": "The current test workflow reruns full CI for the final .specle-only archival update even though the same PR already passed full implementation checks.",
+      "recommendation": "Classify each new PR update; run specle validate . and retain Verify for a strictly archive-only update, otherwise run full CI. Keep every main push on full CI.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Explicitly requested for this PR; the full main workflow remains the exact-merge publication gate.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    },
+    {
+      "id": "antigravity-pr-48-revised-1",
+      "sources": ["antigravity-pr-48-revised-20261125"],
+      "severity": "P1",
+      "description": "Archive-only CI can pass Verify without confirming that the preceding PR revision passed full checks for the current base.",
+      "evidence": ".specle/agy-cleanup-complete.json AGY-1; .github/workflows/test.yml classifier and Verify aggregation.",
+      "analysis": "The current incremental-diff classifier is insufficient evidence that the PR implementation was validated before the metadata-only update.",
+      "recommendation": "Require verified full-suite evidence for the preceding revision and an unchanged base before fast-lane success, or limit the lane to PRs whose complete diff is metadata-only.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Accepted with variation: extract fail-closed PR validation-lane classification into a repository-local reusable action. Do not add recurring pytest coverage; verify it once with act and the real PR's full implementation and archive-only completion updates.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    },
+    {
+      "id": "antigravity-pr-48-revised-2",
+      "sources": ["antigravity-pr-48-revised-20261125"],
+      "severity": "P2",
+      "description": "Runtime validation rejects direct-delivery committed records despite the revised direct-delivery contract.",
+      "evidence": ".specle/agy-cleanup-complete.json AGY-2; src/specle/lifecycle.py committed delivery validation.",
+      "analysis": "Schema acceptance alone does not make a direct-delivery record usable when runtime validation still requires PR fields.",
+      "recommendation": "Accept direct commit-and-branch delivery evidence in runtime validation and cover both direct and PR committed records.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Accepted: runtime validation must recognise the direct commit-and-branch delivery evidence specified by the revised contract, with focused coverage for both direct and PR records.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    },
+    {
+      "id": "antigravity-pr-48-revised-3",
+      "sources": ["antigravity-pr-48-revised-20261125"],
+      "severity": "P2",
+      "description": "The archived unmerged-PR feedback route lacks an owner for delivery and valid corrective-sidecar linkage.",
+      "evidence": ".specle/agy-cleanup-complete.json AGY-3; triage, resolve, commit, complete, and runtime sidecar validation.",
+      "analysis": "The documented archived-feedback exception cannot yet carry its review record and corrective work through a defined delivery path.",
+      "recommendation": "Assign a delivery owner, define archived-origin corrective linkage, align runtime validation, and add coverage.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Accepted with variation: remove the archived-feedback exception entirely. Archived changes are immutable; triage and resolve do not operate on them. After archival, complete may only handle final PR merge eligibility and, once merged, remove the matching current-change selector. Later defects use independent work.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    },
+    {
+      "id": "antigravity-pr-48-revised-4",
+      "sources": ["antigravity-pr-48-revised-20261125"],
+      "severity": "P2",
+      "description": "Premature-merge recovery leaves recovery-PR identity, target branch, and post-merge preservation underspecified.",
+      "evidence": ".specle/agy-cleanup-complete.json AGY-4; complete workflow recovery and resumption steps.",
+      "analysis": "The recovery PR reference becomes known after archive mutation, which conflicts with the present archive-immutability wording; target and preservation requirements are also incomplete.",
+      "recommendation": "Specify a coherent recovery sequence, use the recorded target branch, and make post-merge synchronisation safe for tracked work.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Accepted with variation: delivery.completion is written only for normal archival delivery on an open original PR. If that PR already merged, synchronise the recorded target branch, create or reuse <delivery-branch>-complete, archive and commit there, then open an auto-merge recovery PR. That PR only transports the missed archive commit; it never adds recovery identity to, or otherwise rewrites, the archive. Preserve tracked work only when a branch switch is needed.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    },
+    {
+      "id": "antigravity-pr-48-revised-5",
+      "sources": ["antigravity-pr-48-revised-20261125"],
+      "severity": "P3",
+      "description": "Completion guidance omits several operational safeguards for authorisation, direct pushes, tracked staging, and unsupported archival resumption.",
+      "evidence": ".specle/agy-cleanup-complete.json AGY-5; complete workflow and lifecycle policy.",
+      "analysis": "These gaps can leave an unauthorised local mutation, fail to publish direct finalisation, or make unsupported archived invocation ambiguous.",
+      "recommendation": "Clarify authorisation ordering, direct push handling, tracked-file staging, and archived sidecar or closed-PR guards.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Accepted with variation: archival mutation and commit/push to the existing open delivery PR are already authorised delivery work. Only opening the exceptional recovery completion PR is an additional authority boundary. Complete must push direct shared-upstream finalisation before clearing its selector, stage only already tracked dependency-reconciled status files, and stop explicitly for archived sidecars, direct-delivery archive resumption, or an original PR closed without merge.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    },
+    {
+      "id": "antigravity-pr-48-revised-6",
+      "sources": ["antigravity-pr-48-revised-20261125"],
+      "severity": "P3",
+      "description": "Previously accepted findings lack completed dispatch records, so completion evidence is not reconciled.",
+      "evidence": ".specle/agy-cleanup-complete.json AGY-6; cleanup-complete review-findings.json and runtime settled-review predicate.",
+      "analysis": "Accepted revision work was performed, but the durable review audit has not recorded its completed dispatches using the recognised state value.",
+      "recommendation": "Reconcile accepted dispositions with complete dispatch records before delivery finalisation.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Accepted: resolve must reconcile the already-applied revisions using dispatch.state: complete, including correcting the legacy completed spelling, before delivery finalisation.",
+      "route": {
+        "workflow": "resolve",
+        "execution": "reconcile"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "resolve",
+        "execution": "reconcile",
+        "resulting_change": "cleanup-complete"
+      }
+    },
+    {
+      "id": "antigravity-pr-48-revised-7",
+      "sources": ["antigravity-pr-48-revised-20261125"],
+      "severity": "P3",
+      "description": "Triage metadata and reference documentation retain lifecycle contradictions after the completion revision.",
+      "evidence": ".specle/agy-cleanup-complete.json AGY-7; triage, changes, AGENTS, and lifecycle documentation.",
+      "analysis": "Several entrypoints still describe the retired or incomplete delivery paths, including the committed-feedback route.",
+      "recommendation": "Align frontmatter, record lookup, entrypoint wording, change inventory wording, and lifecycle diagrams.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Accepted with variation: committed external feedback enters triage directly; archived records never enter triage or resolve. Align frontmatter, record lookup, entrypoints, inventory wording, and lifecycle diagrams to that boundary and to complete for every delivery model.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    },
+    {
+      "id": "antigravity-pr-48-revised-8",
+      "sources": ["antigravity-pr-48-revised-20261125"],
+      "severity": "P4",
+      "description": "Workflow coverage is substring-only and stale wrapup identifiers remain in tests and spelling configuration.",
+      "evidence": ".specle/agy-cleanup-complete.json AGY-8; tests/test_workflow.py, tests/test_lifecycle.py, cspell.json.",
+      "analysis": "The current workflow assertions do not demonstrate classifier behaviour or job wiring, and a stale test name obscures the current lifecycle.",
+      "recommendation": "Strengthen workflow tests and remove stale identifiers where they are not historical evidence.",
+      "state": "complete",
+      "decision": "accept",
+      "rationale": "Accepted with variation: remove the new recurring workflow test rather than expand it. Validate the reusable action with act during this change, rename stale non-historical wrapup test identifiers, and remove the cspell allowlist only if an audit confirms it is unnecessary.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    }
+  ]
+}

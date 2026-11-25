@@ -301,11 +301,16 @@ def _validate_record(
         diagnostics.append(_diagnostic(path, "missing-evidence", "review"))
     if status == "committed":
         delivery = record.get("delivery")
-        required_delivery = ("reference", "head_branch", "target_branch")
-        if not isinstance(delivery, dict) or not all(
-            isinstance(delivery.get(field), str) and delivery[field]
-            for field in required_delivery
-        ):
+        branch_delivery = ("reference", "head_branch", "target_branch")
+        direct_delivery = ("branch", "commit")
+        has_delivery = isinstance(delivery, dict) and any(
+            all(
+                isinstance(delivery.get(field), str) and delivery[field]
+                for field in fields
+            )
+            for fields in (branch_delivery, direct_delivery)
+        )
+        if not has_delivery:
             diagnostics.append(_diagnostic(path, "missing-evidence", "delivery"))
 
 

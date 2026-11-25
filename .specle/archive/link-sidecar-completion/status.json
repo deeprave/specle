@@ -27,8 +27,7 @@
     "completion": {
       "reference": "https://github.com/deeprave/specle/pull/43",
       "head_branch": "feature/link-sidecar-completion-completion",
-      "target_branch": "main",
-      "commit": "944d3ab"
+      "target_branch": "main"
     }
   },
   "relationships": [],

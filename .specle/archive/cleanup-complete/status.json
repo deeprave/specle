@@ -1,0 +1,35 @@
+{
+  "$schema": "specle://schemas/change-status/1.0",
+  "kind": "change",
+  "status": "complete",
+  "created_at": 1795517797,
+  "activated_at": 1795519087,
+  "updated_at": 1795634164,
+  "archived_at": 1795634186,
+  "progress": {
+    "tasks_completed": 12,
+    "tasks_total": 12
+  },
+  "verification": {
+    "status": "pass"
+  },
+  "review": {
+    "status": "resolved",
+    "findings": 0
+  },
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/48",
+    "head_branch": "feature/cleanup-complete",
+    "target_branch": "main",
+    "commit": "e2480abdb567ae0a0b02de6ac4f3f2788ea6ff5c",
+    "event": "pull-request-update",
+    "completion": {
+      "reference": "https://github.com/deeprave/specle/pull/48",
+      "head_branch": "feature/cleanup-complete",
+      "target_branch": "main"
+    }
+  },
+  "relationships": [],
+  "dependencies": [],
+  "revision_note": "Replanned after Antigravity review: immutable archives, direct delivery, recovery transport, and fail-closed CI action."
+}

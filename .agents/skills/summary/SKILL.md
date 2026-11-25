@@ -13,7 +13,7 @@ Produce `summary.md` as a concise human account of completed work. It is a commu
 
 ## Workflow
 
-1. Read `.specle/current-change` when present, relevant policies, steering, applicable project guidance, and the target status record. Resolve the target in either active changes or archive. Select the local work item by default, including a selected archived completed item awaiting wrapup.
+1. Read `.specle/current-change` when present, relevant policies, steering, applicable project guidance, and the target status record. Resolve the target in either active changes or archive. Select the local work item by default, including a selected archived completed item awaiting an explicit completion resumption on its original or recovery PR.
 2. Apply the state guard before writing anything. The selected record must have `status: "complete"`. Otherwise, stop and identify the owning next workflow. Do not imply completion, run verification or review, or change lifecycle state.
 3. Read the target's evidence in full:
    - For normal work, read its requirements, design, task plan, verification evidence, review outcome, and the relevant implementation.
