@@ -115,19 +115,10 @@
       "evidence": ".agents/skills/complete/SKILL.md:33-37 checks before archival delivery and later assumes a merged PR contains it.",
       "analysis": "An external merge between the steps could leave archival work off the target branch.",
       "recommendation": "Check reachability before clearing the selector and describe recovery.",
-      "state": "complete",
-      "decision": "accept",
-      "rationale": "Accepted with variation: when the original PR has merged before archive delivery, preserve tracked work, synchronise main, restore the work, and create or reuse a <delivery-branch>-complete branch for archival finalisation. Commit, push, open an auto-merge PR, and use the same post-merge synchronisation ending. Normal completion remains on the original PR.",
-      "route": {
-        "workflow": "revise",
-        "execution": "in-place"
-      },
-      "dispatch": {
-        "state": "complete",
-        "workflow": "revise",
-        "execution": "in-place",
-        "resulting_change": "cleanup-complete"
-      }
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Declined after clarification: the accepted recovery path covers an original PR already merged before complete starts, not a speculative merge during finalisation. The workflow does not add concurrency machinery for that invented race.",
+      "route": null
     },
     {
       "id": "github-pr-48-sourcery-4",
@@ -159,20 +150,10 @@
       "evidence": ".agents/skills/{triage,review}/SKILL.md reject archived records while complete reports or synchronises the original PR.",
       "analysis": "A new blocking PR review after archive finalisation cannot enter the normal corrective loop.",
       "recommendation": "Document how feedback returns the work to an active corrective delivery path.",
-      "state": "complete",
-      "decision": "accept",
-      "rationale": "Accepted: an explicitly named archived completion record with an unmerged original PR may receive external-feedback triage to create corrective work on that recorded delivery branch and PR, while preserving archive status and delivery history.",
-      "route": {
-        "workflow": "revise",
-        "execution": "in-place"
-      },
-      "dispatch": {
-        "state": "complete",
-        "workflow": "revise",
-        "execution": "in-place",
-        "resulting_change": "cleanup-complete",
-        "note": "Superseded by the later accepted immutable-archive decision."
-      }
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Declined after the later workflow decision: archived records are immutable. Feedback must be handled before archive finalisation; later defects are independent work.",
+      "route": null
     },
     {
       "id": "github-pr-48-sourcery-6",
