@@ -1,10 +1,10 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "approved",
+  "status": "committed",
   "created_at": 1795517797,
   "activated_at": 1795519087,
-  "updated_at": 1795610886,
+  "updated_at": 1795633741,
   "progress": {
     "tasks_completed": 12,
     "tasks_total": 12
@@ -20,8 +20,8 @@
     "reference": "https://github.com/deeprave/specle/pull/48",
     "head_branch": "feature/cleanup-complete",
     "target_branch": "main",
-    "commit": "76f94ac7b97c1f056d8d60bedc4ca88867c256df",
-    "event": "pull-request-open"
+    "commit": "e2480abdb567ae0a0b02de6ac4f3f2788ea6ff5c",
+    "event": "pull-request-update"
   },
   "relationships": [],
   "dependencies": [],
