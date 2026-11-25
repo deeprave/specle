@@ -114,11 +114,15 @@ def test_change_status_validates_optional_lifecycle_timestamps() -> None:
 def test_change_status_validates_completion_delivery_evidence() -> None:
     instance = _change_status(created_at=1_795_252_440)
     instance["delivery"] = {
+        "reference": "https://github.com/deeprave/specle/pull/36",
+        "head_branch": "feature/example",
+        "target_branch": "main",
         "completion": {
             "reference": "https://github.com/deeprave/specle/pull/36",
-            "head_branch": "feature/example-completion",
+            "head_branch": "feature/example",
             "target_branch": "main",
-        }
+            "commit": "abcdef0",
+        },
     }
 
     assert validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]

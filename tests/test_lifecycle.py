@@ -28,6 +28,22 @@ def test_packaged_lifecycle_has_no_graph_diagnostics() -> None:
     assert validate_lifecycle_graph(discover_skills(root)) == ()
 
 
+def test_complete_resumes_archived_delivery_without_wrapup() -> None:
+    root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
+    from specle.inventory import discover_skills
+
+    skills = {skill.name: skill for skill in discover_skills(root)}
+
+    assert "wrapup" not in skills
+    lifecycle = skills["complete"].lifecycle
+    assert lifecycle is not None
+    assert "complete" in lifecycle.accepts
+    for name in ("commit", "triage", "resolve"):
+        lifecycle = skills[name].lifecycle
+        assert lifecycle is not None
+        assert "complete" not in lifecycle.accepts
+
+
 def test_reports_missing_next_skill_and_dead_end() -> None:
     skills = (
         _skill(

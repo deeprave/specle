@@ -107,7 +107,7 @@ def test_active_managed_skill_metadata_matches_its_blueprint() -> None:
     assert active == source
 
 
-def test_pending_change_inventory_skill_is_named_changes() -> None:
+def test_pending_change_inventory_excludes_removed_skills() -> None:
     project_root = Path(__file__).parents[1]
     blueprint_root = project_root / "src" / "specle" / "blueprints" / "skills"
     installed_root = project_root / ".agents" / "skills"
@@ -129,6 +129,7 @@ def test_pending_change_inventory_skill_is_named_changes() -> None:
     assert "changes" in installed_names
     assert "changes" in indexed_names
     assert "changelist" not in blueprint_names | installed_names | indexed_names
+    assert "wrapup" not in blueprint_names | installed_names | indexed_names
 
 
 def test_rejects_missing_description_or_usage(tmp_path: Path) -> None:

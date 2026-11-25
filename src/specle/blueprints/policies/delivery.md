@@ -18,7 +18,7 @@ Git has a shared upstream, but work is committed directly to the configured deli
 
 ### Shared upstream, branch and pull request
 
-Git has a shared upstream and work is delivered through a branch and reviewable pull request or equivalent change request. A successful local review makes work `approved`. The `commit` operation creates or updates the approved branch delivery and records it as `committed`. The `complete` operation confirms the configured final event, normally merge, and prepares archival finalisation. When that archival work requires its own completion PR, `wrapup` merges the recorded completion PR and synchronises the delivery branch.
+Git has a shared upstream and work is delivered through a branch and reviewable pull request or equivalent change request. A successful local review makes work `approved`. The `commit` operation creates or updates the approved branch delivery and records it as `committed`. The `complete` operation archives the record on that same PR, records immutable completion evidence, requests auto-merge where permitted, and later synchronises the delivery branch after merge.
 
 ## Policy boundary
 
@@ -30,6 +30,6 @@ Unknown policy remains explicitly unestablished. Skills must not infer it from t
 
 - `approved` means the local Specle review passed. It is not evidence that shared delivery or peer review is finished.
 - `committed` applies to every delivery model after its delivery event is recorded. It remains addressable for later external feedback.
-- `complete` means the project's configured final delivery event has been confirmed and the archived record is terminal. An explicitly invoked `wrapup` may inspect and merge a recorded completion PR without changing that archival state. A spike is an exception: its recorded findings complete it without implementation delivery.
+- `complete` means the archived record is terminal and its original delivery PR contains the archival finalisation. A later explicit `complete` may inspect that same PR and synchronise after merge without changing the archive. A spike is an exception: its recorded findings complete it without implementation delivery.
 
 External writes require both project policy and explicit user authorisation. A skill may provide exact instructions when either is absent.

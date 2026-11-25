@@ -1,0 +1,42 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261124-cleanup-complete",
+      "kind": "local-review",
+      "revision": "working-tree-4bee6cc99f0193b8b0921c8c189a4b5177a57e13592ecc6bd86ae0c7ea4e8e82",
+      "findings": 1
+    },
+    {
+      "id": "local-review-20261124-cleanup-complete-follow-up",
+      "kind": "local-review",
+      "revision": "working-tree-88f455183880af3982bc8fbb3a767732489a3fcac748725fd8de1ce8ef3a6b8f",
+      "findings": 0
+    }
+  ],
+  "items": [
+    {
+      "id": "local-review-20261124-cleanup-complete-1",
+      "sources": [
+        "local-review-20261124-cleanup-complete"
+      ],
+      "severity": "P3",
+      "description": "Remove obsolete complete-state acceptance from commit, triage, and resolve.",
+      "evidence": ".agents/skills/{commit,triage,resolve}/SKILL.md lifecycle.accepts each still includes complete although their workflows now require approved, review-findings, or triaged active targets and reject archived records.",
+      "analysis": "The old acceptances advertised the archival completion-feedback route that this change removes. Leaving them permits invalid lifecycle dispatches and contradicts the active-only rules in the same skills.",
+      "recommendation": "Remove complete from the lifecycle accepts lists in installed and blueprint copies, and add focused metadata coverage so no retired workflow route remains declared.",
+      "state": "completed",
+      "decision": "accept",
+      "rationale": "Accepted: the retired archival-feedback routes must not remain declared after the workflow that used them is removed.",
+      "route": {
+        "workflow": "revise",
+        "execution": "in-place"
+      },
+      "dispatch": {
+        "state": "completed",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "cleanup-complete"
+      }
+    }
+  ]
+}

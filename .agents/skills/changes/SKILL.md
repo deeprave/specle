@@ -17,7 +17,7 @@ Produce a read-only inventory of actionable changes under `.specle/changes/` and
 1. Read `.specle/current-change` when present and `.agents/policies/lifecycle.md` first, then any applicable steering override.
    Include the selected change whenever its recorded lifecycle status is not `complete`.
 2. Enumerate immediate directories under `.specle/changes/`, ordered by their directory name, and read each `status.json`. Exclude a record already marked `complete` from pending output unless it is explicit dependency context; archive finalisation owns moving it out of the active location.
-   Do not treat archived complete records as pending work because they retain completion-PR identity; completion-PR state is checked only by an explicitly invoked `wrapup`.
+   Do not treat archived complete records as pending work because their recorded original PR is checked only by an explicitly invoked `complete`.
 3. For each change, inspect `tasks.md` when present. Count Markdown task boxes at any indentation
    level:
    - no `tasks.md` — report its recorded lifecycle state when available, otherwise **defined**;

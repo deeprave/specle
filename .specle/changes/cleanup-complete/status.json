@@ -1,0 +1,21 @@
+{
+  "$schema": "specle://schemas/change-status/1.0",
+  "kind": "change",
+  "status": "approved",
+  "created_at": 1795517797,
+  "activated_at": 1795519087,
+  "updated_at": 1795521612,
+  "progress": {
+    "tasks_completed": 6,
+    "tasks_total": 6
+  },
+  "verification": {
+    "status": "pass"
+  },
+  "review": {
+    "status": "pass"
+  },
+  "delivery": null,
+  "relationships": [],
+  "dependencies": []
+}
