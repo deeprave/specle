@@ -121,12 +121,17 @@ def test_change_status_validates_completion_delivery_evidence() -> None:
             "reference": "https://github.com/deeprave/specle/pull/36",
             "head_branch": "feature/example",
             "target_branch": "main",
-            "commit": "abcdef0",
         },
     }
 
     assert validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
 
+    instance["delivery"]["completion"]["commit"] = "abcdef0"
+
+    with pytest.raises(SchemaRegistryError, match="failed additionalProperties"):
+        validate_instance(instance)
+
+    del instance["delivery"]["completion"]["commit"]
     instance["delivery"]["completion"]["event"] = "pull-request-open"
 
     with pytest.raises(SchemaRegistryError, match="failed additionalProperties"):
@@ -137,6 +142,17 @@ def test_change_status_validates_completion_delivery_evidence() -> None:
 
     with pytest.raises(SchemaRegistryError, match="failed required"):
         validate_instance(instance)
+
+
+def test_change_status_accepts_direct_delivery_without_completion_evidence() -> None:
+    instance = _change_status(created_at=1_795_252_440)
+    instance["delivery"] = {
+        "branch": "main",
+        "commit": "abcdef0",
+        "event": "direct-push",
+    }
+
+    assert validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
 
 
 def test_change_status_accepts_a_concurrent_delivery_relationship() -> None:

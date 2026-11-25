@@ -27,8 +27,7 @@
     "completion": {
       "reference": "https://github.com/deeprave/specle/pull/47",
       "head_branch": "bugfix/rename-changelist-to-changes-completion",
-      "target_branch": "main",
-      "commit": "c79c3e8"
+      "target_branch": "main"
     }
   },
   "relationships": [],

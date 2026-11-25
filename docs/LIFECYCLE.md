@@ -2,7 +2,7 @@
 
 This is the lifecycle implemented by Specle today. It is a reference for the workflow skills and the per-change state recorded in `.specle/changes/<name>/status.json` or `.specle/archive/<name>/status.json`; `.agents/policies/lifecycle.md` remains the authoritative package policy and project steering may refine it.
 
-Local approval, delivery, and archival finalisation are distinct. `approved` records a passing local review; `commit` records the applicable delivery event and moves work to `committed`; `complete` records completion and archives the durable change record on the same delivery path. For branch delivery it records immutable completion evidence on the original PR, requests auto-merge where permitted, and later synchronises after that PR merges.
+Local approval, delivery, and archival finalisation are distinct. `approved` records a passing local review; `commit` records the applicable delivery event and moves work to `committed`; `complete` records completion and archives the durable change record on the same delivery path. For branch delivery it records immutable PR identity on the original PR, requests auto-merge where permitted, and later synchronises after that PR merges. A `<delivery-branch>-complete` PR is recovery only when the original PR merged before archival delivery.
 
 ## Statuses
 
@@ -19,7 +19,7 @@ Local approval, delivery, and archival finalisation are distinct. `approved` rec
 | `committed` | A delivery event was recorded and archival finalisation remains. | `complete`, or named `triage` for external feedback |
 | `review-findings` | Review has findings that need decisions. | `triage` |
 | `triaged` | Every current finding has a recorded decision and routing is ready. | `resolve` |
-| `complete` | Archival finalisation was recorded on the existing delivery path, or a spike delivered its findings. | None; a named `complete <change-name>` may later synchronise after the recorded PR merges. |
+| `complete` | Archival finalisation was recorded on the existing delivery path, or a spike delivered its findings. | None; a named `complete <change-name>` may later synchronise after the original or recovery PR merges. |
 
 `review.status` is separate from lifecycle status. It is `pass` after local approval and `resolved` when every current finding has a terminal no-action disposition or completed follow-up. Resolve returns a local no-action outcome to `approved` and a previously submitted no-action outcome to `committed`; neither outcome alone completes delivery.
 
@@ -36,10 +36,10 @@ Local approval, delivery, and archival finalisation are distinct. `approved` rec
 | `verify` | Sets a passing target `verified`; a failed target is `building`. A named committed normal target or unselected abbreviated target changes only its own record. |
 | `review` | On approval, sets the selected target `approved` with next `commit`. On findings, sets the selected target `review-findings`. |
 | `commit` | Applies the selected delivery model, records its delivery event and `updated_at`, and moves every delivered member to `committed`. A normal parent may include only sidecars it declares with concurrent delivery and that reciprocally agree and are ready; it never infers them from a reverse scan. |
-| `complete` | Removes the delivered parent and eligible reciprocal sidecars from matching explicit dependency arrays in other active records, generates the parent summary, writes `complete`, `archived_at`, and immutable `delivery.completion` evidence, then performs authorised recoverable archival finalisation. For branch delivery it pushes this mutation to the original PR, requests auto-merge, and a later `complete` synchronises after merge. Direct delivery clears the matching selector. |
-| `triage` | Sets a fully decided active target `triaged`. |
+| `complete` | Removes the delivered parent and eligible reciprocal sidecars from matching explicit dependency arrays in other active records, generates the parent summary, writes `complete`, `archived_at`, and immutable `delivery.completion` PR identity, then performs recoverable archival finalisation. For branch delivery it pushes this mutation to the original PR and requests auto-merge; only an original PR already merged before archival delivery creates a recovery PR. A later `complete` synchronises after merge. Direct delivery writes no completion object, pushes the archival finalisation, and clears the matching selector. |
+| `triage` | Sets a fully decided active target `triaged`. Archived records are immutable and do not enter triage. |
 | `resolve` | Reconciles previously dispatched accepted work, then dispatches any pending accepted follow-up. It reports `resolve <target>` as the later reconciliation step for incomplete follow-ups. A local no-action outcome returns to `approved`; a previously committed no-action outcome returns to `committed`. |
-| `revise` | Reconciles accepted feedback and returns eligible active work to the earliest viable planning state; archived records are immutable. |
+| `revise` | Reconciles accepted feedback and returns eligible active work to the earliest viable planning state. Archived records are immutable; a later defect requires independent work. |
 | `prepare` | Creates an unselected bugfix or refactor as `planned` with its owning next skill. |
 | `bugfix` / `refactor` | When executed, move only the named abbreviated item to `building`; when called through `prepare`, they create artifacts without executing them. |
 | `spike` | Creates an unselected spike or, when invoked by `activate`, moves it through `defined` → `spiking` → `complete` while recording durable findings and a stable outcome-change name. |
@@ -63,7 +63,7 @@ Every non-terminal state has an owning workflow command and a valid next transit
 | `committed` | `complete` archives delivery, or named `triage` handles external feedback. | Has an exit. |
 | `review-findings` | `triage` records decisions. | Has an exit. |
 | `triaged` | `resolve` dispatches pending actions, waits for incomplete follow-ups, creates unselected independent work where required, restores a local no-action result to `approved`, or restores a submitted no-action result to `committed`. | Has an exit; no-action review and hand-off do not bypass delivery. |
-| `complete` | Terminal. A later named `complete` may only inspect the original PR and synchronise after merge. | Intentional terminal state. |
+| `complete` | Terminal. A later named `complete` may inspect the original or recovery PR and synchronise after merge. | Intentional terminal state. |
 
 ## Current flows
 
@@ -96,7 +96,7 @@ flowchart TB
   triaged -.->|creates unselected normal work| unselected_defined[defined: independent change]
 ```
 
-Branch archival finalisation stays on the original delivery PR. It is pushed before final merge, so the state graph needs no second completion command.
+Branch archival finalisation stays on the original delivery PR and is pushed before final merge, so the state graph needs no second completion command. If that PR was already merged before archival delivery, completion stops its normal path and uses a recoverable `<delivery-branch>-complete` PR instead. Completion requires the checkout to be on the current original or recovery phase branch; it reports a mismatch rather than switching or stashing automatically.
 
 ### Unselected abbreviated work: bugfix or refactor
 
@@ -131,7 +131,7 @@ flowchart TB
   spiking -->|spike records findings| complete
 ```
 
-Resolve preserves `.specle/current-change` for every explicitly named non-selected target. `complete` archives a branch-delivery target on its original open PR and retains its selector until a later `complete` confirms that PR merged and synchronises the delivery branch. External feedback is settled through the normal committed-work triage loop before archival finalisation.
+Resolve preserves `.specle/current-change` for every explicitly named non-selected target. `complete` archives a branch-delivery target on its original open PR and retains its selector until a later `complete` confirms that PR merged and synchronises the delivery branch. External feedback is settled through the normal committed-work triage loop before archival finalisation. Once archived, the record is immutable; a later defect requires independent work.
 
 ## Concurrent sidecars
 

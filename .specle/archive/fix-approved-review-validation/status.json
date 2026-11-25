@@ -28,8 +28,7 @@
     "completion": {
       "reference": "https://github.com/deeprave/specle/pull/41",
       "head_branch": "bugfix/fix-approved-review-validation-completion",
-      "target_branch": "main",
-      "commit": "58a21dc"
+      "target_branch": "main"
     }
   },
   "relationships": [],

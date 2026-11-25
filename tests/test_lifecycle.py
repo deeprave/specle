@@ -28,7 +28,7 @@ def test_packaged_lifecycle_has_no_graph_diagnostics() -> None:
     assert validate_lifecycle_graph(discover_skills(root)) == ()
 
 
-def test_complete_resumes_archived_delivery_without_wrapup() -> None:
+def test_archived_delivery_allows_only_completion_resumption() -> None:
     root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
     from specle.inventory import discover_skills
 
@@ -38,10 +38,16 @@ def test_complete_resumes_archived_delivery_without_wrapup() -> None:
     lifecycle = skills["complete"].lifecycle
     assert lifecycle is not None
     assert "complete" in lifecycle.accepts
+    lifecycle = skills["commit"].lifecycle
+    assert lifecycle is not None
+    assert "complete" not in lifecycle.accepts
     for name in ("commit", "triage", "resolve"):
         lifecycle = skills[name].lifecycle
         assert lifecycle is not None
         assert "complete" not in lifecycle.accepts
+    lifecycle = skills["triage"].lifecycle
+    assert lifecycle is not None
+    assert "committed" in lifecycle.accepts
 
 
 def test_reports_missing_next_skill_and_dead_end() -> None:
@@ -169,7 +175,9 @@ def test_validates_per_change_state_and_ignored_selection(tmp_path: Path) -> Non
     assert validate_runtime_records(target, _runtime_skills()) == ()
 
 
-def test_accepts_a_selected_archived_change_awaiting_wrapup(tmp_path: Path) -> None:
+def test_accepts_a_selected_archived_change_awaiting_completion_resumption(
+    tmp_path: Path,
+) -> None:
     target = tmp_path / "project"
     _write_status(target, "example", status="complete", archived=True)
     (target / ".specle" / "current-change").write_text("example\n")
@@ -240,6 +248,19 @@ def test_accepts_resolved_review_evidence_for_an_approved_change(
             },
         ],
     )
+
+    assert validate_runtime_records(target, _runtime_skills()) == ()
+
+
+def test_accepts_direct_delivery_evidence_for_a_committed_change(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "example", status="committed")
+    status_path = target / ".specle" / "changes" / "example" / "status.json"
+    status = json.loads(status_path.read_text())
+    status["delivery"] = {"branch": "main", "commit": "abcdef0"}
+    status_path.write_text(json.dumps(status))
 
     assert validate_runtime_records(target, _runtime_skills()) == ()
 
@@ -784,7 +805,7 @@ def _runtime_skills() -> tuple[SkillMetadata, ...]:
         _skill(
             "start",
             LifecycleDeclaration(
-                accepts=("defined", "verified", "approved"),
+                accepts=("defined", "verified", "approved", "committed"),
                 creates=("defined",),
                 transitions=(
                     LifecycleTransition(

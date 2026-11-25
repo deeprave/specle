@@ -1,19 +1,20 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "approved",
   "created_at": 1795517797,
   "activated_at": 1795519087,
-  "updated_at": 1795564878,
+  "updated_at": 1795610886,
   "progress": {
-    "tasks_completed": 6,
-    "tasks_total": 6
+    "tasks_completed": 12,
+    "tasks_total": 12
   },
   "verification": {
     "status": "pass"
   },
   "review": {
-    "status": "pass"
+    "status": "pass",
+    "findings": 0
   },
   "delivery": {
     "reference": "https://github.com/deeprave/specle/pull/48",
@@ -23,5 +24,6 @@
     "event": "pull-request-open"
   },
   "relationships": [],
-  "dependencies": []
+  "dependencies": [],
+  "revision_note": "Replanned after Antigravity review: immutable archives, direct delivery, recovery transport, and fail-closed CI action."
 }

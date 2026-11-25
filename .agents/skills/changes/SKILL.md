@@ -9,7 +9,7 @@ usage: >-
 
 # Show changes
 
-Produce a read-only inventory of actionable changes under `.specle/changes/` and pending archival delivery under `.specle/archive/`. Do not change
+Produce a read-only inventory of actionable changes under `.specle/changes/`. Completed archives are historical evidence, not pending delivery. Do not change
 `.specle/current-change`, per-change `status.json` files, change files, or the working tree.
 
 ## Workflow

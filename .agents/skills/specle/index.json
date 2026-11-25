@@ -137,7 +137,7 @@
         {
           "name": "complete",
           "description": "Finalise or resume archival delivery for a committed Specle change.",
-          "usage": "Use after a committed delivery to archive it on its existing delivery path, request final merge where applicable, or resume synchronisation after that merge."
+          "usage": "Use after committed delivery to archive it on its existing delivery path, request final merge where applicable, or resume the missing finalisation phase."
         },
         {
           "name": "track",

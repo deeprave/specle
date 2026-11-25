@@ -2,45 +2,55 @@
 
 ## Overview
 
-Replace the two-PR `complete` then `wrapup` sequence with one PR lifecycle. The initial `commit` creates the delivery PR and records its identity. Until finalisation, external review uses the existing `triage` → `resolve` → corrective work → `verify` → `review` → `commit` loop on that same PR. `complete` performs archival finalisation on that same branch before the PR merges, then requests auto-merge where available.
-
-`delivery.completion` remains part of the durable status contract. It records the immutable identity of the archival-finalisation submission on the original PR: its reference, head and target branches, and the archival commit. It has no mutable event field and does not create another PR.
-
-## Architecture
+Branch delivery has an original-PR phase and, only after premature original-PR merge, a recovery-PR phase. Both use `complete` and retain one active delivery phase at a time.
 
 ```text
 approved → commit → committed / original PR open
-                       │
-                       ├─ external feedback → triage → resolve → corrective loop → commit
-                       │
-                       └─ complete → archive + completion record + push to same PR
-                                              │
-                                              ├─ request auto-merge
-                                              └─ later complete → inspect same PR → sync main after merge
+                         │
+                         ├─ external feedback → triage → resolve → corrective loop → same PR
+                         │
+                         └─ complete → archive + immutable PR identity → push → auto-merge
+                                                                        │
+                  original PR already merged before archive delivery ──┘
+                                   │
+                                   └─ sync main → <branch>-complete → recovery PR → auto-merge
 ```
 
-For direct and local delivery, `complete` keeps the existing archival and dependency-reconciliation mutation but has no PR wait. For branch delivery, `complete` must not merge before archiving. It validates the recorded original PR and settled findings, re-reads active dependency records, generates the summary, marks the delivery set complete with `archived_at`, adds `delivery.completion` using the original PR identity and archival commit, moves the set to the archive, and commits and pushes that mutation to the original branch.
+`delivery` retains the implementation event. For branch delivery, `delivery.completion` identifies the PR carrying archival finalisation with `reference`, `head_branch`, and `target_branch`. It excludes a commit hash: the archive commit is discoverable in Git history, and embedding its own SHA requires a self-reference or later archive mutation.
 
-After a successful push, `complete` requests auto-merge through the repository’s available PR mechanism when permitted. It reports the exact external condition if auto-merge cannot be enabled. It does not poll or subscribe for notifications. A later named `complete` accepts the archived completed record, rechecks the same recorded PR, reports an outstanding CI/review/merge condition, or, after a merge, preserves tracked local work, fast-forwards the delivery branch, restores that work, and clears the matching selector.
+## Delivery phases and resumption
 
-## Data and lifecycle
+An active committed target uses its recorded delivery branch. After archival mutation, explicit `complete <name>` discovers the first incomplete phase: archive commit, branch push, PR creation/update, auto-merge request, merge confirmation, or target synchronisation.
 
-- Retain the `delivery.completion` schema object and its current immutable fields. Do not add an event field or create a second state store.
-- Remove the `wrapup` inventory entry and skill directories from installed and blueprint distributions.
-- Update `complete` lifecycle metadata and policy so a named archived complete record is a valid resumption target for synchronisation, without changing its terminal status or archive contents.
-- Keep archived records immutable after finalisation. A resumed `complete` performs only external inspection, checkout synchronisation, and selector cleanup.
-- Preserve the existing reciprocal-sidecar discovery and exact dependency cleanup rules. The parent archives every valid committed sidecar with the same original PR and completion record.
+If the original PR is already merged before archive delivery, completion synchronises the recorded target branch, creates or reuses `<delivery-branch>-complete`, archives the delivery set there, and opens an auto-merge PR carrying the missed archive commit. If tracked work prevents the branch switch, it stops and lets the user decide how to preserve it; untracked files do not require preservation. Recovery does not add identity to, or otherwise rewrite, the immutable archive. Normal completion never creates this branch.
+
+The checkout must equal the phase branch: original delivery branch until recovery begins, then the recorded recovery branch. A mismatch is an actionable stop, not a trigger for automatic stash or branch switching.
+
+After archive finalisation, the archive is immutable. `triage` and `resolve` reject it; later defects are independent work. A resumed `complete` only finishes an eligible PR merge, synchronises the target branch, and removes the matching selector.
+
+## Direct delivery
+
+Local-only and direct shared-upstream delivery use the implementation commit and branch already recorded by `commit`. Their `complete` operation archive-finalises without `delivery.completion`. No PR reference, event, or fabricated completion commit is valid.
+
+## Schema and archive migration
+
+Remove `commit` from `delivery.completion` in current `1.0` schema. Update every historical archived status record carrying it in the same change. This is an intentional unreleased-format break with no compatibility version.
+
+## CI fast lane
+
+Keep the PR workflow triggered for every update. A repository-local validation-lane action fails closed unless it can establish successful full validation for the preceding revision against the unchanged PR base. Full jobs run for mixed, uncertain, or non-PR changes; a metadata job runs `uv run --frozen specle validate .` only for eligible updates. An always-running `Verify` aggregation job checks the applicable path, preserving the required check name. Pushes to `main` always take the full suite. Validate the action with `act` and observed PR runs rather than recurring workflow tests.
 
 ## Failure handling
 
-- If current external findings are not all terminally resolved, `complete` stops before archival mutation and directs the established triage path.
-- If the original PR is open but CI, review, merge eligibility, or auto-merge enablement is blocked, `complete` reports that condition and leaves the single original PR as the delivery artefact.
-- Before switching branches or synchronising after a merge, preserve tracked staged and unstaged work in one recoverable stash. Do not include untracked or ignored files.
-- If synchronisation or stash restoration fails, retain the stash and selector and provide recovery instructions. Do not mutate the archive.
+- External feedback, CI, or merge eligibility blocks auto-merge but leaves the current phase resumable.
+- A missing push, PR, identity, or auto-merge step is retried only by explicit completion resumption.
+- Premature original-PR merge selects recovery; archival work is never silently pushed to an already merged branch.
+- Merge conflicts, wrong branch, or rejected push stop with durable record and selector retained.
 
 ## Test strategy
 
-- Add lifecycle and inventory coverage proving `wrapup` is absent while installed and blueprint inventories remain aligned.
-- Add schema coverage that `delivery.completion` remains valid and continues to reject a completion event.
-- Add focused workflow-contract coverage for the same-PR branch correction loop, archive-before-final-merge ordering, completion record contents, auto-merge request/resumption guidance, direct delivery, and exact dependency removal with sidecars.
-- Run the full project quality gates, installed and blueprint validation, and a reference search to confirm that managed completion-PR and `wrapup` guidance is removed without touching historical archives.
+- Cover lifecycle metadata for direct, original-PR, and recovery delivery phases; archives never enter feedback workflows.
+- Cover direct delivery without PR completion evidence and schema rejection of completion commit fields.
+- Validate migration of every historical completion commit field.
+- Exercise fail-closed CI classification with `act`, then confirm the implementation and archive-only PR updates choose their expected lanes; retain unconditional full main coverage.
+- Run complete project quality gates and installed/blueprint validation.

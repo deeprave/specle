@@ -26,8 +26,7 @@
     "completion": {
       "reference": "https://github.com/deeprave/specle/pull/38",
       "head_branch": "feature/add-wrapup-skill-completion",
-      "target_branch": "main",
-      "commit": "f5db4db"
+      "target_branch": "main"
     }
   },
   "relationships": [],

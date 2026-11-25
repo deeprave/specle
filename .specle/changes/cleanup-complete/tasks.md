@@ -1,8 +1,22 @@
 # Tasks: Cleanup complete
 
-- [x] 1. Add focused regression coverage for the revised completion lifecycle: same-PR correction loops, archive-before-final-merge finalisation, later synchronisation through `complete`, and removal of the `wrapup` inventory entry. (`tests/test_lifecycle.py`, `tests/test_inventory_metadata.py`)
-- [x] 2. Preserve the `delivery.completion` contract with schema coverage for immutable original-PR finalisation evidence and rejection of a completion event. (`src/specle/schemas/change-status/1.0.json`, `tests/test_schema_registry.py`)
-- [x] 3. Replace branch-delivery `complete` guidance in installed and blueprint skills so it archives, records completion evidence, pushes to the original PR, requests auto-merge, and later resumes synchronisation without a second PR. (`.agents/skills/complete/SKILL.md`, `src/specle/blueprints/skills/complete/SKILL.md`)
-- [x] 4. Remove the managed `wrapup` skill and every retired archival-feedback lifecycle route, then revise lifecycle, delivery, commit, triage, resolve, status, summary, and reporting guidance for one-PR completion while preserving external-feedback handling on the original PR. (`.agents/`, `src/specle/blueprints/`, `docs/LIFECYCLE.md`)
-- [x] 5. Regenerate the installed skill index and validate installed/blueprint inventory alignment after the removal. (`.agents/skills/specle/index.json`)
-- [x] 6. Confirm historical archived records remain untouched, run focused regressions and all project quality gates, then validate installed and blueprint Specle distributions.
+## Completed before review revision
+
+- [x] 1. Add initial lifecycle, inventory, and schema regression coverage for one-PR completion and remove `wrapup`. (`tests/test_lifecycle.py`, `tests/test_inventory_metadata.py`, `tests/test_schema_registry.py`)
+- [x] 2. Replace original branch-delivery guidance and managed inventory with the first one-PR completion design. (`.agents/`, `src/specle/blueprints/`, `docs/LIFECYCLE.md`)
+- [x] 3. Run initial full quality gates and installed/blueprint validation.
+
+## Review revision
+
+- [x] 4. Extend change-status validation and migrate historical archive records to remove `delivery.completion.commit`; specify direct delivery without PR completion evidence. (`src/specle/schemas/change-status/1.0.json`, `.specle/archive/*/status.json`, `tests/test_schema_registry.py`, `tests/test_lifecycle.py`)
+- [x] 5. Revise lifecycle, delivery, commit, complete, triage, resolve, review, activate, status, summary, and documentation guidance for normal completion, archived-unmerged feedback, and exceptional premature-merge recovery. (`.agents/`, `src/specle/blueprints/`, `docs/LIFECYCLE.md`)
+- [x] 6. Add conservative PR CI classification and fast metadata validation while retaining required `Verify` and full `main` coverage. (`.github/workflows/test.yml`, workflow-focused tests or validation)
+- [x] 7. Regenerate the installed skill index and add focused regression coverage for direct completion, recovery branch guards, resumption, archived feedback, schema migration, and fast-lane workflow structure. (`.agents/skills/specle/index.json`, `tests/`)
+- [x] 8. Run full project gates, installed and blueprint validation, workflow syntax/structure checks, historical-archive migration audit, and re-review the delivery model.
+
+## Revised after Antigravity review
+
+- [x] 9. Repair direct-delivery runtime evidence validation and remove every archived-feedback lifecycle exception. (`src/specle/lifecycle.py`, `.agents/`, `src/specle/blueprints/`, `docs/LIFECYCLE.md`)
+- [x] 10. Clarify normal and recovery completion, including existing-PR authority, tracked-only staging, direct push, closed-PR stops, and immutable recovery archive transport. (`.agents/`, `src/specle/blueprints/`, `docs/LIFECYCLE.md`)
+- [x] 11. Extract fail-closed PR validation-lane classification into a local reusable action, remove recurring workflow tests, and validate it with `act`. (`.github/actions/`, `.github/workflows/test.yml`)
+- [x] 12. Reconcile accepted review dispatches, align entrypoint/index documentation, run full gates, act validation, and re-review.
