@@ -146,6 +146,8 @@ def test_compares_an_installed_distribution_to_its_package_source(
     target = tmp_path / "project"
     target.mkdir()
     initialise_distribution(source_root, target)
+    context = target / ".specle" / "context.json"
+    context.write_text('{"local": true}\n')
 
     assert compare_installed_distribution(source_root, target) == ()
 
@@ -160,6 +162,8 @@ def test_version_aware_update_previews_and_applies_safe_resource_changes(
     target = tmp_path / "project"
     target.mkdir()
     initialise_distribution(source_root, target)
+    context = target / ".specle" / "context.json"
+    context.write_text('{"local": true}\n')
     changed = source_root / "skills" / "define" / "resource.json"
     changed.write_text('{"version": "new"}\n')
     (source_root / "policies" / "new.md").write_text(
@@ -204,6 +208,7 @@ def test_version_aware_update_previews_and_applies_safe_resource_changes(
         '{"version": "new"}\n'
     )
     assert (target / ".agents" / "policies" / "new.md").is_file()
+    assert context.read_text() == '{"local": true}\n'
     assert compare_installed_distribution(source_root, target) == ()
 
 
@@ -356,6 +361,8 @@ def test_version_aware_update_preserves_modified_managed_resources(
     target = tmp_path / "project"
     target.mkdir()
     initialise_distribution(source_root, target)
+    context = target / ".specle" / "context.json"
+    context.write_text('{"local": true}\n')
     installed_resource = target / ".agents" / "skills" / "define" / "resource.json"
     installed_resource.write_text('{"version": "local"}\n')
     (source_root / "skills" / "define" / "resource.json").write_text(
@@ -392,6 +399,7 @@ def test_version_aware_update_preserves_modified_managed_resources(
     )
 
     assert installed_resource.read_text() == '{"version": "new"}\n'
+    assert context.read_text() == '{"local": true}\n'
 
 
 def test_conflicted_update_does_not_apply_safe_actions_until_yes(

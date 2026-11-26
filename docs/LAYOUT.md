@@ -12,6 +12,7 @@ Specle separates stable, human-maintained guidance from agent-managed runtime st
 .specle/
   .gitignore                       # Ignores worktree-local runtime selection/cache
   current-change                     # Ignored one-line selected change name
+  context.json                       # Optional ignored local hand-off document
   changes/
     <change-slug>/                   # Active or queued self-contained change
   archive/
@@ -39,11 +40,17 @@ Guidance in `.agents/` is Markdown and remains human-maintained. The generated `
 
 Every change directory owns a versioned `status.json`. It records its `kind` separately from lifecycle status. The initial kinds are `change`, `bugfix`, `refactor`, `spike`, `docs`, and `release`; unknown non-empty kebab-case kinds are preserved. Directory name is the stable identity; active versus archived location is the durable classification.
 
-`.specle/current-change` is an ignored, one-line worktree-local selector. It is absent in a fresh clone until `activate` selects a normal change or spike. It is never committed, copied, or synchronised between worktrees. `context.json` is an optional ignored agent cache only; it has no Specle contract or lifecycle authority.
+`.specle/current-change` is an ignored, one-line worktree-local selector. It is absent in a fresh clone until `activate` selects a normal change or spike. It is never committed, copied, or synchronised between worktrees.
+
+`.specle/context.json` is an optional, ignored, worktree-local hand-off document. It transfers current useful context between agents, sessions, subagents, and reviewers; it is not committed, merged, or copied between worktrees. `.agents/policies/context.md` enables maintenance by default, while `.agents/project/context.md` may disable it or decide whether reviewing agents may update it. It has no lifecycle authority and is never required by a Specle skill.
+
+Its `context/1.0` contract recognises three optional collections: reverse-chronological additive `milestones` with a non-empty human-readable local `date_added` date-and-time string, `subject`, optional `change`, and optional any-shaped `detail`; `todos` with the same fields for informal follow-ups; and `directives` with `subject` and optional `detail` for current user defaults or denials. Prefer local ISO 8601 with an explicit numeric offset for `date_added`, but do not treat the preferred form as a validity gate. All document and item shapes accept additional JSON properties. Keep the document concise and current: prune no-longer-relevant milestones and obsolete todos, and remove or mark a todo transferred when a defined change owns it. It is a hand-off, not a diary, command or verification log, authoritative backlog, or permanent history.
+
+Specle does not read or validate this optional document. A missing, malformed, or stale context never affects `specle validate <target>` or lifecycle operations.
 
 ## JSON contracts
 
-Agent-managed records that cross skill or external-system boundaries identify their versioned contract through a top-level `$schema` URI. Specle packages Draft 2020-12 schemas for change status, spike findings, tracker links, and the generated skill index. Their stable identifiers follow `specle://schemas/<contract>/1.0`; the package registry loads and validates them locally without assuming a source checkout or network retrieval.
+Agent-managed records that cross skill or external-system boundaries identify their versioned contract through a top-level `$schema` URI. Specle packages Draft 2020-12 schemas for change status, hand-off context, spike findings, tracker links, and the generated skill index. Their stable identifiers follow `specle://schemas/<contract>/1.0`; the package registry loads and validates them locally without assuming a source checkout or network retrieval.
 
 Use `specle schemas export <destination>` to create a portable copy of every schema resource. The command refuses to replace an existing destination unless `--force` is explicit, stages the complete export first, and preserves the existing destination if replacement fails.
 The exported `registry.json` maps each stable schema URI to its relative resource path; offline consumers can register those resources under the listed URIs before validating schemas with internal `$ref` values.

@@ -175,6 +175,19 @@ def test_validates_per_change_state_and_ignored_selection(tmp_path: Path) -> Non
     assert validate_runtime_records(target, _runtime_skills()) == ()
 
 
+def test_ignores_malformed_local_context_when_resolving_runtime_state(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "example", status="defined")
+    (target / ".specle" / "context.json").write_text("not valid json\n")
+
+    snapshot = read_change_state(target)
+
+    assert resolve_change(snapshot, "example").name == "example"
+    assert validate_runtime_records(target, _runtime_skills()) == ()
+
+
 def test_accepts_a_selected_archived_change_awaiting_completion_resumption(
     tmp_path: Path,
 ) -> None:
@@ -244,6 +257,10 @@ def test_accepts_resolved_review_evidence_for_an_approved_change(
             {"decision": "decline"},
             {
                 "decision": "accept",
+                "dispatch": {"state": "complete"},
+            },
+            {
+                "decision": "vary",
                 "dispatch": {"state": "complete"},
             },
         ],

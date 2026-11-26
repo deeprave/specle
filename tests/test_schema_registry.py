@@ -40,6 +40,124 @@ def test_loads_packaged_change_status_schema() -> None:
     )
 
 
+def test_context_contract_accepts_handoff_collections_and_extensions() -> None:
+    instance = {
+        "$schema": SCHEMA_IDENTIFIERS["context"],
+        "milestones": [
+            {
+                "date_added": "2026-11-26T10:26:00+11:00",
+                "subject": "Completed the initial design",
+                "change": "resurrect-context-json",
+                "detail": {"why": ["handoff", "continuity"]},
+                "agent_note": True,
+            }
+        ],
+        "todos": [
+            {
+                "date_added": "2026-11-21T20:14:00+10:00",
+                "subject": "Consider the local branch model",
+                "detail": ["investigate", {"later": None}],
+            }
+        ],
+        "directives": [
+            {"subject": "Do not create speculative concurrency handling", "detail": 3}
+        ],
+        "project_handoff": {"owner": "developer"},
+    }
+
+    assert validate_instance(instance) == SCHEMA_IDENTIFIERS["context"]
+
+
+@pytest.mark.parametrize(
+    "instance",
+    [
+        {"$schema": "specle://schemas/context/1.0", "milestones": [{}]},
+        {
+            "$schema": "specle://schemas/context/1.0",
+            "todos": [{"date_added": 1, "subject": ""}],
+        },
+        {
+            "$schema": "specle://schemas/context/1.0",
+            "directives": [{"subject": ""}],
+        },
+    ],
+)
+def test_context_contract_rejects_invalid_recognised_items(
+    instance: dict[str, object],
+) -> None:
+    with pytest.raises(SchemaRegistryError):
+        validate_instance(instance)
+
+
+def test_context_contract_accepts_a_minimal_document_and_exports_its_schema(
+    tmp_path: Path,
+) -> None:
+    instance = {"$schema": SCHEMA_IDENTIFIERS["context"]}
+
+    assert validate_instance(instance) == SCHEMA_IDENTIFIERS["context"]
+    destination = tmp_path / "schemas"
+    export_schemas(destination)
+    assert (destination / "context" / "1.0.json").is_file()
+
+
+@pytest.mark.parametrize("collection", ["milestones", "todos"])
+@pytest.mark.parametrize("value", ["", 1_795_252_440, True])
+def test_context_contract_rejects_empty_or_non_string_date_added(
+    collection: str, value: object
+) -> None:
+    instance = {
+        "$schema": SCHEMA_IDENTIFIERS["context"],
+        collection: [{"date_added": value, "subject": "Recorded"}],
+    }
+
+    with pytest.raises(SchemaRegistryError):
+        validate_instance(instance)
+
+
+@pytest.mark.parametrize("collection", ["milestones", "todos"])
+@pytest.mark.parametrize(
+    "value",
+    [
+        "Tuesday morning",
+        "2026-11-21",
+        "2026-11-21T20:14:00Z",
+        "2026-11-21T20:14:00",
+    ],
+)
+def test_context_contract_accepts_human_readable_local_date_added(
+    collection: str, value: str
+) -> None:
+    instance = {
+        "$schema": SCHEMA_IDENTIFIERS["context"],
+        collection: [{"date_added": value, "subject": "Recorded"}],
+    }
+
+    assert validate_instance(instance) == SCHEMA_IDENTIFIERS["context"]
+
+
+@pytest.mark.parametrize(
+    "instance",
+    [
+        {"$schema": SCHEMA_IDENTIFIERS["context"], "todos": {}},
+        {
+            "$schema": SCHEMA_IDENTIFIERS["context"],
+            "todos": [
+                {
+                    "date_added": "2026-11-21T20:14:00+10:00",
+                    "subject": "A todo",
+                    "change": "",
+                }
+            ],
+        },
+    ],
+)
+def test_context_contract_rejects_invalid_collection_shapes(
+    instance: dict[str, object],
+) -> None:
+    with pytest.raises(SchemaRegistryError):
+        validate_instance(instance)
+
+
 def test_uses_package_owned_schema_identifiers(tmp_path: Path) -> None:
     assert all(
         identifier.startswith("specle://schemas/")

@@ -6,12 +6,13 @@ Specle initialisation distributes reusable `skills/` and `policies/` only. It do
 
 ## Start here
 
-1. Read `.agents/policies/*.md`. These are reusable Specle policy: lifecycle, delivery, review, and testing principles.
+1. Read `.agents/policies/*.md`. These are reusable Specle policy: lifecycle, delivery, review, testing, external-input handling, and optional hand-off-context principles.
 2. Read `.agents/steering/*.md` next. These are project-owned generic overrides.
 3. If `.agents/project/README.md` is absent, use the `onboard` skill before relying on project architecture, commands, security rules, API conventions, or tracker configuration.
 4. If the project overlay exists, treat `.agents/project/*.md` as the authoritative project-specific facts. Read its README and only the documents relevant to the task.
 5. Read the matching skill in `.agents/skills/` before performing a workflow stage.
 6. For change work, read the selected change from `.specle/current-change` when it exists and use the target's `status.json` as the durable lifecycle record. A missing selector means no work is selected in this checkout.
+7. Treat `.specle/context.json` as optional policy-controlled hand-off context. Ordinary maintenance is enabled unless project policy disables it; a reviewing agent that neither built nor participated in design may update it only with explicit project permission. It is never a prerequisite for a skill or a source of lifecycle facts.
 
 ## Workflow
 

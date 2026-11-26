@@ -1,0 +1,207 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261126-resurrect-context-json-round-2",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-round-2-revision",
+      "findings": 0,
+      "outcome": "approve"
+    },
+    {
+      "id": "antigravity-review-20261126-resurrect-context-json-round-2",
+      "system": "antigravity",
+      "kind": "external-review",
+      "revision": "round-2:head:55659dae778dc556b2fb9452c0e4325cf95c34a8",
+      "findings": 4,
+      "outcome": "request-changes"
+    },
+    {
+      "id": "local-review-20261126-resurrect-context-json-external-inputs",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-external-inputs-policy",
+      "findings": 0,
+      "outcome": "approve"
+    },
+    {
+      "id": "local-review-20261126-resurrect-context-json-revised",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-revised-context-json",
+      "findings": 0,
+      "outcome": "approve"
+    },
+    {
+      "id": "local-review-20261126-resurrect-context-json",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-context-json",
+      "findings": 0,
+      "outcome": "approve"
+    },
+    {
+      "id": "antigravity-review-20261126-resurrect-context-json",
+      "system": "antigravity",
+      "kind": "external-review",
+      "revision": "head:55659dae778dc556b2fb9452c0e4325cf95c34a8",
+      "findings": 7,
+      "outcome": "request-changes"
+    }
+  ],
+  "items": [
+    {
+      "id": "agy-resurrect-context-json-1",
+      "source_ids": ["antigravity-review-20261126-resurrect-context-json"],
+      "severity": "P2",
+      "description": "Context date_added accepts invalid text because the installed JSON Schema format checker has no date-time checker.",
+      "evidence": "src/specle/schemas/context/1.0.json:14-19,33-38; independently reproduced with empty, arbitrary, and date-only strings.",
+      "analysis": "date_added must be a timestamp. Current explicit context validation silently accepts malformed string values.",
+      "recommendation": "Add explicit date-time syntax and calendar validation without a new dependency, with negative regression coverage.",
+      "state": "dispatched",
+      "decision": "accept",
+      "rationale": "Accepted by the user.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
+    },
+    {
+      "id": "agy-resurrect-context-json-2",
+      "source_ids": ["antigravity-review-20261126-resurrect-context-json"],
+      "severity": "P2",
+      "description": "The invented context-validation command accepts invalid targets as no context.",
+      "evidence": "src/specle/main.py:_validate_context and AGY-2.",
+      "analysis": "Context is optional advisory handoff metadata. Specle does not need a public context-validation command, so its target semantics are not a contract to harden.",
+      "recommendation": "Remove the public command and its tests rather than adding target validation.",
+      "state": "dispatched",
+      "decision": "vary",
+      "rationale": "User directed removal of the unauthorised CLI architecture choice.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
+    },
+    {
+      "id": "agy-resurrect-context-json-3",
+      "source_ids": ["antigravity-review-20261126-resurrect-context-json"],
+      "severity": "P2",
+      "description": "Document validation rejects the newly introduced word handoff.",
+      "evidence": "cspell.json and the modified Markdown documented in AGY-3.",
+      "analysis": "The repository's established UK/AU wording uses hand-off, and cspell accepts that form.",
+      "recommendation": "Replace handoff with hand-off in the affected documentation and guidance.",
+      "state": "dispatched",
+      "decision": "vary",
+      "rationale": "User selected the established hand-off spelling instead of extending the dictionary.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
+    },
+    {
+      "id": "agy-resurrect-context-json-4",
+      "source_ids": ["antigravity-review-20261126-resurrect-context-json"],
+      "severity": "P3",
+      "description": "The invented context-validation command accepts non-standard JSON constants as numeric dates.",
+      "evidence": "src/specle/main.py:_validate_context and AGY-4.",
+      "analysis": "Specle will no longer parse or validate advisory context. Parser handling for an operation that is being removed is outside this change's scope.",
+      "recommendation": "Do not add parser hardening; remove the command.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "User declined the finding because the relevant command is being removed.",
+      "route": "none"
+    },
+    {
+      "id": "agy-resurrect-context-json-5",
+      "source_ids": ["antigravity-review-20261126-resurrect-context-json"],
+      "severity": "P3",
+      "description": "Review guidance omits the context policy and does not state the reviewer write restriction.",
+      "evidence": ".agents/skills/review/SKILL.md:31; src/specle/blueprints/skills/review/SKILL.md:31; .agents/AGENTS.md:15.",
+      "analysis": "A reviewing agent is one that neither built nor participated in the feature's design. It needs the policy-specific distinction: ordinary maintenance is enabled by default, while reviewer writes require an explicit project allowance.",
+      "recommendation": "Read context policy in review guidance, define the reviewer role, and state the reviewer restriction; clarify entrypoint wording.",
+      "state": "dispatched",
+      "decision": "accept",
+      "rationale": "Accepted by the user; a reviewer is an agent that neither built nor participated in feature design.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
+    },
+    {
+      "id": "agy-resurrect-context-json-6",
+      "source_ids": ["antigravity-review-20261126-resurrect-context-json"],
+      "severity": "P3",
+      "description": "Several planned executable schema and update-preservation tests are missing.",
+      "evidence": ".specle/changes/resurrect-context-json/tasks.md:3,7,9 and AGY-6.",
+      "analysis": "Minimal and exported schema validation, invalid recognised shapes, and update preservation are executable boundaries. Literal guidance-prose tests and removed-command error-path tests are not.",
+      "recommendation": "Add focused schema and update-preservation coverage only.",
+      "state": "dispatched",
+      "decision": "vary",
+      "rationale": "User accepted the recommended limited test coverage.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
+    },
+    {
+      "id": "agy-resurrect-context-json-7",
+      "source_ids": ["antigravity-review-20261126-resurrect-context-json"],
+      "severity": "P4",
+      "description": "The layout tree omits the optional context.json, and the schema repeats its date_added definition.",
+      "evidence": "docs/LAYOUT.md:12-19; src/specle/schemas/context/1.0.json:14-19,33-38.",
+      "analysis": "The layout overview should include the documented optional file. A repeated single scalar field does not warrant a shared schema fragment.",
+      "recommendation": "Add context.json to the layout tree; leave the two date_added declarations local to their item types.",
+      "state": "dispatched",
+      "decision": "vary",
+      "rationale": "User approved adding context.json to the layout tree and declined schema factoring for a single scalar field.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
+    },
+    {
+      "id": "agy-resurrect-context-json-round-2-1",
+      "source_ids": ["antigravity-review-20261126-resurrect-context-json-round-2"],
+      "severity": "P2",
+      "description": "The distributed context policy omits the context schema identifier and the required local explicit-offset timestamp format.",
+      "evidence": "src/specle/blueprints/policies/context.md:18-26; .agents/policies/context.md:18-26; src/specle/schemas/context/1.0.json:5-30.",
+      "analysis": "The installed policy names the recognised fields but does not state the required $schema value or how to form date_added. The schema is intended as a portable agent format, so the policy should make its required fields usable without depending on a source checkout.",
+      "recommendation": "State the context schema URI and the human-readable local ISO 8601 date-time form with explicit numeric offset in the portable policy.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Accepted by the user.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
+    },
+    {
+      "id": "agy-resurrect-context-json-round-2-2",
+      "source_ids": ["antigravity-review-20261126-resurrect-context-json-round-2"],
+      "severity": "P3",
+      "description": "Skills that own the recommended activation, first-commit, and completion milestones do not explicitly read context policy or project context guidance.",
+      "evidence": ".agents/policies/context.md:24; .agents/skills/{activate,commit,complete}/SKILL.md step 1; matching blueprint skills.",
+      "analysis": "The policy recommends those milestones, but these skills' explicit inputs do not include the policy that governs whether context maintenance is enabled. This may prevent the recommendation from being applied in an installed repository.",
+      "recommendation": "Add portable context policy and applicable project context guidance to the named skills' read lists while preserving context as non-blocking.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Accepted by the user.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
+    },
+    {
+      "id": "agy-resurrect-context-json-round-2-3",
+      "source_ids": ["antigravity-review-20261126-resurrect-context-json-round-2"],
+      "severity": "P3",
+      "description": "Historical review records use the unsupported decision value vary, which can prevent later resolved-review validation.",
+      "evidence": ".specle/changes/resurrect-context-json/review-findings.json items 2, 3, 6, and 7; src/specle/lifecycle.py:335-346.",
+      "analysis": "The user-approved variations are fully dispatched, but lifecycle validation recognises accept—not vary—as the completed decision for a resolved review. The record is currently valid only because this review is pass rather than resolved.",
+      "recommendation": "Recognize vary as a distinct settled decision while preserving its rationale and varied outcome.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "The user varied the finding: vary is neither accept nor decline. It means the proposed recommendation was declined and the underlying issue was addressed differently.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
+    },
+    {
+      "id": "agy-resurrect-context-json-round-2-4",
+      "source_ids": ["antigravity-review-20261126-resurrect-context-json-round-2"],
+      "severity": "P4",
+      "description": "The shared date-time checker is broader than its explicit-offset docstring, and negative timestamp coverage exercises milestones but not todos.",
+      "evidence": "src/specle/schema_registry.py:40-49; src/specle/schemas/context/1.0.json:14,28; tests/test_schema_registry.py:103-124.",
+      "analysis": "The context schema pattern currently enforces the required form. The remaining concern is future schema reuse of the global checker and lack of symmetric negative coverage for the intentionally duplicated todo field.",
+      "recommendation": "Relax date_added to a non-empty human-readable local date-and-time string. Keep local ISO 8601 with a numeric offset as preferred guidance, not a schema validity gate.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "The user varied the finding: context timestamps exist for human interpretation of age and relevance, not strict machine validation. A useful agent-written local date-and-time must remain valid.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
+    }
+  ]
+}

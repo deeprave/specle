@@ -218,6 +218,19 @@ def test_validate_reports_an_invalid_target_without_writing(
     assert not (target / ".agents").exists()
 
 
+def test_validate_ignores_malformed_optional_context(tmp_path, capsys) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+    anyio.run(main, ["init", str(target)])
+    capsys.readouterr()
+    context = target / ".specle" / "context.json"
+    context.write_text("not valid json\n")
+
+    anyio.run(main, ["validate", str(target)])
+
+    assert f"validated {target.resolve()}" in capsys.readouterr().out
+
+
 def test_validate_rejects_a_non_regular_generated_index(
     tmp_path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -255,3 +268,18 @@ def test_schema_export_uses_the_explicit_destination(tmp_path, capsys) -> None:
 
     assert (destination / "change-status" / "1.0.json").is_file()
     assert str(destination) in capsys.readouterr().out
+
+
+def test_init_installs_the_context_policy(tmp_path, capsys) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+
+    anyio.run(main, ["init", str(target)])
+
+    source = Path(__file__).parents[1] / "src" / "specle" / "blueprints"
+    assert (target / ".agents" / "policies" / "context.md").read_text() == (
+        source / "policies" / "context.md"
+    ).read_text()
+    assert (target / ".agents" / "policies" / "external-inputs.md").read_text() == (
+        source / "policies" / "external-inputs.md"
+    ).read_text()

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "specle://schemas/context/1.0",
+  "type": "object",
+  "required": ["$schema"],
+  "properties": {
+    "$schema": {"const": "specle://schemas/context/1.0"},
+    "milestones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["date_added", "subject"],
+        "properties": {
+          "date_added": {"type": "string", "minLength": 1},
+          "subject": {"type": "string", "minLength": 1},
+          "change": {"type": "string", "minLength": 1},
+          "detail": true
+        },
+        "additionalProperties": true
+      }
+    },
+    "todos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["date_added", "subject"],
+        "properties": {
+          "date_added": {"type": "string", "minLength": 1},
+          "subject": {"type": "string", "minLength": 1},
+          "change": {"type": "string", "minLength": 1},
+          "detail": true
+        },
+        "additionalProperties": true
+      }
+    },
+    "directives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["subject"],
+        "properties": {
+          "subject": {"type": "string", "minLength": 1},
+          "detail": true
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
