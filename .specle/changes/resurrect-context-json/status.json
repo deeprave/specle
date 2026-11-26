@@ -1,7 +1,7 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "approved",
+  "status": "committed",
   "progress": {
     "tasks_completed": 8,
     "tasks_total": 8
@@ -13,11 +13,16 @@
     "status": "pass",
     "findings": 0
   },
-  "delivery": null,
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/53",
+    "head_branch": "feature/resurrect-context-json",
+    "target_branch": "main",
+    "commit": "e2b8c6899e3d7b55fed4c71ec5d769c7e5020a03"
+  },
   "relationships": [],
   "dependencies": [],
   "revision_note": "Replanned after round-two review: make context timestamps permissive, document the portable writing shape, consult context policy at lifecycle milestones, and settle vary distinctly.",
   "created_at": 1795252440,
   "activated_at": 1795644051,
-  "updated_at": 1795687297
+  "updated_at": 1795687538
 }
