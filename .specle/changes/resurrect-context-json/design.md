@@ -72,6 +72,10 @@ Add a separate package-owned `external-inputs.md` policy source and installed co
 
 Treat `vary` as a distinct completed review disposition, not an alias for acceptance. A varied finding remains settled once its recorded dispatch completes, retaining the user-selected alternative in its recommendation and rationale.
 
+Update triage and resolve guidance so both accepted and varied findings are dispatchable through their recorded routes. Their durable decisions remain distinct; only the dispatch mechanics are shared.
+
+Relax tracker-link source and destination `url` fields to non-empty agent-meaningful strings. Do not infer, constrain, or validate a transport protocol: an integration may use an MCP locator, socket, TCP connection, or another representation useful to the acting agent.
+
 ## Boundaries
 
 Context may be absent, stale, malformed, or use an unsupported schema without affecting Specle commands. Agents that choose to consume it can use the published schema as a portable format. Maintenance-disabled policy prevents writes; reviewers may read but do not mutate it without an explicit project allowance.
@@ -82,4 +86,5 @@ Context may be absent, stale, malformed, or use an unsupported schema without af
 - Prove isolation: malformed context beside a valid installed target does not change `specle validate` or normal selected-change runtime resolution; init and forced update preserve the ignored file.
 - Validate policy inventory/synchronisation through normal installation; review the onboarding instructions rather than adding brittle prose tests.
 - Cover a settled `vary` review decision through lifecycle validation.
+- Cover flexible tracker locators and assert that malformed optional context produces no validation diagnostic.
 - Run focused tests, then `uv run pytest`, `uv run ruff check .`, `uv run ruff format --check .`, `uv run ty check`, and `uv run specle validate --verbose .`.

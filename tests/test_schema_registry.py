@@ -321,20 +321,30 @@ def test_exports_complete_schema_tree_safely(tmp_path: Path) -> None:
     assert not (destination / "obsolete.json").exists()
 
 
-def test_enforces_contract_constraints_and_exports_registry(tmp_path: Path) -> None:
-    with pytest.raises(SchemaRegistryError, match="failed anyOf"):
+def test_accepts_agent_meaningful_tracker_locators(tmp_path: Path) -> None:
+    assert (
         validate_instance(
             {
                 "$schema": SCHEMA_IDENTIFIERS["tracker-links"],
-                "sources": [],
+                "sources": [
+                    {
+                        "system": "tracker-mcp",
+                        "kind": "issue",
+                        "id": "42",
+                        "url": "mcp://tracker/issues/42",
+                    }
+                ],
                 "destination": {
-                    "system": "github",
+                    "system": "tracker-mcp",
                     "kind": "issue",
-                    "id": "1",
-                    "url": "not-a-canonical-url",
+                    "id": "42",
+                    "url": "tcp://tracker.internal:9000/issues/42",
                 },
             }
         )
+        == SCHEMA_IDENTIFIERS["tracker-links"]
+    )
+
     with pytest.raises(SchemaRegistryError, match="failed enum"):
         validate_instance(
             {

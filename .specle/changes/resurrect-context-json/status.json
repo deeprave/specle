@@ -1,10 +1,10 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "approved",
   "progress": {
-    "tasks_completed": 8,
-    "tasks_total": 8
+    "tasks_completed": 11,
+    "tasks_total": 11
   },
   "verification": {
     "status": "pass"
@@ -21,8 +21,8 @@
   },
   "relationships": [],
   "dependencies": [],
-  "revision_note": "Replanned after round-two review: make context timestamps permissive, document the portable writing shape, consult context policy at lifecycle milestones, and settle vary distinctly.",
+  "revision_note": "Replanned after PR review: permit agent-meaningful tracker locators, explicitly dispatch vary decisions, and prove context validation is silent.",
   "created_at": 1795252440,
   "activated_at": 1795644051,
-  "updated_at": 1795687538
+  "updated_at": 1795689209
 }

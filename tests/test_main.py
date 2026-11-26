@@ -228,7 +228,7 @@ def test_validate_ignores_malformed_optional_context(tmp_path, capsys) -> None:
 
     anyio.run(main, ["validate", str(target)])
 
-    assert f"validated {target.resolve()}" in capsys.readouterr().out
+    assert capsys.readouterr().out == f"validated {target.resolve()}\n"
 
 
 def test_validate_rejects_a_non_regular_generated_index(

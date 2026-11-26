@@ -104,6 +104,16 @@
 
 1. Lifecycle validation SHALL treat a `vary` decision with a completed dispatch as settled review evidence.
 2. The durable record SHALL retain the varied recommendation, rationale, and resulting route rather than rewriting it as acceptance.
+3. Triage and resolve guidance SHALL dispatch both accepted and varied findings through their recorded routes, while preserving the distinction between their decisions.
+
+### Requirement 9: Preserve agent-meaningful tracker locators
+
+**User Story:** As an agent integrating a project tracker, I want to record the locator that is useful to my integration rather than being limited to Web URLs.
+
+#### Acceptance Criteria
+
+1. Tracker-link source and destination locators SHALL accept non-empty strings without requiring HTTP(S) or URI syntax.
+2. Guidance and validation SHALL leave the locator protocol or representation to the integrating agent.
 
 ## Non-Functional Requirements
 

@@ -1,6 +1,23 @@
 {
   "sources": [
     {
+      "id": "local-review-20261126-resurrect-context-json-pr-revision",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-pr-review-revision",
+      "findings": 0,
+      "outcome": "approve"
+    },
+    {
+      "id": "sourcery-pr-53-review-6072165282-821a442",
+      "system": "github",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/53",
+      "revision": "821a4425163d98e115a5428fcdc8064f9a5e9b56",
+      "findings": 4,
+      "outcome": "request-changes"
+    },
+    {
       "id": "local-review-20261126-resurrect-context-json-round-2",
       "system": "specle",
       "kind": "local-review",
@@ -200,6 +217,61 @@
       "state": "decided",
       "decision": "vary",
       "rationale": "The user varied the finding: context timestamps exist for human interpretation of age and relevance, not strict machine validation. A useful agent-written local date-and-time must remain valid.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
+    },
+    {
+      "id": "sourcery-pr-53-1",
+      "source_ids": ["sourcery-pr-53-review-6072165282-821a442"],
+      "severity": "P3",
+      "description": "Removing the JSON Schema format checker permits malformed HTTP(S) tracker URLs that match only the prefix pattern.",
+      "evidence": "src/specle/schema_registry.py:82; src/specle/schemas/tracker-links/1.0.json:14-27; https://github.com/deeprave/specle/pull/53#discussion_r4706763281.",
+      "analysis": "The context-specific format checker was removed, but tracker links rely on the standard uri format plus a prefix pattern. Without a standard format checker, malformed URLs can pass the registry validator.",
+      "recommendation": "Relax tracker-link URLs to non-empty agent-meaningful strings, without HTTP(S) or URI-format validation.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "The user varied the finding: a tracker link may use an MCP, socket, TCP connection, or other agent-useful locator. Its usefulness to the agent matters, not a Web URL format.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
+    },
+    {
+      "id": "sourcery-pr-53-2",
+      "source_ids": ["sourcery-pr-53-review-6072165282-821a442"],
+      "severity": "P3",
+      "description": "The triage and resolve workflows do not explicitly dispatch varied findings, even though settled vary decisions require a completed dispatch.",
+      "evidence": ".agents/skills/{triage,resolve}/SKILL.md; src/specle/lifecycle.py:343; https://github.com/deeprave/specle/pull/53#discussion_r4706763295.",
+      "analysis": "The lifecycle now treats a completed vary as settled, but the written workflow only names accepted findings for dispatch. Future variations could therefore lack the completion evidence needed by lifecycle validation.",
+      "recommendation": "Make triage and resolve explicitly route vary decisions through their recorded workflow and record their completed dispatches.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Accepted by the user: vary is distinct from accept, but resolve dispatches it through revise when that is its recorded route.",
+      "route": "revise",
+      "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
+    },
+    {
+      "id": "sourcery-pr-53-3",
+      "source_ids": ["sourcery-pr-53-review-6072165282-821a442"],
+      "severity": "P4",
+      "description": "Concurrent agents could overwrite each other's optional context changes.",
+      "evidence": ".agents/policies/context.md:28; https://github.com/deeprave/specle/pull/53#discussion_r4706763312.",
+      "analysis": "This is a hypothetical shared-worktree concurrency scenario. Context is optional local hand-off material, not lifecycle state, and the project deliberately avoids speculative concurrency machinery for such cases.",
+      "recommendation": "Do not add serialization or merge handling unless a supported workflow demonstrates this as a real problem.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The user declined speculative concurrency handling for optional local context.",
+      "route": "none"
+    },
+    {
+      "id": "sourcery-pr-53-4",
+      "source_ids": ["sourcery-pr-53-review-6072165282-821a442"],
+      "severity": "P3",
+      "description": "The malformed-context validation test does not prove that validation produces no context diagnostic.",
+      "evidence": "tests/test_main.py:221-231; https://github.com/deeprave/specle/pull/53#discussion_r4706763327.",
+      "analysis": "The test checks success output by containment, so an unexpected warning could coexist with the success line. The requirement is deliberately that Specle does not diagnose context.",
+      "recommendation": "Strengthen the assertion to prove the output contains no context diagnostic.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Accepted by the user.",
       "route": "revise",
       "dispatch": {"state": "complete", "workflow": "revise", "execution": "in-place", "outcome": "Revised requirements, design, and tasks in place."}
     }
