@@ -1,7 +1,7 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "complete",
   "progress": {
     "tasks_completed": 11,
     "tasks_total": 11
@@ -17,12 +17,18 @@
     "reference": "https://github.com/deeprave/specle/pull/53",
     "head_branch": "feature/resurrect-context-json",
     "target_branch": "main",
-    "commit": "4875965a18eada8652cb1bd073d0a4a9563359e6"
+    "commit": "4875965a18eada8652cb1bd073d0a4a9563359e6",
+    "completion": {
+      "reference": "https://github.com/deeprave/specle/pull/53",
+      "head_branch": "feature/resurrect-context-json",
+      "target_branch": "main"
+    }
   },
   "relationships": [],
   "dependencies": [],
   "revision_note": "Replanned after PR review: permit agent-meaningful tracker locators, explicitly dispatch vary decisions, and prove context validation is silent.",
   "created_at": 1795252440,
   "activated_at": 1795644051,
-  "updated_at": 1795692235
+  "updated_at": 1795692235,
+  "archived_at": 1795692496
 }
