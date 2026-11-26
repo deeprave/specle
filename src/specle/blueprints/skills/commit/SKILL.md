@@ -24,7 +24,7 @@ Prepare or perform delivery for an approved target. This skill distinguishes loc
 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.specle/current-change` when present, the selected target's `status.json`, `.agents/policies/{lifecycle,delivery,testing}.md`, applicable `.agents/steering/` overrides, and `.agents/project/{delivery,security,testing}.md`.
+1. Read `.specle/current-change` when present, the selected target's `status.json`, `.agents/policies/{lifecycle,delivery,testing,context}.md`, applicable `.agents/steering/` overrides, and `.agents/project/{delivery,security,testing,context}.md`. Context remains optional and never blocks delivery.
 2. Select the locally selected approved target by default. A non-selected ordinary target must be explicitly named, have `status: "approved"`, and must not replace `.specle/current-change`. Stop if delivery policy is missing or incomplete; direct the user to `onboard`.
 3. Read the target's tasks, review evidence, and, where present, its `delivery` field in its `status.json`. Do not infer a delivery reference from a branch or pull request.
 4. For a normal parent target, derive candidate sidecars only from its own `relationships` entries with `delivery: "with-related-change"`. Require every candidate to be an active `bugfix` or `refactor` with matching parent name, matching parent-declared kind, one reciprocal declaration, and `status: "approved"`. Stop with an actionable diagnostic for a missing, duplicate, mismatched, or unready candidate. Include every validated sidecar and no inferred or unrelated work. Run project-required pre-delivery checks, including any configured secret check.

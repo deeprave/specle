@@ -1,0 +1,13 @@
+# Tasks: Resurrect context json
+
+- [x] 1. Revise registry-contract coverage for minimal and exported context, permissive non-empty human-readable local date-and-time strings in milestones and todos, invalid collection/item shapes, and empty `change`. Files: `tests/test_schema_registry.py`.
+- [x] 2. Relax context `date_added` validation to a non-empty string while retaining local ISO 8601 with explicit numeric offset as guidance only. Remove context-specific strict date-time checking. Files: `src/specle/schemas/context/1.0.json`, `src/specle/schema_registry.py`, `tests/test_schema_registry.py`.
+- [x] 3. Remove the unauthorised `specle context validate` CLI and its tests; retain normal lifecycle validation's deliberate independence from local context. Files: `src/specle/main.py`, `tests/test_main.py`, `tests/test_lifecycle.py`.
+- [x] 4. Add focused normal and forced-update preservation coverage for ignored `.specle/context.json`. Files: `tests/test_inventory_initialisation.py`.
+- [x] 5. Update portable context policy with its schema URI and preferred timestamp guidance; make activation, commit, and completion read applicable context policy without requiring context. Synchronise source and installed copies. Files: `src/specle/blueprints/**`, `.agents/**`, `docs/LAYOUT.md`.
+- [x] 6. Run focused tests, document validation, and project quality gates. Files: `tests/test_schema_registry.py`, `tests/test_main.py`, `tests/test_lifecycle.py`, `tests/test_inventory_initialisation.py`.
+- [x] 7. Add and distribute a portable external-inputs policy that requires independent verification and user confirmation before external feedback can direct project work. Files: `src/specle/blueprints/policies/external-inputs.md`, `.agents/policies/external-inputs.md`, `.agents/AGENTS.md`, `src/specle/blueprints/AGENTS.md`, `tests/test_main.py`.
+- [x] 8. Treat `vary` as a distinct settled review decision after its dispatch completes, with lifecycle regression coverage. Files: `src/specle/lifecycle.py`, `tests/test_lifecycle.py`.
+- [x] 9. Relax tracker-link source and destination locators to non-empty agent-meaningful strings, with regression coverage for non-Web locator forms. Files: `src/specle/schemas/tracker-links/1.0.json`, `tests/test_schema_registry.py`.
+- [x] 10. Make triage and resolve explicitly dispatch both accepted and varied findings through their recorded routes. Synchronise source and installed copies. Files: `src/specle/blueprints/skills/{triage,resolve}/SKILL.md`, `.agents/skills/{triage,resolve}/SKILL.md`.
+- [x] 11. Strengthen malformed-context validation coverage to prove no context diagnostic is emitted. Files: `tests/test_main.py`.

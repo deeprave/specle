@@ -35,7 +35,7 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    - **One at a time:** use the policy item/source/analysis/recommendation format and ask the user to accept, decline, skip, defer, or discuss each finding.
    - **Batch:** present all findings in severity order and record the user's decisions.
    - **Automatic:** record automatic decisions only where project policy permits; present any decision or open question using the one-at-a-time format.
-7. Record decisions in `review-findings.json`. Accepted findings must have a proposed route; declined, skipped, deferred, and duplicate findings retain their rationale and source history. Do not implement anything.
+7. Record decisions in `review-findings.json`. Accepted and varied findings must have a proposed route; their decisions remain distinct even when they share a downstream workflow. Declined, skipped, deferred, and duplicate findings retain their rationale and source history. Do not implement anything.
 8. When every current finding has a decision, set the active target to `triaged` and write current Unix-second `updated_at`.
 9. Present a complete decision-and-route summary: every current finding's severity, decision, recorded rationale, and proposed route. Stop and wait for explicit `resolve` or a user-requested decision revision, including in decision-gated progression mode.
 

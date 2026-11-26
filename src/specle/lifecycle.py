@@ -340,7 +340,7 @@ def _is_terminal_review_item(item: object) -> bool:
         return True
     dispatch = item.get("dispatch")
     return (
-        decision == "accept"
+        decision in {"accept", "vary"}
         and isinstance(dispatch, dict)
         and dispatch.get("state") == "complete"
     )

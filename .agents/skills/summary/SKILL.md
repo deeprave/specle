@@ -36,7 +36,7 @@ Produce `summary.md` as a concise human account of completed work. It is a commu
    `Summary` comes first and is a short standalone, copy-ready paragraph suitable for a Jira comment, release note, or similar update. `Outcome` and `What changed` should explain only the user-meaningful result and delivered behaviour. `Key decisions and limits` is optional: include it only when a choice, deliberate exclusion, or lasting limitation matters to a reader.
 
    Do not include test counts, pass/fail results, CI or pull-request activity, commit references, routine verification, workflow mechanics, generic recommendations, or future-work boilerplate. Refer to evidence only when it explains a material result or limitation. For a spike, foreground the finding and recommendation in `Summary` and `Outcome`.
-5. Preserve every context, lifecycle, tracker, and review record. Do not post or publish the summary. External publication remains an explicit `track` operation when a project has a configured destination and the user authorises it.
+5. Preserve durable lifecycle, tracker, and review records. Do not add the ignored local hand-off `context.json` to delivery content or treat it as a completed-work artefact. Do not post or publish the summary. External publication remains an explicit `track` operation when a project has a configured destination and the user authorises it.
 
 ## Next
 

@@ -12,13 +12,14 @@ from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Any
 
-from jsonschema import Draft202012Validator, FormatChecker
+from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 from referencing import Registry, Resource
 
 SCHEMA_BASE_URI = "specle://schemas"
 SCHEMA_IDENTIFIERS = {
     "change-status": f"{SCHEMA_BASE_URI}/change-status/1.0",
+    "context": f"{SCHEMA_BASE_URI}/context/1.0",
     "findings": f"{SCHEMA_BASE_URI}/findings/1.0",
     "tracker-links": f"{SCHEMA_BASE_URI}/tracker-links/1.0",
     "skill-index": f"{SCHEMA_BASE_URI}/skill-index/1.0",
@@ -78,9 +79,7 @@ def validate_instance(instance: Mapping[str, object]) -> str:
     if not isinstance(identifier, str):
         raise SchemaRegistryError("contract instance is missing string '$schema'")
     schema = load_schema(identifier)
-    validator = Draft202012Validator(
-        schema, registry=_registry(), format_checker=FormatChecker()
-    )
+    validator = Draft202012Validator(schema, registry=_registry())
     try:
         validator.validate(instance)
     except ValidationError as error:

@@ -13,3 +13,4 @@ This directory records the project-specific guidance for Specle. These documents
 - [review.md](review.md) records review triage presentation, severity, and automation policy.
 - [delivery.md](delivery.md) records the selected delivery model and project delivery conventions.
 - [automation.md](automation.md) records the selected workflow progression policy.
+- [context.md](context.md) records whether optional hand-off context is maintained and whether reviewing agents may update it.
