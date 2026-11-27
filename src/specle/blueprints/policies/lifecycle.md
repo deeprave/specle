@@ -24,13 +24,14 @@ skills apply these transitions and must not replace them with local rules.
 | `review-findings` | Review found actionable issues that need decisions. | `triage`. |
 | `triaged` | Review decisions are recorded and routes are ready. | `resolve`. |
 | `complete` | Archival finalisation was recorded on the existing delivery path, Resolve found no remaining review action, or a spike delivered its findings. | None. A named `complete <change-name>` may later inspect and synchronise the same merged delivery PR. |
+| `cancelled` | Work intentionally ended without asserting delivery. | None. The archived record is immutable. |
 
 ## Ownership and transitions
 
 | Skill | Required transition |
 | --- | --- |
 | `define` | Create an unselected normal change as `defined`, then report its concise summary; it never selects local work or commences planning. |
-| `activate` | The sole writer of `.specle/current-change` except for complete's terminal removal of its matching archived selection after synchronisation. A selected archived complete record with an unconfirmed delivery PR blocks replacement. Select a named resumable normal change or `defined`/`spiking` spike in the local worktree. For a normal change, immediately invoke the first missing required estimate → design → tasks stage and set a fully prepared change to `planned` before invoking `build`; for a spike, invoke `spike`. |
+| `activate` | The sole writer of `.specle/current-change` except for complete's terminal removal of its matching archived selection after synchronisation and cancel's matching terminal removal. A selected archived complete record with an unconfirmed delivery PR blocks replacement; an archived cancelled record is terminal and replaceable. Select a named resumable normal change or `defined`/`spiking` spike in the local worktree. For a normal change, immediately invoke the first missing required estimate → design → tasks stage and set a fully prepared change to `planned` before invoking `build`; for a spike, invoke `spike`. |
 | `spike` | Initialize an unselected `kind: "spike"` work item as `defined`. When invoked by `activate`, set it to `spiking` while conducting read-only research. On completion, record findings and optional stable outcome-change name, set verification and review to `not-applicable`, and mark it `complete`. |
 | `estimate` | Mark the selected target `estimated`; selected normal work continues to design before tasks, while a named unselected normal estimate writes only its artifact and retains next `activate`. |
 | `design` | Mark the selected change `designed`; a named unselected normal design writes only its artifact and retains next `activate`. |
@@ -42,6 +43,7 @@ skills apply these transitions and must not replace them with local rules.
 | `review` | Run only against a verified implementation. Record raw findings in `review-findings.json`. `APPROVE` sets review to `pass` and status to `approved`; `REQUEST_CHANGES` sets review to `findings` and status to `review-findings`. A named non-selected target is updated in place and never replaces the local selection. |
 | `commit` | Runs the selected delivery model for an `approved` target. A normal parent discovers candidates only from its own concurrent-delivery relationships and requires a matching reciprocal ready bugfix/refactor record before including it. Every model records shared delivery evidence and `updated_at`, then moves every delivered member to `committed` for joint archive finalisation. |
 | `complete` | For every `committed` delivery, generate its summary and archive its durable record through one recoverable finalisation delivery. It removes the completed parent and included sidecars from only matching explicit dependency arrays in other active records, preserving their lifecycle metadata, and includes those updates in the same finalisation commit. A normal parent jointly archives every valid reciprocal committed sidecar; it alone writes `status: "complete"`, `archived_at`, and immutable PR identity on the existing delivery PR. If that PR has already merged before archival delivery, recovery uses a `<delivery-branch>-complete` PR. Direct delivery archives without `delivery.completion`, pushes finalisation, and removes the matching selector. |
+| `cancel` | Requires an explicit active target name and may transition any active non-terminal record to `cancelled`. It presents dependency, explicit reciprocal concurrent-delivery, and in-flight cleanup consequences; requires separate confirmation before removing direct dependencies or unlinking each explicit reciprocal partner; archives only the named target; and never performs user-owned cleanup without separate direction and authorisation. |
 | `triage` | Consolidate review sources and record decisions without implementation. Active targets become `triaged`; archived records are immutable. |
 | `resolve` | Dispatch accepted work without completing the origin. |
 | `revise` | Reconcile accepted feedback into eligible active work; it rejects archived targets. |
@@ -54,7 +56,7 @@ Any source, test, task, or accepted-requirement change after a successful verifi
 that verification and any review based on it. The next build transition records both as `stale`.
 A fresh successful verification resets the review to `not-run`; a fresh review and the applicable delivery operation are required before the change can become `complete`.
 
-Every lifecycle owner that changes an activated active record's lifecycle status writes numeric Unix-second `updated_at` in the same update. Relationship-only metadata updates do not change `updated_at`. Archiving writes `archived_at` and preserves `updated_at`. Archived records are immutable; a resumed complete operation only inspects delivery and synchronises the checkout.
+Every lifecycle owner that changes an active record's lifecycle status writes numeric Unix-second `updated_at` in the same update. Relationship-only metadata updates do not change `updated_at`. Completion archiving writes `archived_at` and preserves `updated_at`; cancellation writes both `updated_at` and `cancelled_at` with its terminal status. Archived records are immutable; a resumed complete operation only inspects delivery and synchronises the checkout.
 
 ## Concurrent sidecars
 
@@ -62,4 +64,4 @@ A bugfix or refactor can accompany selected normal work only through an explicit
 
 ## Dependency visibility
 
-Active dependency arrays list unresolved explicit prerequisites. Once `complete` records a delivery set's archival finalisation, it removes those names from matching active arrays in its finalisation commit. `changes` therefore lists dependency context only until the prerequisite is delivered, without treating that completed dependency as pending work.
+Active dependency arrays list unresolved explicit prerequisites. Once `complete` records a delivery set's archival finalisation, it removes those names from matching active arrays in its finalisation commit. `cancel` may remove a cancelled name from matching active arrays only after explicit user confirmation. `changes` therefore lists terminal dependency context without treating archived work as pending.

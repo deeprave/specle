@@ -1,17 +1,22 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "defined",
+  "status": "approved",
   "created_at": 1795693387,
-  "activated_at": null,
-  "progress": {},
+  "activated_at": 1795694932,
+  "updated_at": 1795739061,
+  "progress": {
+    "tasks_completed": 8,
+    "tasks_total": 8
+  },
   "verification": {
-    "status": "not-run"
+    "status": "pass"
   },
   "review": {
-    "status": "not-run"
+    "status": "pass"
   },
   "delivery": null,
   "relationships": [],
-  "dependencies": []
+  "dependencies": [],
+  "revision_note": "Reconciled accepted and varied cancellation review findings."
 }

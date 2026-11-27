@@ -220,10 +220,17 @@ def test_change_status_validates_optional_lifecycle_timestamps() -> None:
     instance = _change_status(created_at=1_795_252_440)
     instance["updated_at"] = 1_795_252_441
     instance["archived_at"] = 1_795_252_442.5
+    instance["cancelled_at"] = 1_795_252_443
 
     assert validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
 
     instance["updated_at"] = "tomorrow"
+
+    with pytest.raises(SchemaRegistryError, match="failed type"):
+        validate_instance(instance)
+
+    instance["updated_at"] = 1_795_252_441
+    instance["cancelled_at"] = "tomorrow"
 
     with pytest.raises(SchemaRegistryError, match="failed type"):
         validate_instance(instance)

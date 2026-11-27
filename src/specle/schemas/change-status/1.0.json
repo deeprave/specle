@@ -23,6 +23,7 @@
     "activated_at": {"type": ["number", "null"]},
     "updated_at": {"type": "number"},
     "archived_at": {"type": "number"},
+    "cancelled_at": {"type": "number"},
     "progress": {
       "type": "object",
       "properties": {

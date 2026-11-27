@@ -1,0 +1,175 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261126-add-change-cancel-1",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-37d68607a6966c1e742a66bdca723756b288df08b0188bcea731781a2f8a5d72",
+      "outcome": "approve",
+      "findings": 0
+    },
+    {
+      "id": "antigravity-review-20261127-add-change-cancel-1",
+      "system": "antigravity",
+      "kind": "provided-review",
+      "revision": "7add75c777b1ead3f415187816e34e70175b9a0f2339eadbff854c662aa6b175",
+      "outcome": "request_changes",
+      "findings": 7
+    },
+    {
+      "id": "local-review-20261127-add-change-cancel-2",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-3c46c0767de40e904712cb5e38b61ffffcdb9dea64f03ca43aaaecfdded8c116",
+      "outcome": "approve",
+      "findings": 0
+    }
+  ],
+  "items": [
+    {
+      "id": "antigravity-add-change-cancel-1",
+      "severity": "P2",
+      "description": "Runtime lifecycle validation rejects a cancelled spike.",
+      "evidence": ".specle/agy-add-change-cancel.json: AGY-1; independently confirmed in src/specle/lifecycle.py.",
+      "analysis": "The cancel lifecycle declares generic transitions from defined and spiking to cancelled, but spike validation currently derives statuses only from explicitly spike-scoped transitions. A cancelled spike would therefore be invalid.",
+      "recommendation": "Allow generic terminal cancellation for a spike without admitting unrelated planning or implementation statuses, and add a regression test.",
+      "state": "dispatched",
+      "decision": "accept",
+      "rationale": "Confirmed defect: cancellation explicitly accepts spikes, so a cancelled spike must validate.",
+      "sources": ["antigravity-review-20261127-add-change-cancel-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-change-cancel"
+      }
+    },
+    {
+      "id": "antigravity-add-change-cancel-2",
+      "severity": "P2",
+      "description": "Cancelling one member of a reciprocal concurrent-delivery pair leaves the surviving record invalid.",
+      "evidence": ".specle/agy-add-change-cancel.json: AGY-2; independently confirmed in src/specle/lifecycle.py and the reciprocal relationship contract.",
+      "analysis": "Concurrent-delivery relationships are explicit reciprocal records rather than dependencies. Archiving only one member leaves the other pointing to a missing active record and blocks validation and delivery.",
+      "recommendation": "Detect only an explicit reciprocal concurrent-delivery partner, require confirmation, then remove only that reciprocal relationship from the surviving active record in the same recoverable mutation.",
+      "state": "dispatched",
+      "decision": "vary",
+      "rationale": "Preserve one-target cancellation while requiring an explicit, confirmed unlink of the known surviving partner; do not infer or cancel additional work.",
+      "sources": ["antigravity-review-20261127-add-change-cancel-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-change-cancel"
+      }
+    },
+    {
+      "id": "antigravity-add-change-cancel-3",
+      "severity": "P3",
+      "description": "Runtime validation permits cancelled records without their required archive location or timestamp.",
+      "evidence": ".specle/agy-add-change-cancel.json: AGY-3; independently confirmed in src/specle/lifecycle.py and the cancellation requirements.",
+      "analysis": "The shared schema keeps lifecycle timestamps optional, so runtime lifecycle validation must enforce cancellation-specific evidence and location. It currently permits active cancelled records and archived cancelled records without cancelled_at.",
+      "recommendation": "Require cancelled_at for cancelled records, reject cancelled records outside the archive, derive terminal acceptance through the existing helper, and add focused negative tests.",
+      "state": "dispatched",
+      "decision": "accept",
+      "rationale": "The requirements explicitly define both invariants, and validating them keeps interrupted cancellation mutations visible.",
+      "sources": ["antigravity-review-20261127-add-change-cancel-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-change-cancel"
+      }
+    },
+    {
+      "id": "antigravity-add-change-cancel-4",
+      "severity": "P3",
+      "description": "Cancellation guidance ambiguously forbids selected targets and omits direct-delivery consequences.",
+      "evidence": ".specle/agy-add-change-cancel.json: AGY-4; independently confirmed in the cancel and commit skill guidance.",
+      "analysis": "The target must be explicit, not inferred from the selector, but an explicitly named selected target is valid. Direct/local delivery has recorded branch and commit evidence without a PR, which also requires user-directed handling.",
+      "recommendation": "Clarify explicit-name selection, surface direct/local delivery evidence before cancellation, and stop the dependency scan before mutation when an active status record is unreadable or malformed.",
+      "state": "dispatched",
+      "decision": "accept",
+      "rationale": "These corrections preserve the intended user-directed handling of selected and already delivered work.",
+      "sources": ["antigravity-review-20261127-add-change-cancel-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-change-cancel"
+      }
+    },
+    {
+      "id": "antigravity-add-change-cancel-5",
+      "severity": "P3",
+      "description": "Adjacent lifecycle guidance still treats complete as the sole terminal archive outcome.",
+      "evidence": ".specle/agy-add-change-cancel.json: AGY-5; independently confirmed in the lifecycle policy and activate and explain skills.",
+      "analysis": "A worktree-local selector can remain after another worktree archives its target as cancelled. Guidance must treat that archived target as terminal and replaceable, while read-only explanation must cover both terminal outcomes.",
+      "recommendation": "Synchronise blueprint and installed policy, activate, and explain guidance for cancelled selector cleanup, replacement, updated_at, and archival inspection.",
+      "state": "dispatched",
+      "decision": "accept",
+      "rationale": "This prevents a stale local selector from blocking future activation and completes the documented terminal-state model.",
+      "sources": ["antigravity-review-20261127-add-change-cancel-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-change-cancel"
+      }
+    },
+    {
+      "id": "antigravity-add-change-cancel-6",
+      "severity": "P4",
+      "description": "Regression tests omit broad cancellation workflow-guidance assertions.",
+      "evidence": ".specle/agy-add-change-cancel.json: AGY-6.",
+      "analysis": "The accepted runtime defects need focused executable coverage, but the proposed remaining tests would repeatedly test agent-executed Markdown workflow prose and simulate cancellation scenarios in the regular suite.",
+      "recommendation": "Add broad packaged-skill and guidance-contract tests.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Keep the suite focused on executable runtime and schema invariants; agent-guidance scenarios are verified directly rather than through recurring workflow simulation.",
+      "sources": ["antigravity-review-20261127-add-change-cancel-1"],
+      "route": null
+    },
+    {
+      "id": "antigravity-add-change-cancel-7",
+      "severity": "P4",
+      "description": "The review record uses findings instead of the established items collection.",
+      "evidence": ".specle/agy-add-change-cancel.json: AGY-7; independently confirmed in src/specle/lifecycle.py and docs/LAYOUT.md.",
+      "analysis": "Resolved-review validation reads items. Retaining findings would make a later resolved review invalid despite an otherwise valid record.",
+      "recommendation": "Use the established items collection while preserving all current source records and dispositions.",
+      "state": "dispatched",
+      "decision": "accept",
+      "rationale": "The review record must use the documented collection consumed by runtime validation.",
+      "sources": ["antigravity-review-20261127-add-change-cancel-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-change-cancel"
+      }
+    }
+  ]
+}

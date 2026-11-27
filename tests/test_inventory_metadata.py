@@ -65,6 +65,7 @@ def test_lifecycle_owners_declare_lifecycle_metadata() -> None:
         "activate",
         "bugfix",
         "build",
+        "cancel",
         "commit",
         "complete",
         "design",
@@ -90,6 +91,41 @@ def test_lifecycle_owners_declare_lifecycle_metadata() -> None:
 
     assert lifecycle_owners <= metadata.keys()
     assert all(metadata[name].lifecycle is not None for name in lifecycle_owners)
+
+
+def test_cancel_skill_transitions_every_active_state_to_cancelled() -> None:
+    project_root = Path(__file__).parents[1]
+    skill = read_skill_metadata(
+        project_root
+        / "src"
+        / "specle"
+        / "blueprints"
+        / "skills"
+        / "cancel"
+        / "SKILL.md"
+    )
+
+    assert skill.lifecycle is not None
+    assert skill.lifecycle.accepts == (
+        "defined",
+        "estimated",
+        "designed",
+        "planned",
+        "spiking",
+        "building",
+        "verified",
+        "approved",
+        "committed",
+        "review-findings",
+        "triaged",
+    )
+    assert {
+        transition.source.status for transition in skill.lifecycle.transitions
+    } == set(skill.lifecycle.accepts)
+    assert {transition.target.status for transition in skill.lifecycle.transitions} == {
+        "cancelled"
+    }
+    assert skill.lifecycle.terminal == ("cancelled",)
 
 
 def test_active_managed_skill_metadata_matches_its_blueprint() -> None:
@@ -145,6 +181,33 @@ specle_group: Planning
 
     with pytest.raises(SkillMetadataError, match="description"):
         read_skill_metadata(skill)
+
+
+def test_reads_cancelled_terminal_lifecycle_metadata(tmp_path: Path) -> None:
+    skill = tmp_path / "cancel" / "SKILL.md"
+    skill.parent.mkdir()
+    skill.write_text(
+        """---
+name: cancel
+specle_group: Integration
+description: Cancel one active change.
+usage: Use with an explicit change name.
+lifecycle:
+  accepts:
+    - defined
+  transitions:
+    - from: defined
+      to: cancelled
+  terminal:
+    - cancelled
+---
+"""
+    )
+
+    metadata = read_skill_metadata(skill)
+
+    assert metadata.lifecycle is not None
+    assert metadata.lifecycle.terminal == ("cancelled",)
 
 
 def test_discovers_every_valid_skill_and_rejects_mismatched_names(

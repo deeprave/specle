@@ -42,6 +42,7 @@ _LIFECYCLE_STATUSES = (
     "review-findings",
     "triaged",
     "complete",
+    "cancelled",
 )
 _LIFECYCLE_KINDS = ("change", "bugfix", "refactor", "spike")
 _LIFECYCLE_SCOPES = ("active", "queued", "committed")

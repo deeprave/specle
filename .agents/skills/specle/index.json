@@ -130,6 +130,11 @@
       "name": "Integration",
       "skills": [
         {
+          "name": "cancel",
+          "description": "Archive one explicitly named active change as cancelled without claiming delivery.",
+          "usage": "Use with a stable active change name to end it after required dependency and in-flight cleanup decisions."
+        },
+        {
           "name": "commit",
           "description": "Deliver approved Specle work according to project policy.",
           "usage": "Use after local review approves a change, bugfix, or refactor to prepare or perform its configured commit, push, and pull-request delivery actions."
