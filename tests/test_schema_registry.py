@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from datetime import timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -11,7 +10,6 @@ from specle.schema_registry import (
     SchemaRegistryError,
     export_schemas,
     load_schema,
-    normalize_change_timestamp,
     validate_instance,
 )
 
@@ -184,29 +182,6 @@ def test_rejects_unknown_and_invalid_contract_instances() -> None:
                 "status": "defined",
             }
         )
-
-
-@pytest.mark.parametrize(
-    ("value", "expected"),
-    [
-        ("2026-11-21T20:14:00", 1_795_252_440),
-        ("2026-11-21T20:14:00+10:00", 1_795_256_040),
-        (1_763_724_840_000, 1_763_724_840),
-        (1_763_724_840_000_000_000, 1_763_724_840),
-    ],
-)
-def test_normalizes_supported_change_timestamps(
-    value: str | int, expected: int
-) -> None:
-    assert (
-        normalize_change_timestamp(value, local_timezone=timezone(timedelta(hours=11)))
-        == expected
-    )
-
-
-def test_rejects_date_only_timestamp_input() -> None:
-    with pytest.raises(SchemaRegistryError, match="timestamp"):
-        normalize_change_timestamp("2026-11-21")
 
 
 def test_change_status_validation_rejects_noncanonical_durable_timestamp() -> None:

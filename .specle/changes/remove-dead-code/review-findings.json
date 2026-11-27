@@ -1,0 +1,12 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261127-remove-dead-code",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "diff:16873c0f59c4a9e2be1193a912dae273cf0252b35e90643e8f87386dba39088e",
+      "outcome": "approve"
+    }
+  ],
+  "findings": []
+}

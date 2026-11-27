@@ -221,37 +221,12 @@ class SkillFrontmatter(TypedDict):
     lifecycle: NotRequired[dict[str, object]]
 
 
-def packaged_skills_root() -> Traversable:
-    """Return the packaged root directory for Specle skill blueprints."""
-    root = files("specle").joinpath("blueprints", "skills")
-    if not root.is_dir():
-        raise SkillMetadataError("the packaged skill inventory is unavailable")
-    return root
-
-
 def packaged_distribution_root() -> Traversable:
     """Return the packaged root containing skills and package policy."""
     root = files("specle").joinpath("blueprints")
     if not root.joinpath("skills").is_dir() or not root.joinpath("policies").is_dir():
         raise SkillMetadataError("the packaged Specle distribution is unavailable")
     return root
-
-
-def packaged_policies_root() -> Traversable:
-    """Return the packaged root directory for Specle policy documents."""
-    root = files("specle").joinpath("blueprints", "policies")
-    if not root.is_dir():
-        raise SkillMetadataError("the packaged policy inventory is unavailable")
-    return root
-
-
-def read_skill_metadata(path: Path) -> SkillMetadata:
-    """Read schema-validated Specle metadata from a skill frontmatter block."""
-    try:
-        contents = read_regular_text(path)
-    except OSError as error:
-        raise SkillMetadataError(f"unable to read {path}: {error}") from error
-    return _read_skill_metadata(path, contents)
 
 
 def _read_skill_metadata(path: Path, contents: str) -> SkillMetadata:
@@ -274,26 +249,6 @@ def _read_skill_metadata(path: Path, contents: str) -> SkillMetadata:
         lifecycle=_parse_lifecycle(values.get("lifecycle"), path),
         path=path,
     )
-
-
-def discover_skills(source_root: Path) -> tuple[SkillMetadata, ...]:
-    """Compatibility view of the one inventory inspection for a skills root."""
-    return tuple(
-        record.metadata
-        for record in scan_managed_inventory(
-            source_root.expanduser().resolve().parent
-        ).skills
-    )
-
-
-def discover_installed_specle_skills(
-    target_directory: Path,
-) -> tuple[SkillMetadata, ...]:
-    """Compatibility view of one installed-inventory inspection."""
-    inventory = scan_managed_inventory(
-        target_directory.expanduser().resolve() / ".agents"
-    )
-    return tuple(record.metadata for record in inventory.skills)
 
 
 def build_skill_index(skills: tuple[SkillMetadata, ...]) -> SkillIndex:
@@ -716,16 +671,6 @@ def _validate_installed_index(
     expected = build_skill_index(tuple(record.metadata for record in installed.skills))
     if index != expected:
         raise SkillInstallationError(f"invalid generated skill index: {index_path}")
-
-
-def compare_installed_distribution(
-    source_root: Path, target_directory: Path
-) -> tuple[str, ...]:
-    """Report content drift between a package distribution and an installed target."""
-    return compare_managed_inventories(
-        scan_managed_inventory(source_root),
-        scan_managed_inventory(target_directory.expanduser().resolve() / ".agents"),
-    )
 
 
 def _checksum_resources(

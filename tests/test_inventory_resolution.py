@@ -1,10 +1,4 @@
-from specle.inventory import packaged_distribution_root, packaged_skills_root
-
-
-def test_locates_packaged_skill_inventory() -> None:
-    root = packaged_skills_root()
-
-    assert root.joinpath("define", "SKILL.md").is_file()
+from specle.inventory import packaged_distribution_root
 
 
 def test_packaged_distribution_exposes_skills_and_policies() -> None:

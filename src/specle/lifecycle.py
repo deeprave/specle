@@ -12,11 +12,9 @@ from specle.file_reading import read_regular_text
 from specle.inventory import (
     LifecycleDiagnostic,
     SkillMetadata,
-    SkillMetadataError,
-    analyse_lifecycle,
-    scan_managed_inventory,
 )
-from specle.sidecars import CONCURRENT_DELIVERY
+
+CONCURRENT_DELIVERY = "with-related-change"
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,96 +23,6 @@ class RuntimeSnapshot:
 
     state: ChangeStateSnapshot
     diagnostics: tuple[LifecycleDiagnostic, ...]
-
-
-@dataclass(frozen=True, slots=True)
-class DeliverySidecars:
-    """Explicit, validated sidecars eligible for one parent delivery operation."""
-
-    sidecars: tuple[ChangeRecord, ...]
-    diagnostics: tuple[LifecycleDiagnostic, ...]
-
-
-def discover_delivery_sidecars(
-    snapshot: ChangeStateSnapshot,
-    parent: ChangeRecord,
-    *,
-    required_status: str,
-) -> DeliverySidecars:
-    """Return parent-declared sidecars that reciprocally approve concurrent delivery."""
-    diagnostics: list[LifecycleDiagnostic] = []
-    sidecars: list[ChangeRecord] = []
-    active_by_name = {record.name: record for record in snapshot.active}
-    declared_names: set[str] = set()
-    relationships = parent.status.get("relationships")
-    if not isinstance(relationships, list):
-        return DeliverySidecars(
-            (),
-            (
-                _sidecar_diagnostic(
-                    parent, "invalid-sidecar-relationship", "relationships"
-                ),
-            ),
-        )
-
-    for relationship in relationships:
-        if not isinstance(relationship, dict):
-            continue
-        if relationship.get("delivery") != CONCURRENT_DELIVERY:
-            continue
-        name = relationship.get("change")
-        relation_kind = relationship.get("type")
-        if not isinstance(name, str) or not isinstance(relation_kind, str):
-            diagnostics.append(
-                _sidecar_diagnostic(
-                    parent, "invalid-sidecar-relationship", "relationship"
-                )
-            )
-            continue
-        if name in declared_names:
-            continue
-        declared_names.add(name)
-        if _concurrent_declaration_count(relationships, name) != 1:
-            diagnostics.append(_sidecar_diagnostic(parent, "duplicate-sidecar", name))
-            continue
-        sidecar = active_by_name.get(name)
-        if sidecar is None:
-            diagnostics.append(_sidecar_diagnostic(parent, "missing-sidecar", name))
-            continue
-        sidecar_kind = sidecar.status.get("kind")
-        if sidecar_kind not in {"bugfix", "refactor"} or relation_kind != sidecar_kind:
-            diagnostics.append(
-                _sidecar_diagnostic(parent, "sidecar-kind-mismatch", name)
-            )
-            continue
-        reciprocal_count = _reciprocal_relationship_count(sidecar, parent.name)
-        if reciprocal_count != 1:
-            diagnostics.append(
-                _sidecar_diagnostic(
-                    parent,
-                    "duplicate-reciprocal-sidecar"
-                    if reciprocal_count > 1
-                    else "missing-reciprocal-sidecar",
-                    name,
-                )
-            )
-            continue
-        if sidecar.status.get("status") != required_status:
-            diagnostics.append(_sidecar_diagnostic(parent, "sidecar-not-ready", name))
-            continue
-        sidecars.append(sidecar)
-    return DeliverySidecars(tuple(sidecars), tuple(diagnostics))
-
-
-def _concurrent_declaration_count(
-    relationships: list[object], sidecar_name: str
-) -> int:
-    return sum(
-        isinstance(relationship, dict)
-        and relationship.get("change") == sidecar_name
-        and relationship.get("delivery") == CONCURRENT_DELIVERY
-        for relationship in relationships
-    )
 
 
 def _reciprocal_relationship_count(sidecar: ChangeRecord, parent_name: str) -> int:
@@ -136,19 +44,6 @@ def _sidecar_diagnostic(
     return LifecycleDiagnostic(
         code, f"{parent.directory / 'status.json'}: {code.replace('-', ' ')}: {detail}"
     )
-
-
-def validate_installed_skill_inventory(
-    target_directory: Path,
-) -> tuple[LifecycleDiagnostic, ...]:
-    """Return lifecycle diagnostics from one shared installed-inventory inspection."""
-    try:
-        inventory = scan_managed_inventory(
-            target_directory.expanduser().resolve() / ".agents"
-        )
-    except SkillMetadataError as error:
-        return (LifecycleDiagnostic("invalid-installed-inventory", str(error)),)
-    return inventory.lifecycle.diagnostics
 
 
 def validate_runtime_records(
@@ -413,10 +308,3 @@ def _terminal_statuses(skills: Iterable[SkillMetadata]) -> set[str]:
 
 def _diagnostic(path: Path, code: str, field: str) -> LifecycleDiagnostic:
     return LifecycleDiagnostic(code, f"{path}: invalid {field}")
-
-
-def validate_lifecycle_graph(
-    skills: Iterable[SkillMetadata],
-) -> tuple[LifecycleDiagnostic, ...]:
-    """Compatibility view of the shared inventory lifecycle analysis."""
-    return analyse_lifecycle(tuple(skills)).diagnostics
