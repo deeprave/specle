@@ -24,6 +24,8 @@ Before activation, an explicitly named normal change may be estimated, designed,
 
 A clean verification result is `verified`, not `complete`; a subsequent passing review makes the work `approved`. `commit` records the delivery event and moves the work to `committed`; `complete` archive-finalises every delivery model. After review findings, use `triage` to record decisions, then `resolve` to route accepted decisions; it uses `revise` for corrections to the selected change's requirements, design, or plan. Use `status` to orient current work and `changes` to inspect pending lifecycle state.
 
+`cancel <change-name>` is an explicit alternative for ending any active non-terminal change without delivery. It never infers the selected target, and it requires user-directed handling of dependencies and in-flight work before archiving the record as `cancelled`.
+
 Alternative paths are `bugfix` for a bounded defect, `refactor` for behaviour-preserving work, and `spike` for an investigation that does not implement changes. Use `prepare` to create an unselected bugfix or refactor for named later implementation.
 
 When each step ends, suggest the next step and any alternatives, if they exist. When the user explicitly says `next`, automatically invoke the previously suggested next step; do not require them to restate its command.

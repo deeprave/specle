@@ -56,6 +56,6 @@ lifecycle:
 
 Both `from` and `to` accept either form. `next` is the next skill name or is omitted for a terminal outcome.
 
-The supported statuses are `defined`, `estimated`, `designed`, `planned`, `spiking`, `building`, `verified`, `approved`, `committed`, `review-findings`, `triaged`, and `complete`. Nested selectors may use the kinds `change`, `bugfix`, `refactor`, and `spike`, and the scopes `active`, `queued`, and `committed`.
+The supported statuses are `defined`, `estimated`, `designed`, `planned`, `spiking`, `building`, `verified`, `approved`, `committed`, `review-findings`, `triaged`, `complete`, and `cancelled`. Nested selectors may use the kinds `change`, `bugfix`, `refactor`, and `spike`, and the scopes `active`, `queued`, and `committed`.
 
 The declaration is agent-visible production metadata. Before a skill records a lifecycle transition, its instructions require the agent to consult and obey its own declaration. The skill body remains the full operational procedure; this metadata is the constrained transition contract that `specle validate` audits.

@@ -160,6 +160,7 @@ def validate_runtime_records(
     skills = tuple(skills)
     snapshot = snapshot or read_runtime_snapshot(target_directory)
     diagnostics = list(snapshot.diagnostics)
+    terminal_statuses = _terminal_statuses(skills)
     for record in (*snapshot.state.active, *snapshot.state.archived):
         _validate_record(
             record.status,
@@ -167,11 +168,20 @@ def validate_runtime_records(
             _lifecycle_statuses_for_kind(skills, record.status.get("kind")),
             diagnostics,
         )
-        if record.archived and record.status.get("status") != "complete":
+        status = record.status.get("status")
+        if record.archived and status not in terminal_statuses:
             diagnostics.append(
                 LifecycleDiagnostic(
                     "archived-not-complete",
-                    f"{record.directory / 'status.json'}: archived change is not complete",
+                    f"{record.directory / 'status.json'}: archived change is not terminal",
+                )
+            )
+        if not record.archived and status == "cancelled":
+            diagnostics.append(
+                _diagnostic(
+                    record.directory / "status.json",
+                    "cancelled-not-archived",
+                    "cancelled status",
                 )
             )
     _validate_concurrent_relationships(snapshot.state, diagnostics)
@@ -376,6 +386,18 @@ def _lifecycle_statuses_for_kind(
             for state in (transition.source, transition.target):
                 if state.kind == "spike":
                     spike_statuses.add(state.status)
+    terminal_statuses = _terminal_statuses(skills)
+    for skill in skills:
+        if skill.lifecycle is None:
+            continue
+        for transition in skill.lifecycle.transitions:
+            if (
+                transition.target.status in terminal_statuses
+                and transition.source.status in spike_statuses
+                and transition.source.kind in {None, "spike"}
+                and transition.target.kind in {None, "spike"}
+            ):
+                spike_statuses.add(transition.target.status)
     return spike_statuses
 
 

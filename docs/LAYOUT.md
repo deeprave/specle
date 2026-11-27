@@ -16,7 +16,7 @@ Specle separates stable, human-maintained guidance from agent-managed runtime st
   changes/
     <change-slug>/                   # Active or queued self-contained change
   archive/
-    <change-slug>/                   # Completed self-contained change
+    <change-slug>/                   # Terminal completed or cancelled change
 ```
 
 The Specle distribution inventory lives in `src/specle/blueprints/skills/` and
@@ -55,7 +55,7 @@ Agent-managed records that cross skill or external-system boundaries identify th
 Use `specle schemas export <destination>` to create a portable copy of every schema resource. The command refuses to replace an existing destination unless `--force` is explicit, stages the complete export first, and preserves the existing destination if replacement fails.
 The exported `registry.json` maps each stable schema URI to its relative resource path; offline consumers can register those resources under the listed URIs before validating schemas with internal `$ref` values.
 
-Active changes live in `.specle/changes/`; durably completed changes live in `.specle/archive/`. Each change has a self-contained directory named with its unique kebab-case slug. The slug is its stable identity.
+Active changes live in `.specle/changes/`; durably terminal changes live in `.specle/archive/`. An archive record is either completed delivery or cancelled work; its `status.json` states which. Each change has a self-contained directory named with its unique kebab-case slug. The slug is its stable identity.
 
 Artifacts belonging to a change stay in that change's directory rather than in a top-level artifacts directory.
 

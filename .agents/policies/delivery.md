@@ -31,5 +31,6 @@ Unknown policy remains explicitly unestablished. Skills must not infer it from t
 - `approved` means the local Specle review passed. It is not evidence that shared delivery or peer review is finished.
 - `committed` applies to every delivery model after its delivery event is recorded. It remains addressable for external feedback until archival finalisation.
 - `complete` means the archived record is terminal and its original delivery PR contains the archival finalisation. A later explicit `complete` may inspect the original or recovery PR and synchronise after merge without changing the archive. A spike is an exception: its recorded findings complete it without implementation delivery.
+- `cancelled` means the archived record intentionally ended without asserting delivery. It does not undo existing commits, branches, pull requests, merges, or published work.
 
 External writes require both project policy and explicit user authorisation. A skill may provide exact instructions when either is absent.

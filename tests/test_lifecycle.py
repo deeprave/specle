@@ -245,6 +245,48 @@ def test_reports_invalid_status_and_archived_non_completion(tmp_path: Path) -> N
     assert {"invalid-status", "archived-not-complete"} <= codes
 
 
+def test_accepts_archived_cancelled_change(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "cancelled", status="cancelled", archived=True)
+
+    assert validate_runtime_records(target, _runtime_skills()) == ()
+
+
+def test_accepts_archived_cancelled_spike(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(
+        target, "cancelled-spike", status="cancelled", archived=True, kind="spike"
+    )
+
+    assert validate_runtime_records(target, _runtime_skills()) == ()
+
+
+def test_packaged_runtime_accepts_archived_cancelled_records_for_every_kind(
+    tmp_path: Path,
+) -> None:
+    root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
+    from specle.inventory import discover_skills
+
+    target = tmp_path / "project"
+    for kind in ("change", "bugfix", "refactor", "spike"):
+        name = f"cancelled-{kind}"
+        _write_status(target, name, status="cancelled", archived=True, kind=kind)
+
+    assert validate_runtime_records(target, discover_skills(root)) == ()
+
+
+def test_rejects_active_cancelled_record(tmp_path: Path) -> None:
+    target = tmp_path / "project"
+    _write_status(target, "active", status="cancelled")
+
+    codes = {
+        diagnostic.code
+        for diagnostic in validate_runtime_records(target, _runtime_skills())
+    }
+
+    assert codes == {"cancelled-not-archived"}
+
+
 def test_accepts_resolved_review_evidence_for_an_approved_change(
     tmp_path: Path,
 ) -> None:
@@ -833,6 +875,39 @@ def _runtime_skills() -> tuple[SkillMetadata, ...]:
             ),
         ),
         _skill("review", None),
+        _skill(
+            "spike",
+            LifecycleDeclaration(
+                accepts=("defined", "spiking"),
+                creates=("defined",),
+                transitions=(
+                    LifecycleTransition(
+                        LifecycleState("defined", kind="spike"),
+                        LifecycleState("spiking", kind="spike"),
+                        None,
+                    ),
+                    LifecycleTransition(
+                        LifecycleState("spiking", kind="spike"),
+                        LifecycleState("complete", kind="spike"),
+                        None,
+                    ),
+                ),
+                terminal=("complete",),
+            ),
+        ),
+        _skill(
+            "cancel",
+            LifecycleDeclaration(
+                accepts=("defined",),
+                creates=(),
+                transitions=(
+                    LifecycleTransition(
+                        LifecycleState("defined"), LifecycleState("cancelled"), None
+                    ),
+                ),
+                terminal=("cancelled",),
+            ),
+        ),
     )
 
 

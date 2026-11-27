@@ -4,6 +4,8 @@ This is the lifecycle implemented by Specle today. It is a reference for the wor
 
 Local approval, delivery, and archival finalisation are distinct. `approved` records a passing local review; `commit` records the applicable delivery event and moves work to `committed`; `complete` records completion and archives the durable change record on the same delivery path. For branch delivery it records immutable PR identity on the original PR, requests auto-merge where permitted, and later synchronises after that PR merges. A `<delivery-branch>-complete` PR is recovery only when the original PR merged before archival delivery.
 
+`cancel <change-name>` is the separate terminal path for ending one explicitly named active change without asserting delivery. It first presents direct dependencies, every explicitly reciprocal concurrent-delivery partner, and in-flight checkout, direct-delivery, or PR consequences. It requires the user's separate confirmation for dependency removal or each reciprocal unlink, and their direction for cleanup before recording `cancelled` and archiving the record.
+
 ## Statuses
 
 | Status | Meaning | Usual next workflow command |
@@ -20,6 +22,7 @@ Local approval, delivery, and archival finalisation are distinct. `approved` rec
 | `review-findings` | Review has findings that need decisions. | `triage` |
 | `triaged` | Every current finding has a recorded decision and routing is ready. | `resolve` |
 | `complete` | Archival finalisation was recorded on the existing delivery path, or a spike delivered its findings. | None; a named `complete <change-name>` may later synchronise after the original or recovery PR merges. |
+| `cancelled` | Work intentionally ended without asserting delivery. | None; the archived record is immutable. |
 
 `review.status` is separate from lifecycle status. It is `pass` after local approval and `resolved` when every current finding has a terminal no-action disposition or completed follow-up. Resolve returns a local no-action outcome to `approved` and a previously submitted no-action outcome to `committed`; neither outcome alone completes delivery.
 
@@ -37,6 +40,7 @@ Local approval, delivery, and archival finalisation are distinct. `approved` rec
 | `review` | On approval, sets the selected target `approved` with next `commit`. On findings, sets the selected target `review-findings`. |
 | `commit` | Applies the selected delivery model, records its delivery event and `updated_at`, and moves every delivered member to `committed`. A normal parent may include only sidecars it declares with concurrent delivery and that reciprocally agree and are ready; it never infers them from a reverse scan. |
 | `complete` | Removes the delivered parent and eligible reciprocal sidecars from matching explicit dependency arrays in other active records, generates the parent summary, writes `complete`, `archived_at`, and immutable `delivery.completion` PR identity, then performs recoverable archival finalisation. For branch delivery it pushes this mutation to the original PR and requests auto-merge; only an original PR already merged before archival delivery creates a recovery PR. A later `complete` synchronises after merge. Direct delivery writes no completion object, pushes the archival finalisation, and clears the matching selector. |
+| `cancel` | Requires an explicit active target name. It presents direct dependents, explicitly reciprocal concurrent-delivery partners, and user-owned in-flight work; requires separate confirmation before removing direct dependency entries or unlinking each partner; then writes `cancelled` and `cancelled_at`, archives the named record, and clears only a matching selector. It does not perform cleanup, delivery, or external actions without separate direction and authorisation. |
 | `triage` | Sets a fully decided active target `triaged`. Archived records are immutable and do not enter triage. |
 | `resolve` | Reconciles previously dispatched accepted work, then dispatches any pending accepted follow-up. It reports `resolve <target>` as the later reconciliation step for incomplete follow-ups. A local no-action outcome returns to `approved`; a previously committed no-action outcome returns to `committed`. |
 | `revise` | Reconciles accepted feedback and returns eligible active work to the earliest viable planning state. Archived records are immutable; a later defect requires independent work. |
@@ -48,7 +52,7 @@ Local approval, delivery, and archival finalisation are distinct. `approved` rec
 
 ## Transition audit
 
-Every non-terminal state has an owning workflow command and a valid next transition. `complete` is the only terminal state.
+Every non-terminal state has an owning workflow command and a valid next transition. `complete` and `cancelled` are terminal states with distinct meanings.
 
 | State | Valid exit or terminal outcome | Audit result |
 | --- | --- | --- |
@@ -64,6 +68,7 @@ Every non-terminal state has an owning workflow command and a valid next transit
 | `review-findings` | `triage` records decisions. | Has an exit. |
 | `triaged` | `resolve` dispatches pending actions, waits for incomplete follow-ups, creates unselected independent work where required, restores a local no-action result to `approved`, or restores a submitted no-action result to `committed`. | Has an exit; no-action review and hand-off do not bypass delivery. |
 | `complete` | Terminal. A later named `complete` may inspect the original or recovery PR and synchronise after merge. | Intentional terminal state. |
+| `cancelled` | Terminal. | Intentional terminal state; it does not assert delivery. |
 
 ## Current flows
 
@@ -132,6 +137,8 @@ flowchart TB
 ```
 
 Resolve preserves `.specle/current-change` for every explicitly named non-selected target. `complete` archives a branch-delivery target on its original open PR and retains its selector until a later `complete` confirms that PR merged and synchronises the delivery branch. External feedback is settled through the normal committed-work triage loop before archival finalisation. Once archived, the record is immutable; a later defect requires independent work.
+
+At any active non-terminal status, `cancel <change-name>` is available as an explicit alternative. It never infers the target from the selector. Existing worktree content is always presented as user-owned and unattributed; no reset, stash, branch action, commit, push, or PR action occurs without explicit user direction.
 
 ## Concurrent sidecars
 
