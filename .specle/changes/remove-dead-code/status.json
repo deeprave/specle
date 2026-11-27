@@ -1,7 +1,7 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "approved",
+  "status": "committed",
   "created_at": 1795760660,
   "activated_at": 1795773606,
   "progress": {
@@ -15,8 +15,14 @@
     "status": "pass",
     "findings": 0
   },
-  "delivery": null,
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/55",
+    "head_branch": "feature/remove-dead-code",
+    "target_branch": "main",
+    "commit": "6c5c54479056442484c04a418ca0386da15485a9",
+    "event": "pull-request-open"
+  },
   "relationships": [],
   "dependencies": [],
-  "updated_at": 1795774314
+  "updated_at": 1795777084
 }
