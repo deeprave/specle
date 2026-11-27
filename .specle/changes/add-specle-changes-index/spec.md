@@ -1,4 +1,4 @@
-# Add specle list and index
+# Add specle changes and index
 
 ## Problem
 
@@ -6,11 +6,11 @@ Durable Specle state is available only by inspecting change directories and `sta
 
 ## Goal
 
-Add a read-only `specle list` command that presents concise active or archived change state, backed by explicit lifecycle timestamps rather than filesystem or delivery-text inference. Add `specle index <target-directory>` to rebuild only an existing deployment's generated installed-skill index.
+Add a read-only `specle changes` command that presents concise active or archived change state, backed by explicit lifecycle timestamps rather than filesystem or delivery-text inference. Add `specle index <target-directory>` to rebuild only an existing deployment's generated installed-skill index.
 
 ## Direction
 
-`specle list` scans the current project's validated change records and, by default, reports incomplete active changes. `specle list --archive` scans only archived changes. Each row presents the stable name, a short date, kind, status, dependencies, and the next action name. Active listings use `created_at`; archive listings use canonical `archived_at`.
+`specle changes` scans the current project's validated change records and, by default, reports incomplete active changes. `specle changes --archive` scans only archived changes. Each row presents the stable name, a short date, kind, status, dependencies, and the next action name. Active listings use `created_at`; archive listings use canonical `archived_at`.
 
 `specle index <target-directory>` requires an explicit target directory, scans that deployment's installed managed skills, and atomically replaces only `.agents/skills/specle/index.json`. It does not install, update, remove, or otherwise change skills or policies.
 

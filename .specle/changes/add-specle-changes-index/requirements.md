@@ -1,4 +1,4 @@
-# Requirements: add specle list and index
+# Requirements: add specle changes and index
 
 ## Introduction
 
@@ -21,7 +21,7 @@ Specle has durable change records but no concise CLI view of work that remains i
 
 #### Acceptance Criteria
 
-1. `specle list` SHALL read the durable change records in the current project's `.specle/changes/` directory without modifying them.
+1. `specle changes` SHALL read the durable change records in the current project's `.specle/changes/` directory without modifying them.
 2. The default output SHALL include every valid incomplete active change and SHALL exclude records with `status: "complete"`.
 3. Each displayed active change SHALL include its stable name, creation date in `YYYY-MM-DD` form, kind, status, declared dependencies, and next action.
 4. The next-action column SHALL show only the action name, not a fully formed command or change argument.
@@ -35,7 +35,7 @@ Specle has durable change records but no concise CLI view of work that remains i
 
 #### Acceptance Criteria
 
-1. `specle list --archive` SHALL list valid records in `.specle/archive/` and SHALL not include active changes.
+1. `specle changes --archive` SHALL list valid records in `.specle/archive/` and SHALL not include active changes.
 2. Archive output SHALL use the same name, kind, status, dependencies, and next-action fields as the active listing.
 3. Archive output SHALL display completion date in `YYYY-MM-DD` form instead of creation date.
 4. Archive output SHALL remain read-only and deterministic.
@@ -72,4 +72,4 @@ Specle has durable change records but no concise CLI view of work that remains i
 - `specle index` is a narrowly scoped generated-resource operation; it does not replace `init` or the future update workflow.
 - Date presentation is human-facing only; durable values remain Unix-second numbers.
 - The command does not replace the agent `status` skill, which may provide broader workflow interpretation and context.
-- This change depends on `add-wrapup-skill`, which supplies the `updated_at` and `archived_at` status fields that `list` reads. It introduces no compatibility aliases or alternate legacy state formats.
+- The durable `updated_at` and `archived_at` fields already available on `main` supply the timestamps that `changes` reads. This change introduces no compatibility aliases or alternate legacy state formats.

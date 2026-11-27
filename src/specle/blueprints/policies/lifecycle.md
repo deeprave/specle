@@ -30,7 +30,7 @@ skills apply these transitions and must not replace them with local rules.
 
 | Skill | Required transition |
 | --- | --- |
-| `define` | Create an unselected normal change as `defined`, then report its concise summary; it never selects local work or commences planning. |
+| `define` | Create an unselected normal change as `defined`, or refine an explicitly named active unselected normal change that remains `defined`. Refinement preserves the record's state and `created_at`, updates only `updated_at`, and never selects local work or commences planning. |
 | `activate` | The sole writer of `.specle/current-change` except for complete's terminal removal of its matching archived selection after synchronisation and cancel's matching terminal removal. A selected archived complete record with an unconfirmed delivery PR blocks replacement; an archived cancelled record is terminal and replaceable. Select a named resumable normal change or `defined`/`spiking` spike in the local worktree. For a normal change, immediately invoke the first missing required estimate → design → tasks stage and set a fully prepared change to `planned` before invoking `build`; for a spike, invoke `spike`. |
 | `spike` | Initialize an unselected `kind: "spike"` work item as `defined`. When invoked by `activate`, set it to `spiking` while conducting read-only research. On completion, record findings and optional stable outcome-change name, set verification and review to `not-applicable`, and mark it `complete`. |
 | `estimate` | Mark the selected target `estimated`; selected normal work continues to design before tasks, while a named unselected normal estimate writes only its artifact and retains next `activate`. |

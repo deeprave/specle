@@ -2,7 +2,7 @@
 name: define
 specle_group: Planning
 description: >-
-  Create evidence-led, unselected normal change definitions under `.specle/changes/`.
+  Create or refine evidence-led, unselected normal change definitions under `.specle/changes/`.
 usage: >-
   Use when scoping potential normal work: investigate evidence, resolve material uncertainty, and define the change without activating it.
 lifecycle:
@@ -12,7 +12,7 @@ lifecycle:
 
 # Define a change
 
-Create a useful, evidence-led definition for a normal change without selecting or commencing it.
+Create or refine a useful, evidence-led definition for a normal change without selecting or commencing it.
 
 ## Change independence
 
@@ -22,15 +22,15 @@ Changes are independent by default. A queued or future change must not create a 
 
 Before creating or recording lifecycle state, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read the request, `.agents/policies/*.md`, relevant steering and project guidance, and available repository evidence: code, tests, documentation, configuration, and active and archived changes.
+1. Read the request, `.agents/policies/*.md`, relevant steering and project guidance, and available repository evidence: code, tests, documentation, configuration, and active and archived changes. When the user explicitly names an existing change, also read its `status.json`, `requirements.md`, and `spec.md`.
 2. Separate established current behaviour, the requested outcome, affected boundaries, and implementation details that remain undecided. Check whether existing work already covers or partially overlaps the request. If it fully covers the request, report the evidence and stop without creating a duplicate change. For partial overlap, explain the boundary rather than silently duplicating, absorbing, or constraining either change.
 3. Identify material uncertainty: a question whose answer would change scope, observable behaviour, compatibility, acceptance criteria, or change type. Ask focused questions only for that uncertainty, stating the decision each question unblocks and an evidence-based default when available. Do not ask for facts the evidence establishes.
 4. Infer minor details only when they do not materially alter the request. Record them as assumptions or boundaries in the change artifacts.
 5. Draft substantive requirements and specification content. Requirements explain why the work matters now and its desired observable outcome; state the capabilities or behaviour to add, modify, or remove; identify known affected systems and compatibility impact; state boundaries and non-goals; and provide numbered user stories with clear, testable EARS-style acceptance criteria. The concise specification retains motivation, intended outcome, key scope and impact, evidence expected for verification, and any unresolved material question or recorded assumption. Use helpful headings, not a prescribed proposal format.
-6. Select a concise 2–4 word slug and check it is unique across `.specle/changes/` and `.specle/archive/`. If it conflicts, identify the existing change and stop before writing a durable record; let the user choose a new slug or investigate whether that change already covers the request.
-7. Create `.specle/changes/<change-slug>/`, then write `requirements.md` and `spec.md`.
-8. Add versioned `status.json` with `kind: "change"`, `status: "defined"`, `created_at` set to current Unix seconds as a JSON number, `activated_at: null`, empty progress, `not-run` verification/review, `delivery: null`, and empty `relationships` and `dependencies`. Do not select it in `.specle/current-change`, invoke planning, or commence implementation.
-9. Present a concise definition summary covering the problem, intended outcome, scope, boundaries, assumptions or unresolved material questions, and verification direction. This reports the newly defined change; it does not require confirmation or imply that the user must activate it next.
+6. Select a concise 2–4 word slug and inspect the matching active and archived paths. If neither exists, create a new definition. If the exact active change exists, it may be refined only when its `kind` is `change`, its status is `defined`, and `.specle/current-change` does not select it. Stop for an archived, selected, non-normal, or non-`defined` matching change; direct the user to its applicable lifecycle owner instead.
+7. For a new definition, create `.specle/changes/<change-slug>/`, then write `requirements.md` and `spec.md`. For an eligible existing definition, revise those artifacts in place using the requested adjustments and current repository evidence.
+8. For a new definition, add versioned `status.json` with `kind: "change"`, `status: "defined"`, `created_at` set to current Unix seconds as a JSON number, `activated_at: null`, empty progress, `not-run` verification/review, `delivery: null`, and empty `relationships` and `dependencies`. For an existing definition, preserve its lifecycle state, `created_at`, and all other durable fields; update only `updated_at`. In either case, do not select it in `.specle/current-change`, invoke planning, or commence implementation.
+9. Present a concise definition summary covering the problem, intended outcome, scope, boundaries, assumptions or unresolved material questions, and verification direction. State whether the change was newly defined or refined. Neither outcome requires confirmation or implies that the user must activate it next.
 
 If the user identifies a completed spike as the source of this change, update that spike's `findings.json` `outcome_change` with this change's stable name.
 
