@@ -92,13 +92,6 @@ def resolve_change(
     return matches[0]
 
 
-def selected_change(snapshot: ChangeStateSnapshot) -> ChangeRecord | None:
-    """Return the selected active or archived record when a selector exists."""
-    if snapshot.selected_name is None:
-        return None
-    return resolve_change(snapshot, snapshot.selected_name, allow_archived=True)
-
-
 def _read_change_collection(
     root: Path, archived: bool, diagnostics: list[str]
 ) -> list[ChangeRecord]:

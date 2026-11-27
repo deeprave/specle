@@ -8,7 +8,7 @@ from specle import inventory
 from specle.inventory import (
     SkillInstallationError,
     build_skill_index,
-    compare_installed_distribution,
+    compare_managed_inventories,
     initialise_distribution,
     managed_resource_checksums,
     scan_managed_inventory,
@@ -149,7 +149,7 @@ def test_compares_an_installed_distribution_to_its_package_source(
     context = target / ".specle" / "context.json"
     context.write_text('{"local": true}\n')
 
-    assert compare_installed_distribution(source_root, target) == ()
+    assert _compare_distribution(source_root, target) == ()
 
 
 def test_version_aware_update_previews_and_applies_safe_resource_changes(
@@ -209,7 +209,7 @@ def test_version_aware_update_previews_and_applies_safe_resource_changes(
     )
     assert (target / ".agents" / "policies" / "new.md").is_file()
     assert context.read_text() == '{"local": true}\n'
-    assert compare_installed_distribution(source_root, target) == ()
+    assert _compare_distribution(source_root, target) == ()
 
 
 def test_update_reports_an_unexpected_project_overlay_path_type(
@@ -515,7 +515,7 @@ def test_version_aware_update_requires_confirmation_for_an_unmarked_skill(
     )
     assert accepted.converged is True
     assert "specle_group: Planning" in unmarked_skill.read_text()
-    assert compare_installed_distribution(source_root, target) == ()
+    assert _compare_distribution(source_root, target) == ()
 
 
 def test_reports_each_missing_skill_for_an_empty_installed_inventory(
@@ -525,7 +525,7 @@ def test_reports_each_missing_skill_for_an_empty_installed_inventory(
     target = tmp_path / "project"
     (target / ".agents" / "skills").mkdir(parents=True)
 
-    diagnostics = compare_installed_distribution(source_root, target)
+    diagnostics = _compare_distribution(source_root, target)
 
     assert diagnostics == (
         "missing managed resource (requires update): policies/testing.md",
@@ -606,7 +606,7 @@ def test_reports_missing_or_modified_managed_resources(
         else:
             target_path.write_text("modified\n")
 
-    diagnostics = compare_installed_distribution(source_root, target)
+    diagnostics = _compare_distribution(source_root, target)
 
     assert any(expected in diagnostic for diagnostic in diagnostics)
 
@@ -624,7 +624,7 @@ def test_reports_unexpected_managed_resources_but_ignores_unmarked_skills(
     unmarked.parent.mkdir()
     unmarked.write_text("# Local skill\n")
 
-    diagnostics = compare_installed_distribution(source_root, target)
+    diagnostics = _compare_distribution(source_root, target)
 
     assert any(
         "unexpected managed resource" in diagnostic for diagnostic in diagnostics
@@ -640,7 +640,7 @@ def test_reports_a_marker_stripped_expected_skill(tmp_path: Path) -> None:
     skill_file = target / ".agents" / "skills" / "define" / "SKILL.md"
     skill_file.write_text("---\nname: define\n---\n")
 
-    diagnostics = compare_installed_distribution(source_root, target)
+    diagnostics = _compare_distribution(source_root, target)
 
     assert any("missing managed skill" in diagnostic for diagnostic in diagnostics)
 
@@ -653,7 +653,7 @@ def test_compares_binary_managed_resources(tmp_path: Path) -> None:
     target.mkdir()
     initialise_distribution(source_root, target)
 
-    assert compare_installed_distribution(source_root, target) == ()
+    assert _compare_distribution(source_root, target) == ()
 
 
 def test_force_replaces_only_exact_managed_destinations(tmp_path: Path) -> None:
@@ -758,7 +758,7 @@ def test_staging_failure_preserves_existing_content_and_cleans_up(
     existing.parent.mkdir(parents=True)
     existing.write_text("# Existing define\n")
 
-    def fail_copytree(*args: object, **kwargs: object) -> None:
+    def fail_copytree(*args: object, **_kwargs: object) -> None:
         raise OSError("copy failed")
 
     monkeypatch.setattr(inventory.shutil, "copytree", fail_copytree)
@@ -835,7 +835,7 @@ def test_index_generation_failure_preserves_the_previous_index_and_cleans_up(
     index_path = target / ".agents" / "skills" / "specle" / "index.json"
     previous_index = index_path.read_text()
 
-    def fail_index(*args: object, **kwargs: object) -> inventory.SkillIndex:
+    def fail_index(*args: object, **_kwargs: object) -> inventory.SkillIndex:
         raise ValueError("index failed")
 
     monkeypatch.setattr(inventory, "build_skill_index", fail_index)
@@ -999,6 +999,13 @@ def _write_distribution(root: Path) -> Path:
     policies.mkdir(parents=True)
     (policies / "testing.md").write_text("---\nspecle_policy: true\n---\n\n# Testing\n")
     return root
+
+
+def _compare_distribution(source_root: Path, target: Path) -> tuple[str, ...]:
+    return compare_managed_inventories(
+        scan_managed_inventory(source_root),
+        scan_managed_inventory(target / ".agents"),
+    )
 
 
 def _write_skill(root: Path, name: str, group: str) -> None:

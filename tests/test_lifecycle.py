@@ -1,38 +1,30 @@
 import json
 from pathlib import Path
 
-import pytest
-
-from specle import sidecars
 from specle.change_state import read_change_state, resolve_change
 from specle.inventory import (
     LifecycleDeclaration,
     LifecycleState,
     LifecycleTransition,
     SkillMetadata,
+    analyse_lifecycle,
+    scan_managed_inventory,
 )
-from specle.lifecycle import (
-    discover_delivery_sidecars,
-    validate_installed_skill_inventory,
-    validate_lifecycle_graph,
-    validate_runtime_records,
-)
+from specle.lifecycle import validate_runtime_records
 from specle.schema_registry import SCHEMA_IDENTIFIERS
-from specle.sidecars import SidecarRelationshipError, record_sidecar_relationship
 
 
 def test_packaged_lifecycle_has_no_graph_diagnostics() -> None:
     root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
-    from specle.inventory import discover_skills
-
-    assert validate_lifecycle_graph(discover_skills(root)) == ()
+    assert scan_managed_inventory(root.parent).lifecycle.diagnostics == ()
 
 
 def test_archived_delivery_allows_only_completion_resumption() -> None:
     root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
-    from specle.inventory import discover_skills
-
-    skills = {skill.name: skill for skill in discover_skills(root)}
+    skills = {
+        record.metadata.name: record.metadata
+        for record in scan_managed_inventory(root.parent).skills
+    }
 
     assert "wrapup" not in skills
     lifecycle = skills["complete"].lifecycle
@@ -69,7 +61,7 @@ def test_reports_missing_next_skill_and_dead_end() -> None:
         ),
     )
 
-    codes = {diagnostic.code for diagnostic in validate_lifecycle_graph(skills)}
+    codes = {diagnostic.code for diagnostic in analyse_lifecycle(skills).diagnostics}
 
     assert {"missing-next-skill", "missing-terminal", "dead-end-status"} <= codes
 
@@ -93,7 +85,7 @@ def test_nested_selectors_participate_in_status_graph() -> None:
         ),
     )
 
-    assert validate_lifecycle_graph(skills) == ()
+    assert analyse_lifecycle(skills).diagnostics == ()
 
 
 def test_reports_unreachable_and_contradictory_transitions() -> None:
@@ -135,35 +127,13 @@ def test_reports_unreachable_and_contradictory_transitions() -> None:
         _skill("second-next", None),
     )
 
-    codes = {diagnostic.code for diagnostic in validate_lifecycle_graph(skills)}
+    codes = {diagnostic.code for diagnostic in analyse_lifecycle(skills).diagnostics}
 
     assert {
         "contradictory-transition",
         "unreachable-status",
         "dead-end-status",
     } <= codes
-
-
-def test_reports_an_invalid_installed_inventory(tmp_path: Path) -> None:
-    target = tmp_path / "project"
-    skill = target / ".agents" / "skills" / "managed" / "SKILL.md"
-    skill.parent.mkdir(parents=True)
-    skill.write_text(
-        """---
-name: managed
-specle_group: Planning
-requires:
-  - missing
-description: Managed test skill.
-usage: Use for installed inventory tests.
----
-"""
-    )
-
-    diagnostics = validate_installed_skill_inventory(target)
-
-    assert diagnostics[0].code == "invalid-installed-inventory"
-    assert "requires missing skill" in diagnostics[0].message
 
 
 def test_validates_per_change_state_and_ignored_selection(tmp_path: Path) -> None:
@@ -265,14 +235,15 @@ def test_packaged_runtime_accepts_archived_cancelled_records_for_every_kind(
     tmp_path: Path,
 ) -> None:
     root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
-    from specle.inventory import discover_skills
-
     target = tmp_path / "project"
     for kind in ("change", "bugfix", "refactor", "spike"):
         name = f"cancelled-{kind}"
         _write_status(target, name, status="cancelled", archived=True, kind=kind)
 
-    assert validate_runtime_records(target, discover_skills(root)) == ()
+    skills = tuple(
+        record.metadata for record in scan_managed_inventory(root.parent).skills
+    )
+    assert validate_runtime_records(target, skills) == ()
 
 
 def test_rejects_active_cancelled_record(tmp_path: Path) -> None:
@@ -460,222 +431,6 @@ def test_reports_a_non_regular_status_before_reading_it(tmp_path: Path) -> None:
     assert "not a regular file" in diagnostics[0].message
 
 
-@pytest.mark.parametrize("required_status", ("approved", "committed"))
-def test_discovers_delivery_ready_reciprocal_sidecars_from_parent_only(
-    tmp_path: Path, required_status: str
-) -> None:
-    target = tmp_path / "project"
-    _write_status(
-        target,
-        "parent",
-        status=required_status,
-        relationships=[
-            {
-                "change": "fix-parent",
-                "type": "bugfix",
-                "delivery": "with-related-change",
-            }
-        ],
-    )
-    _write_status(
-        target,
-        "fix-parent",
-        status=required_status,
-        kind="bugfix",
-        relationships=[
-            {
-                "change": "parent",
-                "type": "origin",
-                "delivery": "with-related-change",
-            }
-        ],
-    )
-    _write_status(
-        target,
-        "unrelated-fix",
-        status=required_status,
-        kind="bugfix",
-        relationships=[
-            {
-                "change": "parent",
-                "type": "origin",
-                "delivery": "with-related-change",
-            }
-        ],
-    )
-
-    snapshot = read_change_state(target)
-    result = discover_delivery_sidecars(
-        snapshot, resolve_change(snapshot, "parent"), required_status=required_status
-    )
-
-    assert tuple(record.name for record in result.sidecars) == ("fix-parent",)
-    assert result.diagnostics == ()
-
-
-def test_reports_invalid_or_unready_delivery_sidecars(tmp_path: Path) -> None:
-    target = tmp_path / "project"
-    _write_status(
-        target,
-        "parent",
-        status="approved",
-        relationships=[
-            {
-                "change": "missing",
-                "type": "bugfix",
-                "delivery": "with-related-change",
-            },
-            {
-                "change": "wrong-kind",
-                "type": "bugfix",
-                "delivery": "with-related-change",
-            },
-            {
-                "change": "unready",
-                "type": "bugfix",
-                "delivery": "with-related-change",
-            },
-        ],
-    )
-    _write_status(target, "wrong-kind", status="approved", kind="refactor")
-    _write_status(
-        target,
-        "unready",
-        status="building",
-        kind="bugfix",
-        relationships=[
-            {
-                "change": "parent",
-                "type": "origin",
-                "delivery": "with-related-change",
-            }
-        ],
-    )
-
-    snapshot = read_change_state(target)
-    result = discover_delivery_sidecars(
-        snapshot, resolve_change(snapshot, "parent"), required_status="approved"
-    )
-
-    assert result.sidecars == ()
-    assert {diagnostic.code for diagnostic in result.diagnostics} == {
-        "missing-sidecar",
-        "sidecar-kind-mismatch",
-        "sidecar-not-ready",
-    }
-
-
-def test_reports_missing_and_duplicate_reciprocal_relationships(tmp_path: Path) -> None:
-    target = tmp_path / "project"
-    relationship = {
-        "change": "fix-parent",
-        "type": "bugfix",
-        "delivery": "with-related-change",
-    }
-    _write_status(
-        target,
-        "parent",
-        status="approved",
-        relationships=[
-            relationship,
-            relationship,
-            {
-                "change": "fix-missing",
-                "type": "bugfix",
-                "delivery": "with-related-change",
-            },
-            {
-                "change": "fix-double",
-                "type": "bugfix",
-                "delivery": "with-related-change",
-            },
-        ],
-    )
-    _write_status(
-        target,
-        "fix-parent",
-        status="approved",
-        kind="bugfix",
-        relationships=[
-            {
-                "change": "parent",
-                "type": "origin",
-                "delivery": "with-related-change",
-            }
-        ],
-    )
-    _write_status(target, "fix-missing", status="approved", kind="bugfix")
-    _write_status(
-        target,
-        "fix-double",
-        status="approved",
-        kind="bugfix",
-        relationships=[
-            {
-                "change": "parent",
-                "type": "origin",
-                "delivery": "with-related-change",
-            },
-            {
-                "change": "parent",
-                "type": "origin",
-                "delivery": "with-related-change",
-            },
-        ],
-    )
-
-    snapshot = read_change_state(target)
-    result = discover_delivery_sidecars(
-        snapshot, resolve_change(snapshot, "parent"), required_status="approved"
-    )
-
-    assert result.sidecars == ()
-    assert {diagnostic.code for diagnostic in result.diagnostics} == {
-        "duplicate-sidecar",
-        "missing-reciprocal-sidecar",
-        "duplicate-reciprocal-sidecar",
-    }
-
-
-def test_rejects_a_reciprocal_relationship_without_origin_role(tmp_path: Path) -> None:
-    target = tmp_path / "project"
-    _write_status(
-        target,
-        "parent",
-        status="approved",
-        relationships=[
-            {
-                "change": "fix-parent",
-                "type": "bugfix",
-                "delivery": "with-related-change",
-            }
-        ],
-    )
-    _write_status(
-        target,
-        "fix-parent",
-        status="approved",
-        kind="bugfix",
-        relationships=[
-            {
-                "change": "parent",
-                "type": "bugfix",
-                "delivery": "with-related-change",
-            }
-        ],
-    )
-
-    snapshot = read_change_state(target)
-    result = discover_delivery_sidecars(
-        snapshot, resolve_change(snapshot, "parent"), required_status="approved"
-    )
-
-    assert result.sidecars == ()
-    assert {diagnostic.code for diagnostic in result.diagnostics} == {
-        "missing-reciprocal-sidecar"
-    }
-
-
 def test_runtime_validation_reports_malformed_reciprocal_relationship(
     tmp_path: Path,
 ) -> None:
@@ -762,89 +517,6 @@ def test_runtime_validation_preserves_legacy_archived_relationships(
     )
 
     assert validate_runtime_records(target, _runtime_skills()) == ()
-
-
-def test_records_reciprocal_sidecar_relationships(tmp_path: Path) -> None:
-    target = tmp_path / "project"
-    _write_status(target, "parent", status="building")
-    _write_status(target, "fix-parent", status="defined", kind="bugfix")
-    snapshot = read_change_state(target)
-
-    record_sidecar_relationship(
-        resolve_change(snapshot, "parent"), resolve_change(snapshot, "fix-parent")
-    )
-
-    refreshed = read_change_state(target)
-    parent = resolve_change(refreshed, "parent")
-    sidecar = resolve_change(refreshed, "fix-parent")
-    assert parent.status["relationships"] == [
-        {
-            "change": "fix-parent",
-            "type": "bugfix",
-            "delivery": "with-related-change",
-        }
-    ]
-    assert sidecar.status["relationships"] == [
-        {
-            "change": "parent",
-            "type": "origin",
-            "delivery": "with-related-change",
-        }
-    ]
-
-
-def test_relationship_mutation_uses_current_status_records(tmp_path: Path) -> None:
-    target = tmp_path / "project"
-    _write_status(target, "parent", status="building")
-    _write_status(target, "fix-parent", status="defined", kind="bugfix")
-    snapshot = read_change_state(target)
-    parent = resolve_change(snapshot, "parent")
-    sidecar = resolve_change(snapshot, "fix-parent")
-    parent_path = parent.directory / "status.json"
-    current_parent = json.loads(parent_path.read_text())
-    current_parent["revision_note"] = "written after snapshot"
-    parent_path.write_text(json.dumps(current_parent))
-
-    record_sidecar_relationship(parent, sidecar)
-
-    refreshed = json.loads(parent_path.read_text())
-    assert refreshed["revision_note"] == "written after snapshot"
-    assert refreshed["relationships"] == [
-        {
-            "change": "fix-parent",
-            "type": "bugfix",
-            "delivery": "with-related-change",
-        }
-    ]
-
-
-def test_restores_the_parent_record_when_sidecar_linking_fails(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    target = tmp_path / "project"
-    _write_status(target, "parent", status="building")
-    _write_status(target, "fix-parent", status="defined", kind="bugfix")
-    snapshot = read_change_state(target)
-    parent = resolve_change(snapshot, "parent")
-    sidecar = resolve_change(snapshot, "fix-parent")
-    parent_path = parent.directory / "status.json"
-    sidecar_path = sidecar.directory / "status.json"
-    original_parent = parent_path.read_bytes()
-    original_sidecar = sidecar_path.read_bytes()
-    replace = sidecars.os.replace
-
-    def fail_sidecar_replacement(source: str | Path, destination: str | Path) -> None:
-        if Path(destination) == sidecar_path:
-            raise OSError("simulated sidecar replacement failure")
-        replace(source, destination)
-
-    monkeypatch.setattr(sidecars.os, "replace", fail_sidecar_replacement)
-
-    with pytest.raises(SidecarRelationshipError, match="could not write"):
-        record_sidecar_relationship(parent, sidecar)
-
-    assert parent_path.read_bytes() == original_parent
-    assert sidecar_path.read_bytes() == original_sidecar
 
 
 def test_reports_a_broken_current_change_symlink(tmp_path: Path) -> None:

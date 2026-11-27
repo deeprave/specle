@@ -5,17 +5,12 @@ from pathlib import Path
 import pytest
 
 from specle import inventory
-from specle.inventory import (
-    SkillMetadataError,
-    discover_installed_specle_skills,
-    discover_skills,
-    read_skill_metadata,
-)
+from specle.inventory import SkillMetadataError
 
 
 def test_reads_managed_skill_metadata(tmp_path: Path) -> None:
     skill = tmp_path / "sample" / "SKILL.md"
-    skill.parent.mkdir()
+    skill.parent.mkdir(parents=True)
     skill.write_text(
         """---
 name: sample
@@ -31,7 +26,7 @@ requires:
 """
     )
 
-    metadata = read_skill_metadata(skill)
+    metadata = _metadata(skill)
 
     assert metadata.name == "sample"
     assert metadata.specle_group == "Planning"
@@ -41,18 +36,18 @@ requires:
 
 
 def test_rejects_a_non_regular_skill_file_before_reading_it(tmp_path: Path) -> None:
-    skill = tmp_path / "sample" / "SKILL.md"
-    skill.parent.mkdir()
+    skill = tmp_path / "skills" / "sample" / "SKILL.md"
+    skill.parent.mkdir(parents=True)
     skill.symlink_to(tmp_path, target_is_directory=True)
 
     with pytest.raises(SkillMetadataError, match="not a regular file"):
-        read_skill_metadata(skill)
+        inventory.scan_managed_inventory(tmp_path)
 
 
 def test_every_packaged_skill_declares_a_specle_group() -> None:
     source_root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
 
-    metadata = [read_skill_metadata(path) for path in source_root.glob("*/SKILL.md")]
+    metadata = [_metadata(path) for path in source_root.glob("*/SKILL.md")]
 
     assert metadata
     assert all(skill.specle_group for skill in metadata)
@@ -84,9 +79,7 @@ def test_lifecycle_owners_declare_lifecycle_metadata() -> None:
 
     metadata = {
         skill.name: skill
-        for skill in (
-            read_skill_metadata(path) for path in source_root.glob("*/SKILL.md")
-        )
+        for skill in (_metadata(path) for path in source_root.glob("*/SKILL.md"))
     }
 
     assert lifecycle_owners <= metadata.keys()
@@ -95,7 +88,7 @@ def test_lifecycle_owners_declare_lifecycle_metadata() -> None:
 
 def test_cancel_skill_transitions_every_active_state_to_cancelled() -> None:
     project_root = Path(__file__).parents[1]
-    skill = read_skill_metadata(
+    skill = _metadata(
         project_root
         / "src"
         / "specle"
@@ -149,10 +142,10 @@ def test_pending_change_inventory_excludes_removed_skills() -> None:
     installed_root = project_root / ".agents" / "skills"
 
     blueprint_names = {
-        read_skill_metadata(path).name for path in blueprint_root.glob("*/SKILL.md")
+        _metadata(path).name for path in blueprint_root.glob("*/SKILL.md")
     }
     installed_names = {
-        read_skill_metadata(path).name
+        _metadata(path).name
         for path in installed_root.glob("*/SKILL.md")
         if inventory._has_specle_group(path)
     }
@@ -180,7 +173,7 @@ specle_group: Planning
     )
 
     with pytest.raises(SkillMetadataError, match="description"):
-        read_skill_metadata(skill)
+        _metadata(skill)
 
 
 def test_reads_cancelled_terminal_lifecycle_metadata(tmp_path: Path) -> None:
@@ -204,7 +197,7 @@ lifecycle:
 """
     )
 
-    metadata = read_skill_metadata(skill)
+    metadata = _metadata(skill)
 
     assert metadata.lifecycle is not None
     assert metadata.lifecycle.terminal == ("cancelled",)
@@ -238,7 +231,7 @@ specle_group: Planning
     )
 
     with pytest.raises(SkillMetadataError, match="does not match"):
-        discover_skills(skills_root)
+        _distribution_skills(skills_root.parent)
 
 
 def test_discovers_only_marked_installed_skills(tmp_path: Path) -> None:
@@ -258,7 +251,7 @@ specle_group: Planning
     )
     external.write_text("# External skill\n")
 
-    skills = discover_installed_specle_skills(target)
+    skills = _installed_skills(target)
 
     assert [skill.name for skill in skills] == ["managed"]
 
@@ -287,7 +280,7 @@ specle_group: Planning
     invalid.symlink_to(target_path, target_is_directory=True)
 
     with pytest.raises(SkillMetadataError, match="not a regular file"):
-        discover_installed_specle_skills(target)
+        _installed_skills(target)
 
 
 def test_rejects_invalid_marked_installed_skill(tmp_path: Path) -> None:
@@ -304,7 +297,7 @@ unknown: value
     )
 
     with pytest.raises(SkillMetadataError, match="invalid frontmatter"):
-        discover_installed_specle_skills(target)
+        _installed_skills(target)
 
 
 @pytest.mark.parametrize(
@@ -332,7 +325,7 @@ specle_group: Planning
     )
 
     with pytest.raises(SkillMetadataError, match=message) as error:
-        read_skill_metadata(skill)
+        _metadata(skill)
 
     assert str(skill) in str(error.value)
 
@@ -350,7 +343,7 @@ specle_group: Planning
 """
     )
 
-    assert read_skill_metadata(skill).requires == ()
+    assert _metadata(skill).requires == ()
 
 
 def test_reads_lifecycle_declarations(tmp_path: Path) -> None:
@@ -379,7 +372,7 @@ lifecycle:
 """
     )
 
-    lifecycle = read_skill_metadata(skill).lifecycle
+    lifecycle = _metadata(skill).lifecycle
 
     assert lifecycle is not None
     assert lifecycle.accepts == ("defined",)
@@ -406,7 +399,7 @@ lifecycle:
     )
 
     with pytest.raises(SkillMetadataError, match="invalid frontmatter"):
-        read_skill_metadata(skill)
+        _metadata(skill)
 
 
 @pytest.mark.parametrize(
@@ -435,7 +428,7 @@ def test_rejects_invalid_required_metadata_values(
     )
 
     with pytest.raises(SkillMetadataError, match=message):
-        read_skill_metadata(skill)
+        _metadata(skill)
 
 
 def test_rejects_an_invalid_required_skill_name(tmp_path: Path) -> None:
@@ -454,7 +447,7 @@ requires:
     )
 
     with pytest.raises(SkillMetadataError, match="invalid required skill name"):
-        read_skill_metadata(skill)
+        _metadata(skill)
 
 
 def _metadata_by_directory(
@@ -469,5 +462,19 @@ def _metadata_by_directory(
             skill.requires,
             skill.lifecycle,
         )
-        for skill in (read_skill_metadata(path) for path in paths)
+        for skill in (_metadata(path) for path in paths)
     }
+
+
+def _metadata(path: Path) -> inventory.SkillMetadata:
+    return inventory._read_skill_metadata(path, path.read_text())
+
+
+def _distribution_skills(root: Path) -> tuple[inventory.SkillMetadata, ...]:
+    return tuple(
+        record.metadata for record in inventory.scan_managed_inventory(root).skills
+    )
+
+
+def _installed_skills(target: Path) -> tuple[inventory.SkillMetadata, ...]:
+    return _distribution_skills(target / ".agents")
