@@ -25,6 +25,46 @@ class RuntimeSnapshot:
     diagnostics: tuple[LifecycleDiagnostic, ...]
 
 
+def next_lifecycle_action(
+    record: ChangeRecord, selected_name: str | None
+) -> str | None:
+    """Return the next owning workflow action for one listed durable record."""
+    kind = record.status.get("kind")
+    status = record.status.get("status")
+    if not isinstance(kind, str) or not isinstance(status, str):
+        return None
+    if kind in {"bugfix", "refactor"}:
+        if status in {"defined", "planned"}:
+            return kind
+        if status == "building":
+            return "verify"
+    if (
+        kind == "change"
+        and record.name != selected_name
+        and status
+        in {
+            "defined",
+            "estimated",
+            "designed",
+            "planned",
+        }
+    ):
+        return "activate"
+    return {
+        "defined": "activate",
+        "estimated": "design",
+        "designed": "tasks",
+        "planned": "build",
+        "spiking": "spike",
+        "building": "build",
+        "verified": "review",
+        "approved": "commit",
+        "committed": "complete",
+        "review-findings": "triage",
+        "triaged": "resolve",
+    }.get(status)
+
+
 def _reciprocal_relationship_count(sidecar: ChangeRecord, parent_name: str) -> int:
     relationships = sidecar.status.get("relationships")
     if not isinstance(relationships, list):

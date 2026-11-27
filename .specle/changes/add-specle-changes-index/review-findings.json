@@ -1,0 +1,301 @@
+{
+  "sources": [
+    {
+      "id": "local-review-20261127-add-specle-changes-index-1",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "diff:70cb086ae188e915a3dc048ff93bb8836010ae1369964a3800f40e7189b36fcc",
+      "outcome": "request_changes",
+      "findings": 3
+    },
+    {
+      "id": "local-review-20261127-add-specle-changes-index-2",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "diff:6624edc3aabf7b1354dc404fb542b65cc4b2cba6fb4a2a8c319cc50f01c23738",
+      "outcome": "approve",
+      "findings": 0
+    },
+    {
+      "id": "antigravity-review-20261127-add-specle-changes-index-2",
+      "system": "antigravity",
+      "kind": "provided-review",
+      "revision": "content:4e4b07d0d4fa9bdbe1c1412ecbb4a5ece5e898d4e2af8f9d5f57e6fb743bdd47",
+      "outcome": "request_changes",
+      "findings": 7
+    },
+    {
+      "id": "local-review-20261127-add-specle-changes-index-3",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "diff:28c91165f1c563d71ae03e76d06e627e9cec85083c1dbec70b60268d0293ebc5",
+      "outcome": "request_changes",
+      "findings": 2
+    },
+    {
+      "id": "local-review-20261127-add-specle-changes-index-4",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "diff:990513b182585d9e7191434a103bcc48c281809ef470e62bd33ce5d2e5777317",
+      "outcome": "approve",
+      "findings": 0
+    }
+  ],
+  "items": [
+    {
+      "id": "local-review-add-specle-changes-index-1",
+      "severity": "P2",
+      "description": "`specle index` can overwrite the generated index when the required managed `specle` skill is absent or invalid.",
+      "evidence": "src/specle/main.py:403-425 checks lifecycle diagnostics but does not require a valid discovered skill named `specle`; scan_managed_inventory exposes discovered managed metadata for that check.",
+      "analysis": "The installed target has no separate expected-inventory baseline, so other managed skills must be accepted as installed. A valid managed `specle` skill is the sole necessary completeness condition: it owns the generated index location and identifies the installation as a Specle skill deployment. If that skill is absent or invalid while its index directory remains, the command can replace the existing index from an invalid inventory.",
+      "recommendation": "Require a valid discovered managed `specle` skill before creating the temporary file, preserving the existing index otherwise; add a focused preservation test.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Require only the valid managed `specle` skill. Do not impose an ungrounded full-inventory or policy-completeness baseline.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      },
+      "sources": ["local-review-20261127-add-specle-changes-index-1"]
+    },
+    {
+      "id": "local-review-add-specle-changes-index-2",
+      "severity": "P3",
+      "description": "The human `changes` report prints raw Unix seconds instead of the required calendar date.",
+      "evidence": "src/specle/main.py:381 emits row['timestamp'] directly; requirements.md:26 and :40 require YYYY-MM-DD dates for active and archived text output.",
+      "analysis": "For example, an active record with created_at 1795326755 is shown as `1795326755`, so both active creation and archive completion reports fail the documented human-facing date contract. JSON may retain durable Unix seconds; this affects only the text presentation.",
+      "recommendation": "Format the validated durable timestamp as a deterministic YYYY-MM-DD value in text output, and cover active and archived text rows.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Correct the text dates and add clear headers. Extend the current change with an explicit `--csv` format that emits headered CSV, rather than relying on implicit tab-separated rows.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      },
+      "sources": ["local-review-20261127-add-specle-changes-index-1"]
+    },
+    {
+      "id": "local-review-add-specle-changes-index-3",
+      "severity": "P3",
+      "description": "The next-action mapping omits the active `spiking` lifecycle state.",
+      "evidence": "src/specle/main.py:387-398 has no `spiking` entry, while .agents/policies/lifecycle.md identifies `spiking` with next action `spike`.",
+      "analysis": "A valid active spike is reported with the no-action placeholder despite having a required next workflow action. That makes the report inconsistent with the lifecycle policy and violates requirement 3.3.",
+      "recommendation": "Derive or centralise the status-to-action mapping so the report includes `spiking -> spike` and remains aligned with lifecycle policy; add focused coverage.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "The displayed next action must reflect the documented lifecycle state.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      },
+      "sources": ["local-review-20261127-add-specle-changes-index-1"]
+    },
+    {
+      "id": "antigravity-add-specle-changes-index-1",
+      "severity": "P2",
+      "description": "`specle changes` does not reject records that fail runtime lifecycle validation.",
+      "evidence": ".specle/agy-changes-list.json: AGY-R2-1; independently confirmed: src/specle/main.py calls read_change_state without validate_runtime_records.",
+      "analysis": "The shared reader enforces schema shape but not lifecycle evidence, terminal location, or concurrent-sidecar invariants. The requirement explicitly requires lifecycle diagnostics to produce non-zero output, so this is a functional gap.",
+      "recommendation": "Validate the same buffered state against the managed lifecycle metadata before rendering, then report diagnostics without partial output.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "`changes` is an observational schema-valid listing, not a lifecycle-validation command. Invalid lifecycle state should remain inspectable in the listing rather than being rejected.",
+      "route": null,
+      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+    },
+    {
+      "id": "antigravity-add-specle-changes-index-2",
+      "severity": "P2",
+      "description": "Archive listing rejects valid cancelled changes because it always requires `archived_at`.",
+      "evidence": ".specle/agy-changes-list.json: AGY-R2-2; independently confirmed: cancellation archives terminal records with `cancelled_at`, while src/specle/main.py reads only `archived_at` for every archive row.",
+      "analysis": "The lifecycle policy permits archived `cancelled` records without `archived_at`, and both terminal timestamps are optional durable metadata. A single valid cancellation therefore prevents every archive format from listing any archive records under the current implementation.",
+      "recommendation": "Use `archived_at` for completed records and `cancelled_at` for cancelled records when present. Treat either absent optional value as an empty human placeholder or null structured timestamp, not a diagnostic.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Every valid terminal archive must remain listable. Use the applicable terminal timestamp when available, but preserve the established optionality of both archived_at and cancelled_at.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      },
+      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+    },
+    {
+      "id": "antigravity-add-specle-changes-index-3",
+      "severity": "P2",
+      "description": "The status-only next-action mapping can direct non-selected or abbreviated work to invalid workflows.",
+      "evidence": ".specle/agy-changes-list.json: AGY-R2-3; independently confirmed against .agents/policies/lifecycle.md and the activate, bugfix, and refactor skills.",
+      "analysis": "The displayed action depends on record kind and whether a normal change is selected, not solely on status. For example, an unselected planned normal change must be activated, and an abbreviated planned record belongs to its named bugfix or refactor workflow.",
+      "recommendation": "Resolve actions from a record plus selection context in package-owned lifecycle code, with focused behaviour coverage; do not adopt the reviewer's broader metadata-driven redesign unless it proves necessary.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "The displayed action must be valid for the record's kind and local selection context, not merely its status.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      },
+      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+    },
+    {
+      "id": "antigravity-add-specle-changes-index-4",
+      "severity": "P3",
+      "description": "Invalid numeric timestamps can produce partial output or invalid JSON instead of one actionable diagnostic.",
+      "evidence": ".specle/agy-changes-list.json: AGY-R2-4; independently confirmed: datetime conversion occurs during text/CSV output, and json.dumps permits NaN by default.",
+      "analysis": "Schema-valid numeric floats can be non-finite or outside platform timestamp range. Text and CSV may emit their header before failing, while JSON can emit non-standard NaN. That contradicts the common invalid-state failure contract.",
+      "recommendation": "Validate timestamp finiteness and UTC date conversion before choosing an output format; reject invalid values consistently and disallow non-finite JSON values. Use a portable CSV line terminator.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Malformed durable timestamps must fail consistently before producing partial or non-standard output.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      },
+      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+    },
+    {
+      "id": "antigravity-add-specle-changes-index-5",
+      "severity": "P3",
+      "description": "Index regeneration replaces the index with restrictive temporary-file permissions and lacks several narrow output checks.",
+      "evidence": ".specle/agy-changes-list.json: AGY-R2-5; independently confirmed: tempfile.mkstemp creates the replacement at mode 0600 and os.replace preserves it.",
+      "analysis": "Regenerating an otherwise ordinary managed index changes its readability. The unqualified encoding and directory-destination handling are also weaker than the repository's existing staged-write pattern. The generated payload originates internally, so redundant schema validation needs separate justification.",
+      "recommendation": "Preserve normal readable permissions, write UTF-8 explicitly, and provide an actionable directory-destination error. Keep the implementation focused; extracting it or revalidating the internally built payload is optional rather than required.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "The index-only operation must not silently tighten ordinary generated-file readability and should report unsupported destinations clearly.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      },
+      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+    },
+    {
+      "id": "antigravity-add-specle-changes-index-6",
+      "severity": "P3",
+      "description": "Several documented listing and index behaviours still lack direct focused coverage.",
+      "evidence": ".specle/agy-changes-list.json: AGY-R2-6; independently confirmed from tests/test_main.py and the revised acceptance criteria.",
+      "analysis": "The current tests cover representative formats and boundaries, but not active complete filtering, empty text/CSV results, ordering, dependency rendering, lifecycle diagnostics in every format, or all index replacement boundaries. The task plan also names files that were not needed.",
+      "recommendation": "Add only focused behavioural cases that exercise the remaining acceptance criteria and align the completed task's file list with the implementation; do not add broad repeated workflow tests.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "The remaining acceptance criteria need direct focused evidence; recurring workflow simulation remains out of scope.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      },
+      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+    },
+    {
+      "id": "antigravity-add-specle-changes-index-7",
+      "severity": "P4",
+      "description": "The new synchronous CLI paths do not follow the repository's AnyIO convention, and README still says standalone index is deferred.",
+      "evidence": ".specle/agy-changes-list.json: AGY-R2-7; independently confirmed in src/specle/main.py and README.md:43.",
+      "analysis": "The parser argument placement is cosmetic, but synchronous filesystem scans and writes in async main are inconsistent with the repository convention. The README statement is now factually stale.",
+      "recommendation": "Use the existing worker-thread pattern for filesystem operations and correct the deferred-command statement; do not change parser layout solely for aesthetics.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "The README must not say that a delivered command is deferred. The async implementation concern is owned by the independent correct-to-thread-abuse bugfix.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      },
+      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+    },
+    {
+      "id": "local-review-add-specle-changes-index-4",
+      "severity": "P3",
+      "description": "An oversized integer timestamp raises before the report can emit its intended diagnostic.",
+      "evidence": "src/specle/main.py:_report_timestamp calls math.isfinite(timestamp); `math.isfinite(10**400)` raises OverflowError before the guarded datetime conversion.",
+      "analysis": "JSON supports arbitrary-size integers, and the state schema accepts them as numbers. An oversized epoch must follow the same actionable non-zero diagnostic contract as non-finite and platform-unrenderable timestamps, rather than producing a traceback.",
+      "recommendation": "Guard the finiteness check itself against OverflowError and represent the record with its timestamp diagnostic without suppressing the rest of the collection.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Every unrenderable numeric timestamp must be shown with an actionable diagnostic; it must not abort or hide the remaining collection.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      },
+      "sources": ["local-review-20261127-add-specle-changes-index-3"]
+    },
+    {
+      "id": "local-review-add-specle-changes-index-5",
+      "severity": "P3",
+      "description": "Schema-invalid records are currently hidden by the state reader or abort the entire listing rather than appearing with their error.",
+      "evidence": "requirements.md requirement 3.2 and src/specle/change_state.py:_read_change_collection omit records whose status cannot be schema-validated; src/specle/main.py exits on any snapshot diagnostic.",
+      "analysis": "A changes listing must not silently omit erroneous data or suppress the rest of the collection because one record is malformed. The user needs to see the named bad record and its diagnostic alongside valid records in every format.",
+      "recommendation": "Revise the listing contract and reader boundary so each discoverable erroneous record is represented with an explicit diagnostic rather than skipped or causing a collection-wide abort; add focused output tests for malformed and schema-invalid records.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Expose erroneous records and their errors. Do not hide them or abort the entire listing merely because one record is invalid.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      },
+      "sources": ["local-review-20261127-add-specle-changes-index-3"]
+    }
+  ]
+}

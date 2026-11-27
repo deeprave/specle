@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from specle.change_state import read_change_state, resolve_change
+from specle.change_state import ChangeRecord, read_change_state, resolve_change
 from specle.inventory import (
     LifecycleDeclaration,
     LifecycleState,
@@ -10,13 +10,32 @@ from specle.inventory import (
     analyse_lifecycle,
     scan_managed_inventory,
 )
-from specle.lifecycle import validate_runtime_records
+from specle.lifecycle import next_lifecycle_action, validate_runtime_records
 from specle.schema_registry import SCHEMA_IDENTIFIERS
 
 
 def test_packaged_lifecycle_has_no_graph_diagnostics() -> None:
     root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
     assert scan_managed_inventory(root.parent).lifecycle.diagnostics == ()
+
+
+def test_next_lifecycle_action_uses_kind_and_selection_context() -> None:
+    planned_change = ChangeRecord(
+        "normal",
+        Path("normal"),
+        {"kind": "change", "status": "planned"},
+        False,
+    )
+    planned_bugfix = ChangeRecord(
+        "repair",
+        Path("repair"),
+        {"kind": "bugfix", "status": "planned"},
+        False,
+    )
+
+    assert next_lifecycle_action(planned_change, None) == "activate"
+    assert next_lifecycle_action(planned_change, "normal") == "build"
+    assert next_lifecycle_action(planned_bugfix, None) == "bugfix"
 
 
 def test_archived_delivery_allows_only_completion_resumption() -> None:

@@ -3,7 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
+import math
+import os
+import sys
+import tempfile
+from datetime import UTC, datetime
 from functools import partial
 from importlib.resources import as_file
 from pathlib import Path
@@ -12,6 +18,7 @@ from typing import cast
 import anyio
 
 from specle import __version__
+from specle.change_state import ChangeIssue, ChangeRecord, read_change_state
 from specle.file_reading import read_regular_text
 from specle.inventory import (
     DistributionInventory,
@@ -27,6 +34,7 @@ from specle.inventory import (
 )
 from specle.lifecycle import (
     LifecycleDiagnostic,
+    next_lifecycle_action,
     read_runtime_snapshot,
     validate_runtime_records,
 )
@@ -69,6 +77,20 @@ def build_parser() -> argparse.ArgumentParser:
     update.add_argument(
         "target_directory", help="Existing directory containing the Specle deployment."
     )
+    changes = commands.add_parser(
+        "changes", help="List active or archived Specle changes."
+    )
+    changes.add_argument(
+        "--archive", action="store_true", help="List archived changes instead."
+    )
+    formats = changes.add_mutually_exclusive_group()
+    formats.add_argument(
+        "--json", action="store_true", help="Render machine-readable JSON."
+    )
+    formats.add_argument("--csv", action="store_true", help="Render CSV output.")
+    changes.add_argument(
+        "--pretty", action="store_true", help="Indent JSON output with two spaces."
+    )
     update.add_argument(
         "--dry-run", action="store_true", help="Report the update plan without writing."
     )
@@ -95,6 +117,10 @@ def build_parser() -> argparse.ArgumentParser:
         "manifest", help="Append release provenance lines to a manifest output."
     )
     manifest.add_argument("output", help="Manifest file to create or append.")
+    index = commands.add_parser(
+        "index", help="Regenerate an installed Specle skill index."
+    )
+    index.add_argument("target_directory", help="Existing deployment directory.")
     validate.add_argument(
         "--blueprint",
         action="store_true",
@@ -127,6 +153,27 @@ async def main(args: list[str] | None = None) -> None:
     """Run the asynchronous Specle command-line application."""
     parser = build_parser()
     parsed = parser.parse_args(args)
+
+    if parsed.command == "changes":
+        if parsed.pretty and not parsed.json:
+            parser.error("changes --pretty requires --json")
+        _report_changes(
+            Path.cwd(),
+            archived=parsed.archive,
+            as_json=parsed.json,
+            as_csv=parsed.csv,
+            pretty=parsed.pretty,
+        )
+        return
+
+    if parsed.command == "index":
+        target = Path(parsed.target_directory).expanduser().resolve()
+        try:
+            _regenerate_index(target)
+        except (OSError, SkillMetadataError) as error:
+            raise SystemExit(str(error)) from error
+        print(target / ".agents" / "skills" / "specle" / "index.json")
+        return
 
     if parsed.command == "manifest":
         try:
@@ -289,6 +336,203 @@ async def main(args: list[str] | None = None) -> None:
 
 def _diagnostic(message: str) -> LifecycleDiagnostic:
     return LifecycleDiagnostic("invalid-index", message)
+
+
+def _report_changes(
+    target: Path,
+    *,
+    archived: bool,
+    as_json: bool,
+    as_csv: bool,
+    pretty: bool = False,
+) -> None:
+    """Render one read-only deterministic view of durable change records."""
+    snapshot = read_change_state(target)
+    records = snapshot.archived if archived else snapshot.active
+    issues = snapshot.archived_issues if archived else snapshot.active_issues
+    rows = []
+    for record in records:
+        timestamp, date, diagnostic = _report_timestamp(record, archived=archived)
+        rows.append(
+            {
+                "name": record.name,
+                "kind": record.status.get("kind"),
+                "status": record.status.get("status"),
+                "dependencies": record.status.get("dependencies", []),
+                "timestamp": timestamp,
+                "date": date,
+                "next_action": next_lifecycle_action(record, snapshot.selected_name),
+                "diagnostic": diagnostic,
+            }
+        )
+    rows.extend(_issue_row(issue) for issue in issues)
+    if not archived:
+        rows = [
+            row
+            for row in rows
+            if row["diagnostic"] is not None or row["status"] != "complete"
+        ]
+    rows.sort(key=lambda row: str(row["name"]))
+    include_diagnostics = any(row["diagnostic"] is not None for row in rows)
+    if as_json:
+        json_rows = [
+            {
+                key: value
+                for key, value in row.items()
+                if key != "date" and (key != "diagnostic" or value is not None)
+            }
+            for row in rows
+        ]
+        print(
+            json.dumps(
+                {
+                    "collection": "archive" if archived else "active",
+                    "changes": json_rows,
+                },
+                indent=2 if pretty else None,
+                allow_nan=False,
+            )
+        )
+        return
+    if as_csv:
+        writer = csv.writer(sys.stdout, lineterminator="\n")
+        headers = ["name", "date", "kind", "status", "dependencies", "next_action"]
+        if include_diagnostics:
+            headers.append("diagnostic")
+        writer.writerow(headers)
+        for row in rows:
+            values = [
+                row["name"],
+                row["date"] or "",
+                row["kind"],
+                row["status"],
+                _format_dependencies(row["dependencies"], empty=""),
+                row["next_action"] or "",
+            ]
+            if include_diagnostics:
+                values.append(row["diagnostic"] or "")
+            writer.writerow(values)
+        return
+    if not rows:
+        print("no archived changes" if archived else "no active changes")
+        return
+    headers = ["name", "date", "kind", "status", "dependencies", "next_action"]
+    if include_diagnostics:
+        headers.append("diagnostic")
+    print("\t".join(headers))
+    for row in rows:
+        dependencies = _format_dependencies(row["dependencies"], empty="—")
+        next_action = row["next_action"] or "—"
+        values = [
+            row["name"],
+            row["date"] or "—",
+            row["kind"] or "—",
+            row["status"] or "—",
+            dependencies,
+            next_action,
+        ]
+        if include_diagnostics:
+            values.append(row["diagnostic"] or "")
+        print("\t".join(str(value) for value in values))
+
+
+def _report_timestamp(
+    record: ChangeRecord, *, archived: bool
+) -> tuple[int | float | None, str | None, str | None]:
+    """Validate one report timestamp before emitting output in any format."""
+    field = "created_at"
+    optional = False
+    if archived:
+        field = (
+            "cancelled_at"
+            if record.status.get("status") == "cancelled"
+            else "archived_at"
+        )
+        optional = True
+    timestamp = record.status.get(field)
+    if timestamp is None and optional:
+        return None, None, None
+    if not isinstance(timestamp, (int, float)) or isinstance(timestamp, bool):
+        return None, None, _timestamp_diagnostic(record, field)
+    try:
+        finite = math.isfinite(timestamp)
+    except OverflowError:
+        finite = False
+    if not finite:
+        return None, None, _timestamp_diagnostic(record, field)
+    assert isinstance(timestamp, (int, float)) and not isinstance(timestamp, bool)
+    try:
+        return (
+            timestamp,
+            datetime.fromtimestamp(timestamp, UTC).date().isoformat(),
+            None,
+        )
+    except (OverflowError, OSError, ValueError):
+        return None, None, _timestamp_diagnostic(record, field)
+
+
+def _timestamp_diagnostic(record: ChangeRecord, field: str) -> str:
+    return f"{record.directory / 'status.json'}: invalid {field}"
+
+
+def _issue_row(issue: ChangeIssue) -> dict[str, object]:
+    """Render a discoverable malformed record without making it look valid."""
+    return {
+        "name": issue.name,
+        "kind": None,
+        "status": None,
+        "dependencies": [],
+        "timestamp": None,
+        "date": None,
+        "next_action": None,
+        "diagnostic": issue.diagnostic,
+    }
+
+
+def _format_dependencies(value: object, *, empty: str) -> str:
+    """Render the schema-validated dependencies field in one output format."""
+    if not isinstance(value, list) or not value:
+        return empty
+    return ",".join(str(item) for item in value)
+
+
+def _regenerate_index(target: Path) -> None:
+    """Atomically replace only an existing deployment's generated skill index."""
+    inventory = scan_managed_inventory(target / ".agents")
+    if inventory.lifecycle.diagnostics:
+        raise SkillMetadataError(inventory.lifecycle.diagnostics[0].message)
+    if not any(record.metadata.name == "specle" for record in inventory.skills):
+        raise SkillMetadataError(
+            "the installed managed skill inventory has no valid 'specle' skill"
+        )
+    destination = target / ".agents" / "skills" / "specle" / "index.json"
+    if not destination.parent.is_dir():
+        raise SkillMetadataError(
+            f"installed skill index directory is unavailable: {destination.parent}"
+        )
+    if destination.is_dir():
+        raise SkillMetadataError(
+            f"installed skill index destination is a directory: {destination}"
+        )
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{destination.name}.", dir=destination.parent
+    )
+    try:
+        os.fchmod(descriptor, 0o644)
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            stream.write(
+                json.dumps(
+                    build_skill_index(
+                        tuple(record.metadata for record in inventory.skills)
+                    ),
+                    indent=2,
+                )
+                + "\n"
+            )
+        os.replace(temporary_name, destination)
+    except BaseException:
+        Path(temporary_name).unlink(missing_ok=True)
+        raise
 
 
 async def _validate_installed_target(target: Path, *, verbose: bool = False) -> None:

@@ -1,21 +1,22 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "defined",
+  "status": "approved",
   "progress": {
-    "tasks_completed": 0,
-    "tasks_total": 0
+    "tasks_completed": 3,
+    "tasks_total": 3
   },
   "verification": {
-    "status": "not-run"
+    "status": "pass"
   },
   "review": {
-    "status": "not-run"
+    "status": "pass"
   },
   "delivery": null,
   "relationships": [],
   "dependencies": [],
   "created_at": 1795326755,
-  "activated_at": null,
-  "updated_at": 1795778355
+  "activated_at": 1795778458,
+  "revision_note": "Replanned after local review: diagnostic rows retain malformed, schema-invalid, and timestamp-invalid records in every report format.",
+  "updated_at": 1795784646
 }

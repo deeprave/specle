@@ -40,7 +40,7 @@ uvx specle update /path/to/project --dry-run
 
 An ordinary update applies conflict-free changes. If it would replace locally modified managed content or an unmanaged path at a package-managed destination, it reports every conflict, makes no changes, and exits non-zero. Rerun with `--yes` to approve every reported selective replacement, or use `--force` for the broader init-equivalent managed replacement.
 
-Standalone `index`, launcher, client-integration, and project-bootstrap commands are deliberately deferred to later changes.
+Standalone launcher, client-integration, and project-bootstrap commands are deliberately deferred to later changes.
 
 ## JSON schemas
 

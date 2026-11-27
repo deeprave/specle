@@ -40,11 +40,23 @@ class ChangeRecord:
 
 
 @dataclass(frozen=True, slots=True)
+class ChangeIssue:
+    """One discoverable change directory whose durable state cannot be read."""
+
+    name: str
+    directory: Path
+    archived: bool
+    diagnostic: str
+
+
+@dataclass(frozen=True, slots=True)
 class ChangeStateSnapshot:
     """A buffered view of durable records and optional local selection."""
 
     active: tuple[ChangeRecord, ...]
     archived: tuple[ChangeRecord, ...]
+    active_issues: tuple[ChangeIssue, ...]
+    archived_issues: tuple[ChangeIssue, ...]
     selected_name: str | None
     diagnostics: tuple[str, ...]
 
@@ -53,8 +65,10 @@ def read_change_state(target_directory: Path) -> ChangeStateSnapshot:
     """Read all discoverable state once without changing the target."""
     target = target_directory.expanduser().resolve()
     diagnostics: list[str] = []
-    active = _read_change_collection(target / ".specle" / "changes", False, diagnostics)
-    archived = _read_change_collection(
+    active, active_issues = _read_change_collection(
+        target / ".specle" / "changes", False, diagnostics
+    )
+    archived, archived_issues = _read_change_collection(
         target / ".specle" / "archive", True, diagnostics
     )
     _report_duplicate_names(active, archived, diagnostics)
@@ -68,7 +82,12 @@ def read_change_state(target_directory: Path) -> ChangeStateSnapshot:
             f"{target / '.specle' / 'current-change'}: selected change is not active: {selected_name}"
         )
     return ChangeStateSnapshot(
-        tuple(active), tuple(archived), selected_name, tuple(diagnostics)
+        tuple(active),
+        tuple(archived),
+        tuple(active_issues),
+        tuple(archived_issues),
+        selected_name,
+        tuple(diagnostics),
     )
 
 
@@ -94,39 +113,42 @@ def resolve_change(
 
 def _read_change_collection(
     root: Path, archived: bool, diagnostics: list[str]
-) -> list[ChangeRecord]:
+) -> tuple[list[ChangeRecord], list[ChangeIssue]]:
     if not root.exists():
-        return []
+        return [], []
     if not root.is_dir():
         diagnostics.append(f"{root}: expected a directory")
-        return []
+        return [], []
     records: list[ChangeRecord] = []
+    issues: list[ChangeIssue] = []
     for directory in sorted(path for path in root.iterdir() if path.is_dir()):
         if not _is_change_name(directory.name):
-            diagnostics.append(f"{directory}: invalid change directory name")
+            diagnostic = f"{directory}: invalid change directory name"
+            diagnostics.append(diagnostic)
+            issues.append(ChangeIssue(directory.name, directory, archived, diagnostic))
             continue
         status_path = directory / "status.json"
-        status = _read_status(status_path, diagnostics)
+        status, diagnostic = _read_status(status_path)
         if status is not None:
             records.append(ChangeRecord(directory.name, directory, status, archived))
-    return records
+        else:
+            assert diagnostic is not None
+            diagnostics.append(diagnostic)
+            issues.append(ChangeIssue(directory.name, directory, archived, diagnostic))
+    return records, issues
 
 
-def _read_status(path: Path, diagnostics: list[str]) -> dict[str, object] | None:
+def _read_status(path: Path) -> tuple[dict[str, object] | None, str | None]:
     try:
         value = json.loads(read_regular_text(path))
     except FileNotFoundError:
-        diagnostics.append(f"missing {path}")
-        return None
+        return None, f"missing {path}"
     except json.JSONDecodeError as error:
-        diagnostics.append(f"{path}: malformed JSON: {error.msg}")
-        return None
+        return None, f"{path}: malformed JSON: {error.msg}"
     except (OSError, UnicodeDecodeError) as error:
-        diagnostics.append(f"{path}: unreadable JSON: {error}")
-        return None
+        return None, f"{path}: unreadable JSON: {error}"
     if not isinstance(value, dict):
-        diagnostics.append(f"{path}: expected a JSON object")
-        return None
+        return None, f"{path}: expected a JSON object"
     try:
         if value.get("$schema") != SCHEMA_IDENTIFIERS["change-status"]:
             raise SchemaRegistryError(
@@ -134,9 +156,8 @@ def _read_status(path: Path, diagnostics: list[str]) -> dict[str, object] | None
             )
         validate_instance(value)
     except SchemaRegistryError as error:
-        diagnostics.append(f"{path}: invalid contract: {error}")
-        return None
-    return value
+        return None, f"{path}: invalid contract: {error}"
+    return value, None
 
 
 def _read_current_change(path: Path, diagnostics: list[str]) -> str | None:
