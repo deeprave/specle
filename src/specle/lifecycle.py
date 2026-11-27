@@ -322,17 +322,11 @@ def _validate_record(
         )
         if not has_delivery:
             diagnostics.append(_diagnostic(path, "missing-evidence", "delivery"))
-    if status == "cancelled" and not _has_numeric_timestamp(record.get("cancelled_at")):
-        diagnostics.append(_diagnostic(path, "missing-evidence", "cancelled_at"))
 
 
 def _nested_status(record: dict[str, object], name: str) -> object:
     value = record.get(name)
     return value.get("status") if isinstance(value, dict) else None
-
-
-def _has_numeric_timestamp(value: object) -> bool:
-    return isinstance(value, int | float) and not isinstance(value, bool)
 
 
 def _has_settled_resolved_review(path: Path) -> bool:

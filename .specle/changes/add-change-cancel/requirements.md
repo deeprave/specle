@@ -20,10 +20,10 @@ Specle can archive completed delivery, but it has no durable way to end work tha
 
 1. Specle SHALL recognise `cancelled` as a lifecycle status and terminal outcome alongside `complete`.
 2. A cancelled record SHALL reside in `.specle/archive/<change-name>/` and retain its existing artifacts and durable history.
-3. A cancelled record SHALL record a numeric Unix-second `cancelled_at` timestamp.
+3. Normal cancellation SHOULD record a numeric Unix-second `cancelled_at` timestamp.
 4. Cancellation SHALL NOT add completion evidence, fabricate delivery evidence, or imply that the planned work was implemented, verified, reviewed, merged, or published.
 5. Lifecycle validation SHALL accept archived `complete` and `cancelled` records for every change kind that the `cancel` skill accepts, while continuing to reject any other archived lifecycle status.
-6. Lifecycle validation SHALL reject a `cancelled` record outside `.specle/archive/` and an archived cancelled record without a numeric `cancelled_at` timestamp.
+6. Lifecycle validation SHALL reject a `cancelled` record outside `.specle/archive/`; it SHALL accept a cancelled archive whose optional lifecycle timestamps are absent.
 
 ### Requirement 2: Provide an explicit cancellation workflow
 
@@ -48,7 +48,7 @@ Specle can archive completed delivery, but it has no durable way to end work tha
 3. A negative response SHALL stop cancellation without changing any durable record. The user MAY instead provide a different explicit direction.
 4. After confirmation, `cancel` SHALL re-read each affected record immediately before updating it, remove only the named dependency, and preserve its lifecycle status, timestamps, delivery evidence, relationships, and unrelated fields.
 5. Cancellation SHALL archive the target and include the confirmed dependency-record updates in the same recoverable mutation.
-6. Cancellation SHALL NOT infer sidecars or alter unrelated relationships. For each explicitly declared reciprocal concurrent-delivery partner, it SHALL report that partner and require explicit confirmation before removing only that reciprocal relationship from the surviving active record in the same recoverable mutation.
+6. Cancellation SHALL NOT infer sidecars or alter unrelated relationships. It SHALL discover matching explicit concurrent-delivery declarations in either direction, tolerate a missing reciprocal declaration, and require explicit confirmation before removing only a matching relationship that exists on a surviving active record in the same recoverable mutation.
 
 ### Requirement 4: Lead user-owned in-flight cleanup
 
@@ -65,7 +65,8 @@ Specle can archive completed delivery, but it has no durable way to end work tha
 7. When the identified pull request is already merged, `cancel` SHALL report that the delivered changes remain in the target branch and request the user's direction for any subsequent remediation; cancellation SHALL not attempt to undo, reset, or rewrite it automatically.
 8. Cancellation SHALL NOT reset, stash, restore, switch, clean, stage, commit, push, revert, or otherwise alter worktree content, Git history, branches, or remote branches unless the user explicitly requests and authorises that separate action.
 9. Existing artifacts, review history, commits, and delivery evidence SHALL be retained as historical facts unless the user explicitly directs an authorised cleanup action.
-10. Cancellation SHALL isolate its own mutation to the named archived record, its matching selector, explicitly confirmed dependency removals, and an explicitly confirmed reciprocal concurrent-delivery unlink. It SHALL NOT create a pull request, infer a branch, or act on a tracker item or other external system.
+10. Cancellation SHALL isolate its own mutation to the named archived record, its matching selector, explicitly confirmed dependency removals, and an explicitly confirmed matching concurrent-delivery relationship removal on a surviving record. It SHALL NOT create a pull request, infer a branch, or act on a tracker item or other external system.
+11. When a committed normal target has a committed concurrent-delivery sidecar, cancellation SHALL stop before mutation and explain that the user must handle the shared pull request as directed, explicitly cancel each sidecar first, then retry cancellation of the parent.
 
 ### Requirement 5: Integrate cancellation with workflow guidance and validation
 
@@ -76,11 +77,11 @@ Specle can archive completed delivery, but it has no durable way to end work tha
 1. Portable lifecycle guidance and the generated skill inventory SHALL identify `cancelled` as terminal with no next action, including selector replacement and read-only archive inspection guidance.
 2. `changes` SHALL exclude archived cancelled work from pending output, except where it is explicitly included as dependency context.
 3. Skills that require an active or completed target SHALL reject cancelled records unless their purpose is read-only historical inspection.
-4. Schema, lifecycle, and inventory tests SHALL cover cancellation status across supported kinds, archive location and timestamp validation, and rejection of invalid terminal records. The skill guidance SHALL be manually checked against explicit-name selection, confirmed dependency and reciprocal-relationship changes, direct delivery, and user-owned worktree and pull-request boundaries without adding recurring workflow-simulation tests.
+4. Schema, lifecycle, and inventory tests SHALL cover cancellation status across supported kinds, archive location validation, optional timestamp compatibility, and rejection of invalid terminal records. The skill guidance SHALL be manually checked against explicit-name selection, confirmed dependency and reciprocal-relationship changes, committed parent-sidecar ordering, direct delivery, and user-owned worktree and pull-request boundaries without adding recurring workflow-simulation tests.
 
 ## Boundaries
 
 - Cancellation is not a delivery method and does not replace `complete`.
-- It changes other active records only to remove the cancelled target after the user explicitly confirms each identified dependency consequence, or to unlink each explicitly declared reciprocal concurrent-delivery partner after separate confirmation.
+- It changes other active records only to remove the cancelled target after the user explicitly confirms each identified dependency consequence, or to remove an exact matching explicit concurrent-delivery relationship from a surviving record after separate confirmation.
 - It does not require or invent a cancellation reason. A user may retain relevant rationale in the change artifacts when useful.
 - It does not reopen, modify, or remove archived history.

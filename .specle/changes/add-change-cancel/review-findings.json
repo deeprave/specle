@@ -23,9 +23,174 @@
       "revision": "working-tree-3c46c0767de40e904712cb5e38b61ffffcdb9dea64f03ca43aaaecfdded8c116",
       "outcome": "approve",
       "findings": 0
+    },
+    {
+      "id": "github-pr-54-sourcery-20261127-1",
+      "system": "github",
+      "kind": "pull-request-review",
+      "url": "https://github.com/deeprave/specle/pull/54",
+      "revision": "b651f34d2a944f152b249ca97fefea5a827048cd",
+      "outcome": "request_changes",
+      "findings": 7
+    },
+    {
+      "id": "local-review-20261127-add-change-cancel-3",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-b112447399bde32dae0c6578a0e1d7a8821c27b244f677c27fd44435bc04f84e",
+      "outcome": "request_changes",
+      "findings": 1
+    },
+    {
+      "id": "local-review-20261127-add-change-cancel-4",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "working-tree-008613c52c0bc4e0c75f781edb0b05139294c64ccd148939309775c8f9cc8835",
+      "outcome": "approve",
+      "findings": 0
     }
   ],
   "items": [
+    {
+      "id": "local-review-add-change-cancel-1",
+      "severity": "P4",
+      "description": "Cancellation boundaries still require reciprocal concurrent-delivery links after the revised requirements explicitly tolerate one-sided declarations.",
+      "evidence": ".specle/changes/add-change-cancel/requirements.md:68,85; requirement 3.6 at line 51.",
+      "analysis": "The revised acceptance criterion correctly permits an existing matching declaration in either direction, but the later requirement and boundary retain the former reciprocal-only wording. That leaves the durable contract internally inconsistent with the paired skill guidance.",
+      "recommendation": "Replace the remaining reciprocal-only wording with the same explicit-declaration and matching-surviving-relationship rule.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Keep the requirements and boundaries consistent with the intentional tolerance of one-sided explicit declarations.",
+      "sources": ["local-review-20261127-add-change-cancel-3"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-change-cancel"
+      }
+    },
+    {
+      "id": "github-pr-54-sourcery-1",
+      "severity": "P3",
+      "description": "Cancellation mutation could be interrupted between updating related records and archiving the target.",
+      "evidence": "https://github.com/deeprave/specle/pull/54#discussion_r4714723435",
+      "analysis": "The workflow spans Git-tracked lifecycle records, so an interrupted manual operation could leave an intermediate worktree state. The reported scenario is not a supported concurrent-operation case, and existing runtime validation exposes an invalid active cancelled record rather than silently accepting it.",
+      "recommendation": "Add transactional mutation or a recovery procedure.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Do not introduce transaction or recovery machinery for a speculative interruption scenario; retain the focused validation and recoverable Git history.",
+      "sources": ["github-pr-54-sourcery-20261127-1"],
+      "route": null
+    },
+    {
+      "id": "github-pr-54-sourcery-2",
+      "severity": "P3",
+      "description": "Concurrent lifecycle operations could overwrite overlapping record updates.",
+      "evidence": "https://github.com/deeprave/specle/pull/54#discussion_r4714723443",
+      "analysis": "Specle does not support simultaneous lifecycle operations against the same checkout and records. Separate worktrees produce ordinary Git divergence or conflict before shared state is silently overwritten.",
+      "recommendation": "Serialize lifecycle mutations or reject stale whole-record writes.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "This adds concurrency machinery for an unsupported hypothetical workflow rather than addressing an observed lifecycle defect.",
+      "sources": ["github-pr-54-sourcery-20261127-1"],
+      "route": null
+    },
+    {
+      "id": "github-pr-54-sourcery-3",
+      "severity": "P3",
+      "description": "Cancellation guidance does not state a separate response when required checkout inspection fails.",
+      "evidence": "https://github.com/deeprave/specle/pull/54#discussion_r4714723450",
+      "analysis": "A failed Git inspection is possible only through an exceptional environment failure such as a damaged or inaccessible worktree. It is not cancellation-specific, and ordinary agent work already cannot proceed reliably without its required tools.",
+      "recommendation": "Add an explicit stop-and-request-direction rule for failed Git inspection.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Workflow guidance assumes its required tools are working; do not add defensive cancellation-specific prose for exceptional tool failure.",
+      "sources": ["github-pr-54-sourcery-20261127-1"],
+      "route": null
+    },
+    {
+      "id": "github-pr-54-sourcery-4",
+      "severity": "P3",
+      "description": "A dependency added after cancellation discovery could survive in another active record.",
+      "evidence": "https://github.com/deeprave/specle/pull/54#discussion_r4714723458",
+      "analysis": "The proposal assumes concurrent mutation by another actor during the cancellation window. The workflow already re-reads confirmed affected records immediately before writing, and concurrent lifecycle mutation is not a supported model.",
+      "recommendation": "Rescan every active dependency array immediately before mutation and repeat confirmation for newly found dependents.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Do not add repeated discovery and confirmation loops for an unsupported concurrent-mutation scenario.",
+      "sources": ["github-pr-54-sourcery-20261127-1"],
+      "route": null
+    },
+    {
+      "id": "github-pr-54-sourcery-5",
+      "severity": "P3",
+      "description": "A one-sided concurrent-delivery declaration can survive when its named target is cancelled.",
+      "evidence": "https://github.com/deeprave/specle/pull/54#discussion_r4714723464",
+      "analysis": "The current guidance discovers only relationships declared by the target. A malformed existing declaration in the other direction would not be removed before the target archive move.",
+      "recommendation": "Stop cancellation and require relationship repair before archiving.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Tolerate a missing declaration in either direction. Discover relevant existing declarations on either record and, after confirmation, remove only the matching surviving entry; do not block cancellation merely because the reciprocal declaration is absent.",
+      "sources": ["github-pr-54-sourcery-20261127-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-change-cancel"
+      }
+    },
+    {
+      "id": "github-pr-54-sourcery-6",
+      "severity": "P3",
+      "description": "Cancelling a committed parent before its committed concurrent sidecar can strand the sidecar's parent-owned finalisation path.",
+      "evidence": "https://github.com/deeprave/specle/pull/54#discussion_r4714723472",
+      "analysis": "The existing lifecycle permits a deliberate, safe order: handle the shared PR as directed, cancel each explicitly named committed sidecar first, then cancel the now-unlinked parent. Cancelling the parent first removes that ordered route.",
+      "recommendation": "Require a separate finalisation plan before unlinking a committed partner.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "When cancelling a committed parent with committed concurrent sidecars, stop before mutation and explain the correct course: handle the shared PR as directed, explicitly cancel each sidecar first, then retry cancellation of the parent. Do not create a new finalisation mechanism.",
+      "sources": ["github-pr-54-sourcery-20261127-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-change-cancel"
+      }
+    },
+    {
+      "id": "github-pr-54-sourcery-7",
+      "severity": "P3",
+      "description": "The cancellation timestamp test combines diagnostics from separate invalid fixtures.",
+      "evidence": "https://github.com/deeprave/specle/pull/54#discussion_r4714723478",
+      "analysis": "The existing requirements incorrectly promote timestamp presence to a runtime validity condition. The schema already makes lifecycle timestamps optional, and normal workflows should write them without treating absent historical or partial metadata as invalid.",
+      "recommendation": "Identify the archived fixture's missing-evidence diagnostic explicitly.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "`cancelled_at` and `archived_at` are SHOULD metadata: normal cancellation and archival procedures write them, but their absence is not an error. Remove the cancellation timestamp validity requirement and its diagnostic test rather than tightening it.",
+      "sources": ["github-pr-54-sourcery-20261127-1"],
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-change-cancel"
+      }
+    },
     {
       "id": "antigravity-add-change-cancel-1",
       "severity": "P2",

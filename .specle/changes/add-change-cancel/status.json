@@ -1,19 +1,20 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "approved",
   "created_at": 1795693387,
   "activated_at": 1795694932,
-  "updated_at": 1795741715,
+  "updated_at": 1795749441,
   "progress": {
-    "tasks_completed": 8,
-    "tasks_total": 8
+    "tasks_completed": 9,
+    "tasks_total": 9
   },
   "verification": {
     "status": "pass"
   },
   "review": {
-    "status": "pass"
+    "status": "pass",
+    "findings": 0
   },
   "delivery": {
     "reference": "https://github.com/deeprave/specle/pull/54",
@@ -24,5 +25,5 @@
   },
   "relationships": [],
   "dependencies": [],
-  "revision_note": "Reconciled accepted and varied cancellation review findings."
+  "revision_note": "Reconciled one-sided relationship wording after local review."
 }
