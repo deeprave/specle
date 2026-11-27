@@ -1,10 +1,10 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "approved",
+  "status": "committed",
   "created_at": 1795693387,
   "activated_at": 1795694932,
-  "updated_at": 1795739061,
+  "updated_at": 1795741715,
   "progress": {
     "tasks_completed": 8,
     "tasks_total": 8
@@ -15,7 +15,13 @@
   "review": {
     "status": "pass"
   },
-  "delivery": null,
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/54",
+    "head_branch": "feature/add-change-cancel",
+    "target_branch": "main",
+    "commit": "854a15249722a4b0d1e4ab3b997701bea8e8ed6b",
+    "event": "pull-request-open"
+  },
   "relationships": [],
   "dependencies": [],
   "revision_note": "Reconciled accepted and varied cancellation review findings."
