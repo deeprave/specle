@@ -1,7 +1,7 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "defined",
+  "status": "cancelled",
   "progress": {
     "tasks_completed": 0,
     "tasks_total": 0
@@ -16,5 +16,7 @@
   "relationships": [],
   "dependencies": [],
   "created_at": 1795313168,
-  "activated_at": null
+  "activated_at": null,
+  "updated_at": 1795843598,
+  "cancelled_at": 1795843598
 }
