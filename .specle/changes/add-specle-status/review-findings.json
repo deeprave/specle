@@ -1,0 +1,58 @@
+{
+  "sources": [
+    {
+      "id": "local-review-add-specle-status-1",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "content:5bcbafc70d9920d97edff83ab5b13a840031b456a3ee34f1799b89d976fbd8ee",
+      "outcome": "approve",
+      "findings": 0
+    },
+    {
+      "id": "local-review-add-specle-status-2",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "content:345f6d5f070af65e79b0e6c529e05ce2c2a08ed66afe6dd0aa626c6eedfcfb0d",
+      "outcome": "approve",
+      "findings": 0
+    },
+    {
+      "id": "local-review-add-specle-status-3",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "content:a764d8bd8c0e01bffd636be3ccb2473aab35d13c37c7a54a3a9b746aa7269bc7",
+      "outcome": "approve",
+      "findings": 0
+    },
+    {
+      "id": "local-review-add-specle-status-4",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "content:7246945b373c7afd691c3b3acd57d7100a527f37f1ff49db8ccac33c2ce5ff4e",
+      "outcome": "approve",
+      "findings": 0
+    },
+    {
+      "id": "user-verification-markdown-length",
+      "system": "user",
+      "kind": "verification-feedback",
+      "revision": "context:markdown-label-length",
+      "outcome": "declined",
+      "findings": 1
+    }
+  ],
+  "items": [
+    {
+      "id": "markdown-label-length",
+      "description": "Markdown labels can exceed 79 characters.",
+      "severity": "P4",
+      "source_ids": [
+        "user-verification-markdown-length"
+      ],
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "User chose to leave Markdown labels as they are.",
+      "route": null
+    }
+  ]
+}
