@@ -16,7 +16,7 @@
     "reference": "https://github.com/deeprave/specle/pull/56",
     "head_branch": "feature/add-specle-changes-index",
     "target_branch": "main",
-    "commit": "c388c7a71058b7e10aeb4ba0458a481b4f57d597",
+    "commit": "cb1d1c79ad1dbb7afe7883c99a2e12878daa8d0d",
     "event": "pull-request-open"
   },
   "relationships": [
@@ -30,5 +30,5 @@
   "created_at": 1795783258,
   "activated_at": null,
   "revision_note": "Retain established helper names while converting their filesystem implementations and callers to native AnyIO asynchronous operations.",
-  "updated_at": 1795834150
+  "updated_at": 1795840018
 }
