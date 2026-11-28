@@ -10,25 +10,25 @@ The CLI parser dispatches status for the current directory. A status reporting c
 
 ## Data and reporting
 
-Display the selected change name, kind, status, derived next action and available durable lifecycle timestamps. Report an absent selection as no change in progress and distinguish an invalid or unreadable selector from absence. Report registry-listed active sidecars once each with labelled kind, status and derived next action, regardless of delivery links. This is status display, not a separate validation pass. Never infer relationships from files or task progress.
+Display the selected change name, kind, status, derived next action and available durable lifecycle dates on one labelled date-only line; show the same date line for active sidecars. Report an absent selection as no change in progress without selector validity checks or diagnostic-text inspection. Report registry-listed active sidecars once each with labelled kind, status and derived next action, regardless of delivery links. This is status display, not a separate validation pass. Never infer relationships from files or task progress.
 
-Display branch name or detached HEAD and compact counts of modified, added, deleted, renamed and untracked entries; omit individual paths. Use NUL-delimited Git porcelain output so unusual paths and rename entries are parsed reliably, counting an entry once in each applicable category. A clean worktree is reported explicitly.
+Pass `--no-optional-locks` to Git. Display branch name or detached HEAD and compact counts of modified, added, deleted, renamed, untracked, conflicted and type-changed entries; omit individual paths. Use NUL-delimited Git porcelain output so unusual paths and rename entries are parsed reliably, counting an entry once in each applicable category. A clean worktree is reported explicitly.
 
 ## Context summaries
 
-Read optional `.specle/context.json` as display data. Display milestones first, todos next and other object lists after them. Group consecutive entries by date and change or subject, without repeating those values until they change. Indent details below their change or subject and truncate plain-text lines only as needed to remain shorter than 80 characters; Markdown labels may exceed the limit. Tolerate missing optional fields and missing context without blocking other output. Do not add a validation workflow.
+Read optional `.specle/context.json` as display data and parse recognisable date values and display their calendar date only, preserving unrecognised values. Display milestones first, todos next and other object lists after them. Group consecutive entries by date and change or subject, without repeating those values until they change. Show each milestone subject under its optional change and omit milestone details; indent other list details below their subject and truncate plain-text lines only as needed to remain shorter than 80 characters; Markdown labels may exceed the limit. Tolerate missing optional fields and missing context without blocking other output. Do not add a validation workflow.
 
 ## Errors
 
-Read-only state and Git failures are reported as static, non-data-bearing diagnostics where applicable. Each Git inspection failure leaves other status details available. Invalid selectors and missing or invalid records are reported without repair or inferred replacement. Preserve existing CLI preflight conventions.
+Read-only state and Git failures are reported as static, non-data-bearing diagnostics where applicable. Each Git inspection failure leaves other status details available. Do not validate or repair the selector or infer a replacement; unreadable change collections fail fast. Preserve existing CLI preflight conventions.
 
 ## Status skill parity
 
-Update the installed and packaged status skills to report the same change, sidecar, Git and optional context categories and apply the same context date and line-length rules as the CLI. Both interfaces remain read-only and display-oriented.
+Update the installed and packaged status skills to report the same change, sidecar, Git and optional context categories and apply the same calendar-date and line-length rules as the CLI. Both interfaces remain read-only and display-oriented.
 
 ## Test strategy
 
-Exercise missing, valid, archived and malformed selections; registered sidecars and their next actions; optional context lists, date-only rendering and line length; available timestamps and next actions; clean, dirty and detached worktrees; unusual paths and renames; and independent Git command failures. Run the project quality gates through `uv`.
+Exercise missing, valid, archived and malformed selections; registered sidecars and their next actions; optional context lists, calendar-date rendering and line length; available timestamps and next actions; clean, dirty and detached worktrees; unusual paths and renames; and independent Git command failures. Run the project quality gates through `uv`.
 
 ## Markdown output
 

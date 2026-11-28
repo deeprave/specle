@@ -6,6 +6,7 @@ license = "MIT"
 dependencies = [
     "anyio>=4.0",
     "jsonschema>=4.23",
+    "python-dateutil>=2.9",
     "strictyaml>=1.7.3",
 ]
 

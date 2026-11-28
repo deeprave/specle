@@ -1,10 +1,10 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "approved",
   "progress": {
-    "tasks_completed": 7,
-    "tasks_total": 7
+    "tasks_completed": 12,
+    "tasks_total": 12
   },
   "verification": {
     "status": "pass"
@@ -24,6 +24,6 @@
   "dependencies": [],
   "created_at": 1795830894,
   "activated_at": 1795861310,
-  "updated_at": 1795863559,
-  "revision_note": "User declined a Markdown label length limit; plain-text line limit remains."
+  "updated_at": 1795867696,
+  "revision_note": "Show date-only lifecycle dates for changes and sidecars."
 }

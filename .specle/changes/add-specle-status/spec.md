@@ -10,7 +10,7 @@ Add a read-only `specle status` command and align the `status` skill with it tha
 
 ## Scope and impact
 
-The command will build on existing change-state and lifecycle data rather than creating a new state store. Context summaries group milestones, todos and other list entries by date and change or subject, with indented details and lines shorter than 80 characters. Git reporting will provide counts only, preserving concise CLI output and avoiding path disclosure by default.
+The command will build on existing change-state and lifecycle data rather than creating a new state store. Context summaries group milestones, todos and other list entries by date and change or subject, with milestone subjects and indented optional details for other lists and lines shorter than 80 characters. Git reporting will provide counts only, preserving concise CLI output and avoiding path disclosure by default.
 
 ## Assumption
 

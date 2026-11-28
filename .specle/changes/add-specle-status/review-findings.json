@@ -39,6 +39,100 @@
       "revision": "context:markdown-label-length",
       "outcome": "declined",
       "findings": 1
+    },
+    {
+      "id": "sourcery-r4726690539",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/58#discussion_r4726690539",
+      "revision": "pr-head:33b59cacf72fbd89ef9a903435ebfccb9f63365c"
+    },
+    {
+      "id": "sourcery-r4726690485",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/58#discussion_r4726690485",
+      "revision": "pr-head:33b59cacf72fbd89ef9a903435ebfccb9f63365c"
+    },
+    {
+      "id": "sourcery-r4726690494",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/58#discussion_r4726690494",
+      "revision": "pr-head:33b59cacf72fbd89ef9a903435ebfccb9f63365c"
+    },
+    {
+      "id": "sourcery-r4726690503",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/58#discussion_r4726690503",
+      "revision": "pr-head:33b59cacf72fbd89ef9a903435ebfccb9f63365c"
+    },
+    {
+      "id": "sourcery-r4726690508",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/58#discussion_r4726690508",
+      "revision": "pr-head:33b59cacf72fbd89ef9a903435ebfccb9f63365c"
+    },
+    {
+      "id": "sourcery-r4726690514",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/58#discussion_r4726690514",
+      "revision": "pr-head:33b59cacf72fbd89ef9a903435ebfccb9f63365c"
+    },
+    {
+      "id": "sourcery-r4726690519",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/58#discussion_r4726690519",
+      "revision": "pr-head:33b59cacf72fbd89ef9a903435ebfccb9f63365c"
+    },
+    {
+      "id": "sourcery-r4726690523",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/58#discussion_r4726690523",
+      "revision": "pr-head:33b59cacf72fbd89ef9a903435ebfccb9f63365c"
+    },
+    {
+      "id": "sourcery-r4726690532",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/58#discussion_r4726690532",
+      "revision": "pr-head:33b59cacf72fbd89ef9a903435ebfccb9f63365c"
+    },
+    {
+      "id": "sourcery-r4726690542",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/58#discussion_r4726690542",
+      "revision": "pr-head:33b59cacf72fbd89ef9a903435ebfccb9f63365c"
+    },
+    {
+      "id": "local-review-add-specle-status-followup",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "content:8ec622e756de3ec5cade29d00673a91a3eb6185c8fdd19fe96fa88b668eedcb2",
+      "outcome": "approve",
+      "findings": 0
+    },
+    {
+      "id": "local-review-add-specle-status-dates",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "content:d7516450dd4ac0d39aabcb3db410afe48cdf986748ecd5c718e6f3f22ab7b629",
+      "outcome": "approve",
+      "findings": 0
+    },
+    {
+      "id": "local-review-add-specle-status-lifecycle-dates",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "content:e2c2f1737cbd9a8d7c6ac8304812e918aed7b1c33808b37bfabf37fb43d09cd3",
+      "outcome": "approve",
+      "findings": 0
     }
   ],
   "items": [
@@ -53,6 +147,201 @@
       "decision": "decline",
       "rationale": "User chose to leave Markdown labels as they are.",
       "route": null
+    },
+    {
+      "id": "sourcery-r4726690539",
+      "severity": "P2",
+      "description": "Milestones with only a subject can disappear.",
+      "evidence": "src/specle/status_report.py; PR comment 4726690539",
+      "analysis": "Milestone rendering uses change and detail but ignores subject; both are optional.",
+      "recommendation": "Show the subject when change and detail do not identify the milestone.",
+      "source_ids": [
+        "sourcery-r4726690539"
+      ],
+      "state": "decided",
+      "decision": "vary",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "rationale": "Show milestone date, optional change and subject; omit detail entirely, collapsing the change level when absent.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "planned",
+        "resulting_change": "add-specle-status"
+      }
+    },
+    {
+      "id": "sourcery-r4726690485",
+      "severity": "P3",
+      "description": "Markdown context values are rendered as markup.",
+      "evidence": "src/specle/status_report.py; PR comment 4726690485",
+      "analysis": "Context names and details are emitted directly into Markdown and can change its rendering.",
+      "recommendation": "Escape Markdown and HTML metacharacters in context values.",
+      "source_ids": [
+        "sourcery-r4726690485"
+      ],
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "rationale": "Context is user-controlled local data; do not add escaping as a defence against users manipulating their own output."
+    },
+    {
+      "id": "sourcery-r4726690494",
+      "severity": "P3",
+      "description": "Unreadable change collections can abort the status report.",
+      "evidence": "src/specle/status_report.py; PR comment 4726690494",
+      "analysis": "Collection iteration can raise before Git and context are displayed.",
+      "recommendation": "Report unavailable change state and continue with independent sections.",
+      "source_ids": [
+        "sourcery-r4726690494"
+      ],
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "rationale": "Follow specle changes: fail fast on unreadable change collections rather than treating status as a diagnostic tool."
+    },
+    {
+      "id": "sourcery-r4726690503",
+      "severity": "P3",
+      "description": "Deeply nested context can raise a recursion error.",
+      "evidence": "src/specle/status_report.py; PR comment 4726690503",
+      "analysis": "JSON parsing may raise RecursionError, which is not handled.",
+      "recommendation": "Handle parse failures without adding an arbitrary size limit.",
+      "source_ids": [
+        "sourcery-r4726690503"
+      ],
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "rationale": "Declined as speculative defensive handling of user-controlled local context."
+    },
+    {
+      "id": "sourcery-r4726690508",
+      "severity": "P3",
+      "description": "Duplicate selected records can show the archived state.",
+      "evidence": "src/specle/status_report.py; PR comment 4726690508",
+      "analysis": "The record dictionary overwrites an active record when archive has the same name.",
+      "recommendation": "Report an ambiguous selection without choosing a record.",
+      "source_ids": [
+        "sourcery-r4726690508"
+      ],
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "rationale": "Archived state takes precedence when both records exist; the active copy is usually a ghost."
+    },
+    {
+      "id": "sourcery-r4726690514",
+      "severity": "P3",
+      "description": "An unrelated diagnostic can invalidate the selector.",
+      "evidence": "src/specle/status_report.py; PR comment 4726690514",
+      "analysis": "Selector detection searches every diagnostic for a generic substring.",
+      "recommendation": "Identify selector diagnostics precisely.",
+      "source_ids": [
+        "sourcery-r4726690514"
+      ],
+      "state": "decided",
+      "decision": "vary",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "rationale": "Status is display only; remove selector validity diagnostics and diagnostic-string inspection, and present the available selection without verification.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "planned",
+        "resulting_change": "add-specle-status"
+      }
+    },
+    {
+      "id": "sourcery-r4726690519",
+      "severity": "P3",
+      "description": "Unmerged or type-changed entries may produce zero counts.",
+      "evidence": "src/specle/status_report.py; PR comment 4726690519",
+      "analysis": "The porcelain counter does not account for U or T markers.",
+      "recommendation": "Include conflict and type-change entries in the summary.",
+      "source_ids": [
+        "sourcery-r4726690519"
+      ],
+      "state": "decided",
+      "decision": "accept",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "rationale": "Include merge conflicts and file type changes in the worktree summary.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "planned",
+        "resulting_change": "add-specle-status"
+      }
+    },
+    {
+      "id": "sourcery-r4726690523",
+      "severity": "P3",
+      "description": "Git status may refresh the index.",
+      "evidence": "src/specle/status_report.py; PR comment 4726690523",
+      "analysis": "Git status may perform optional index updates despite the read-only contract.",
+      "recommendation": "Disable optional Git writes for inspection.",
+      "source_ids": [
+        "sourcery-r4726690523"
+      ],
+      "state": "decided",
+      "decision": "accept",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "rationale": "Pass the Git argument that prevents optional index refreshes.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "planned",
+        "resulting_change": "add-specle-status"
+      }
+    },
+    {
+      "id": "sourcery-r4726690532",
+      "severity": "P3",
+      "description": "Non-ISO context dates are truncated incorrectly.",
+      "evidence": "src/specle/status_report.py; PR comment 4726690532",
+      "analysis": "The first ten characters are treated as a date although the context contract allows human-readable dates.",
+      "recommendation": "Extract known date formats and preserve unrecognised values.",
+      "source_ids": [
+        "sourcery-r4726690532"
+      ],
+      "state": "decided",
+      "decision": "vary",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "rationale": "User revised the decision: parse recognisable dates and show only the calendar date; preserve unrecognised values.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "planned",
+        "resulting_change": "add-specle-status"
+      }
+    },
+    {
+      "id": "sourcery-r4726690542",
+      "severity": "P4",
+      "description": "Non-string context detail is omitted.",
+      "evidence": "src/specle/status_report.py; PR comment 4726690542",
+      "analysis": "The display helper accepts strings only; additional JSON field values are permitted.",
+      "recommendation": "Assess whether structured details should be displayed rather than assuming they are required.",
+      "source_ids": [
+        "sourcery-r4726690542"
+      ],
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "rationale": "Status is a concise display and need not render arbitrary structured detail."
     }
   ]
 }

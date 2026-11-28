@@ -20,6 +20,7 @@ def test_status_reports_context_and_git_without_paths(
                     {
                         "date_added": "2026-11-28T12:30:00+11:00",
                         "change": "example",
+                        "subject": "Milestone subject",
                         "detail": "x" * 60,
                     }
                 ],
@@ -34,7 +35,7 @@ def test_status_reports_context_and_git_without_paths(
     output = capsys.readouterr().out
     assert "No change in progress" in output
     assert "2026-11-28" in output and "12:30" not in output
-    assert "x" * 60 in output
+    assert "Milestone subject" in output and "x" * 60 not in output
     assert "do something" in output and "idea" in output
     assert output.index("milestones") < output.index("todos") < output.index("ideas")
     assert "secret-name" not in output
@@ -49,7 +50,7 @@ def test_status_reports_invalid_selector_without_repair(
     selector.write_text("bad/name\n")
     monkeypatch.chdir(tmp_path)
     anyio.run(main, ["status"])
-    assert "Invalid" in capsys.readouterr().out
+    assert "bad/name" in capsys.readouterr().out
     assert selector.read_text() == "bad/name\n"
 
 
@@ -101,7 +102,8 @@ def test_status_reports_selected_change_and_sidecar(
         "Sidecars\nfix-example\nkind: bugfix | status: building | next: build" in output
     )
     assert output.count("fix-example") == 1
-    assert "created_at:" in output
+    assert "created: 2026-11-28" in output
+    assert "created_at:" not in output
     assert "Branch: unavailable" in output
 
 
@@ -175,7 +177,7 @@ def test_status_shows_archived_selection(
     anyio.run(main, ["status"])
     output = capsys.readouterr().out
     assert "finished\nkind: change | status: complete | next:" in output
-    assert "archived_at:" in output
+    assert "archived:" in output
 
 
 def test_status_groups_consecutive_context_entries(
@@ -189,16 +191,17 @@ def test_status_groups_consecutive_context_entries(
                 "ideas": [{"date_added": "2026-11-27", "subject": "Idea"}],
                 "milestones": [
                     {
-                        "date_added": "2026-11-28T01:00:00",
+                        "date_added": "2026-11-28",
                         "change": "example",
-                        "detail": "First",
+                        "subject": "First",
+                        "detail": "Hidden",
                     },
                     {
-                        "date_added": "2026-11-28T02:00:00",
+                        "date_added": "2026-11-28",
                         "change": "example",
-                        "detail": "Second",
+                        "subject": "Second",
                     },
-                    {"date_added": "2026-11-28", "change": "other", "detail": "Third"},
+                    {"date_added": "2026-11-28", "change": "other", "subject": "Third"},
                 ],
                 "todos": [
                     {
@@ -269,7 +272,8 @@ def test_status_markdown_outputs_headings_and_context_bullets(
                     {
                         "date_added": "2026-11-28",
                         "change": "example",
-                        "detail": "Finished",
+                        "subject": "Finished",
+                        "detail": "Hidden",
                     }
                 ],
             }
@@ -285,3 +289,101 @@ def test_status_markdown_outputs_headings_and_context_bullets(
     assert "- `example`" in output and "  - Finished" in output
     assert "- Do work" in output and "  - Details" in output
     assert output.index("### Milestones") < output.index("### Todos")
+
+
+def test_status_reports_conflicts_and_type_changes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from specle import status_report
+
+    async def fake_git(target: Path, *args: str) -> bytes | None:
+        if args[0] == "symbolic-ref":
+            return b"main\n"
+        if args[0] == "status":
+            return b"UU conflict\0T  kind\0AA both-added\0"
+        return None
+
+    monkeypatch.setattr(status_report, "_git", fake_git)
+    monkeypatch.chdir(tmp_path)
+    anyio.run(main, ["status"])
+    out = capsys.readouterr().out
+    assert "conflicted: 2" in out and "type-changed: 1" in out
+
+
+def test_milestone_without_change_displays_subject(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = tmp_path / ".specle"
+    root.mkdir()
+    (root / "context.json").write_text(
+        json.dumps(
+            {
+                "milestones": [
+                    {
+                        "date_added": "November 28, 2026",
+                        "subject": "A milestone",
+                        "detail": "Do not show",
+                    }
+                ]
+            }
+        )
+    )
+    monkeypatch.chdir(tmp_path)
+    anyio.run(main, ["status"])
+    output = capsys.readouterr().out
+    assert "2026-11-28\n  A milestone" in output
+    assert "Do not show" not in output
+
+
+def test_status_groups_dates_by_calendar_day_and_preserves_unparseable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = tmp_path / ".specle"
+    root.mkdir()
+    (root / "context.json").write_text(
+        json.dumps(
+            {
+                "todos": [
+                    {"date_added": "2026-11-28T01:00:00+11:00", "subject": "First"},
+                    {"date_added": "November 28, 2026 4:00pm", "subject": "Second"},
+                    {"date_added": "unknown-date", "subject": "Third"},
+                ]
+            }
+        )
+    )
+    monkeypatch.chdir(tmp_path)
+    anyio.run(main, ["status"])
+    out = capsys.readouterr().out
+    assert "2026-11-28\n  First\n  Second" in out
+    assert "unknown-date\n  Third" in out
+
+
+def test_status_shows_sidecar_dates_on_one_line(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = tmp_path / ".specle"
+    sidecar = root / "changes" / "fix-one"
+    sidecar.mkdir(parents=True)
+    (sidecar / "status.json").write_text(
+        json.dumps(
+            {
+                "$schema": "specle://schemas/change-status/1.0",
+                "kind": "bugfix",
+                "status": "building",
+                "created_at": 1795830894,
+                "activated_at": 1795830894,
+                "updated_at": 1795830894,
+                "progress": {},
+                "verification": {"status": "not-run"},
+                "review": {"status": "not-run"},
+                "delivery": None,
+                "dependencies": [],
+                "relationships": [],
+            }
+        )
+    )
+    (root / "current-sidecars").write_text("fix-one\n")
+    monkeypatch.chdir(tmp_path)
+    anyio.run(main, ["status"])
+    out = capsys.readouterr().out
+    assert "created: 2026-11-28 | activated: 2026-11-28 | updated: 2026-11-28" in out

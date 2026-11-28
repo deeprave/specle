@@ -12,11 +12,11 @@ The installed `status` skill can orient an agent to selected change work and the
 
 - Add a `status` CLI subcommand and update the installed and packaged `status` skills so both present the same information.
 - Reuse the durable change-state and lifecycle readers used by existing CLI reporting.
-- Report the local selector’s valid active or archived target; report an invalid selector without repairing or inferring it.
+- Display the available local selection without selector validity diagnostics or diagnostic-text inspection; do not repair or infer selection.
 - Use the local sidecar registry as the authority for active sidecars, regardless of delivery links; show each sidecar with name, kind, status and next action.
-- Display available lifecycle timestamps from the selected record without inventing terminal events.
+- Display available lifecycle dates for the selected change and active sidecars as labelled date-only fields on one line, without inventing terminal events.
 - Summarise optional `.specle/context.json`: show milestones first, then todos and other lists of objects. Group consecutive entries by date and change or subject, indent details, and keep plain-text lines shorter than 80 characters.
-- Report the current branch or detached HEAD, plus a compact count of modified, added, deleted, renamed, and untracked worktree entries.
+- Report the current branch or detached HEAD, plus compact counts for modified, added, deleted, renamed, untracked, conflicted, and type-changed entries. Pass `--no-optional-locks` to Git inspection.
 
 ## Boundaries
 
@@ -33,9 +33,9 @@ As a developer, I want `specle status` to show the selected change’s name, kin
 
 #### Acceptance criteria
 
-1. WHEN a valid current-change selector identifies an active or archived record THEN `specle status` SHALL report its name, kind, recorded lifecycle status, derived next action, and available durable lifecycle timestamps.
-2. WHEN no current-change selector exists THEN `specle status` SHALL report that no change is in progress without inferring a replacement.
-3. WHEN the selector is invalid or its target lacks a valid status record THEN `specle status` SHALL report the invalid local selection without modifying it.
+1. WHEN a current-change selector identifies an active or archived record THEN `specle status` SHALL report its name, kind, recorded lifecycle status, derived next action, and available durable lifecycle dates, as date-only labelled fields on one line.
+2. WHEN no selection is available THEN `specle status` SHALL report that no change is in progress without inferring a replacement.
+3. Status SHALL NOT inspect diagnostic text or perform selector validity checks; it SHALL NOT modify selection.
 
 ### 2. Show locally active sidecars
 
@@ -58,15 +58,15 @@ As a developer, I want the status report to show my branch and how much uncommit
 
 As a developer, I want a compact view of recent context without opening the hand-off document.
 
-1. WHEN context milestones exist THEN display them first, grouped by date without time and change, with indented details.
-2. WHEN todos exist THEN display them after milestones, grouped by date without time and subject, with indented details when present.
-3. WHEN other keys contain lists of objects THEN display them after todos, grouped by date and subject, with indented details when present.
-4. Avoid repeating dates and change names or subjects until they change. Plain-text context lines SHALL be shorter than 80 characters; Markdown labels may exceed that limit. Truncate details only as needed and tolerate absent optional fields.
+1. WHEN context milestones exist THEN display them first, grouped by calendar date and optional change, with subject beneath the change or date. Omit milestone detail.
+2. WHEN todos exist THEN display them after milestones, grouped by calendar date and subject, with indented details when present.
+3. WHEN other keys contain lists of objects THEN display them after todos, grouped by calendar date and subject, with indented details when present.
+4. Parse recognisable date_added values and display the calendar date only; preserve unrecognised values. Avoid repeating dates and change names or subjects until they change. Plain-text context lines SHALL be shorter than 80 characters; Markdown labels may exceed that limit. Truncate details only as needed and tolerate absent optional fields.
 5. Missing optional context SHALL NOT prevent other status output. The command SHALL display status rather than perform additional validation.
 
 ### 5. Keep status interfaces aligned
 
-1. THE `status` skill and `specle status` SHALL present the same categories of change, sidecar, worktree and optional context information, including the same date-only grouping and context line-length limits.
+1. THE `status` skill and `specle status` SHALL present the same categories of change, sidecar, worktree and optional context information, including the same calendar-date grouping and context line-length limits.
 2. THE installed and packaged skill instructions SHALL remain aligned.
 
 ### 6. Markdown output

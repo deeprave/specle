@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 import anyio
+from dateutil.parser import parse
 
 from specle.change_state import read_active_sidecars, read_change_state
 from specle.lifecycle import next_lifecycle_action
@@ -18,7 +19,9 @@ def _text(value: object) -> str:
 
 async def _git(target: Path, *args: str) -> bytes | None:
     try:
-        result = await anyio.run_process(["git", "-C", str(target), *args], check=False)
+        result = await anyio.run_process(
+            ["git", "--no-optional-locks", "-C", str(target), *args], check=False
+        )
     except OSError:
         return None
     return result.stdout if result.returncode == 0 else None
@@ -28,42 +31,28 @@ async def report_status(target: Path, *, markdown: bool = False) -> None:
     """Display current work, local sidecars, Git state and optional context."""
     snapshot = await read_change_state(target)
     records = {record.name: record for record in (*snapshot.active, *snapshot.archived)}
-    selector_issues = [
-        item for item in snapshot.diagnostics if "current-change" in item
-    ]
+    try:
+        selected = _text(
+            (
+                await (anyio.Path(target) / ".specle" / "current-change").read_text()
+            ).strip()
+        )
+    except FileNotFoundError:
+        selected = ""
     print("### Current change\n" if markdown else "Current change")
-    if selector_issues or (
-        snapshot.selected_name and snapshot.selected_name not in records
-    ):
-        print("Invalid or unreadable selection")
-    elif snapshot.selected_name is None:
+    if not selected:
         print("No change in progress")
+    elif selected not in records:
+        print(selected)
     else:
-        record = records[snapshot.selected_name]
+        record = records[selected]
         action = await next_lifecycle_action(record, snapshot.selected_name)
         print(f"`{record.name}`  " if markdown else record.name)
         print(
             f"kind: {_text(record.status.get('kind'))} | status: {_text(record.status.get('status'))} | next: {action or '—'}"
             + ("  " if markdown else "")
         )
-        for key in (
-            "created_at",
-            "activated_at",
-            "updated_at",
-            "archived_at",
-            "cancelled_at",
-        ):
-            value = record.status.get(key)
-            if isinstance(value, (int, float)) and not isinstance(value, bool):
-                try:
-                    date = (
-                        datetime.fromtimestamp(value)
-                        .astimezone()
-                        .isoformat(timespec="seconds")
-                    )
-                except (OverflowError, OSError, ValueError):
-                    continue
-                print(f"{key}: {date}" + ("  " if markdown else ""))
+        await _dates(record.status, markdown=markdown)
     _, names, diagnostics = await read_active_sidecars(target, snapshot)
     if names or diagnostics:
         print("\n### Sidecars\n" if markdown else "\nSidecars")
@@ -75,6 +64,7 @@ async def report_status(target: Path, *, markdown: bool = False) -> None:
             f"kind: {_text(record.status.get('kind'))} | status: {_text(record.status.get('status'))} | next: {action or '—'}"
             + ("  " if markdown else "")
         )
+        await _dates(record.status, markdown=markdown)
     for diagnostic in diagnostics:
         print(_text(diagnostic))
     print("\n### Worktree\n" if markdown else "\nWorktree")
@@ -94,7 +84,16 @@ async def report_status(target: Path, *, markdown: bool = False) -> None:
         print("Clean")
     else:
         counts = dict.fromkeys(
-            ("modified", "added", "deleted", "renamed", "untracked"), 0
+            (
+                "modified",
+                "added",
+                "deleted",
+                "renamed",
+                "untracked",
+                "conflicted",
+                "type-changed",
+            ),
+            0,
         )
         entries = iter(raw.split(b"\0"))
         for entry in entries:
@@ -104,11 +103,15 @@ async def report_status(target: Path, *, markdown: bool = False) -> None:
             if code == b"??":
                 counts["untracked"] += 1
                 continue
+            if code in {b"DD", b"AU", b"UD", b"UA", b"DU", b"AA", b"UU"}:
+                counts["conflicted"] += 1
+                continue
             for marker, label in (
                 (b"M", "modified"),
                 (b"A", "added"),
                 (b"D", "deleted"),
                 (b"R", "renamed"),
+                (b"T", "type-changed"),
             ):
                 if marker in code:
                     counts[label] += 1
@@ -116,6 +119,30 @@ async def report_status(target: Path, *, markdown: bool = False) -> None:
                 next(entries, None)
         print(" | ".join(f"{key}: {value}" for key, value in counts.items()))
     await _context(target, markdown=markdown)
+
+
+async def _dates(status: dict[str, object], *, markdown: bool) -> None:
+    dates = []
+    for field in ("created", "activated", "updated", "archived", "cancelled"):
+        value = status.get(f"{field}_at")
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            try:
+                date = datetime.fromtimestamp(value).astimezone().date().isoformat()
+            except (OverflowError, OSError, ValueError):
+                continue
+            dates.append(f"{field}: {date}")
+    if dates:
+        print(" | ".join(dates) + ("  " if markdown else ""))
+
+
+def _date(value: object) -> str:
+    text = _text(value)
+    if not text:
+        return text
+    try:
+        return parse(text).date().isoformat()
+    except (ValueError, OverflowError):
+        return text
 
 
 async def _context(target: Path, *, markdown: bool) -> None:
@@ -144,9 +171,10 @@ async def _context(target: Path, *, markdown: bool) -> None:
         previous_date = None
         previous_name = None
         for entry in objects:
-            date = _text(entry.get("date_added"))[:10]
+            date = _date(entry.get("date_added"))
             name = _text(entry.get("change" if key == "milestones" else "subject"))
-            detail = _text(entry.get("detail"))
+            detail = _text(entry.get("detail")) if key != "milestones" else ""
+            subject = _text(entry.get("subject")) if key == "milestones" else ""
             if date != previous_date:
                 if date:
                     print(
@@ -162,6 +190,13 @@ async def _context(target: Path, *, markdown: bool) -> None:
                     print(f"- {label}")
                 else:
                     print(f"  {name[:77]}")
+            if subject:
+                prefix = (
+                    ("  - " if name else "- ")
+                    if markdown
+                    else ("    " if name else "  ")
+                )
+                print(prefix + subject[: 79 - len(prefix)])
             if detail:
                 prefix = (
                     ("  - " if name else "- ")
