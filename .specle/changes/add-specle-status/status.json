@@ -1,7 +1,7 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "approved",
+  "status": "committed",
   "progress": {
     "tasks_completed": 7,
     "tasks_total": 7
@@ -13,11 +13,17 @@
     "status": "pass",
     "findings": 0
   },
-  "delivery": null,
+  "delivery": {
+    "reference": "https://github.com/deeprave/specle/pull/58",
+    "head_branch": "feature/add-specle-status",
+    "target_branch": "main",
+    "commit": "33b59ca",
+    "event": "pull-request"
+  },
   "relationships": [],
   "dependencies": [],
   "created_at": 1795830894,
   "activated_at": 1795861310,
-  "updated_at": 1795863426,
+  "updated_at": 1795863559,
   "revision_note": "User declined a Markdown label length limit; plain-text line limit remains."
 }
