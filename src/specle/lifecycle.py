@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
@@ -31,7 +32,7 @@ class RuntimeSnapshot:
     diagnostics: tuple[LifecycleDiagnostic, ...]
 
 
-def next_lifecycle_action(
+async def next_lifecycle_action(
     record: ChangeRecord, selected_name: str | None
 ) -> str | None:
     """Return the next owning workflow action for one listed durable record."""
@@ -44,6 +45,30 @@ def next_lifecycle_action(
             return kind
         if status == "building":
             return "verify"
+    if (
+        kind == "change"
+        and record.name == selected_name
+        and status in {"defined", "estimated", "designed", "planned"}
+    ):
+        directory = anyio.Path(record.directory)
+        estimate = directory / "estimate.md"
+        if not await estimate.is_file():
+            return "estimate"
+        try:
+            contents = await read_regular_text(estimate)
+        except (OSError, UnicodeDecodeError):
+            return "estimate"
+        small = bool(
+            re.search(r"(?im)^##\s+T-shirt size\s*\n\s*S\s*$", contents)
+            or re.search(
+                r"(?im)^\s*[-*]\s+\*\*T-shirt size:?\*\*\s*:?\s*S\s*$", contents
+            )
+        )
+        if not small and not await (directory / "design.md").is_file():
+            return "design"
+        if not await (directory / "tasks.md").is_file():
+            return "tasks"
+        return "build"
     if (
         kind == "change"
         and record.name != selected_name

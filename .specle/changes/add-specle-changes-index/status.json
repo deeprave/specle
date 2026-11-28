@@ -1,16 +1,17 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "approved",
   "progress": {
-    "tasks_completed": 3,
-    "tasks_total": 3
+    "tasks_completed": 9,
+    "tasks_total": 9
   },
   "verification": {
     "status": "pass"
   },
   "review": {
-    "status": "pass"
+    "status": "pass",
+    "findings": 0
   },
   "delivery": {
     "reference": "https://github.com/deeprave/specle/pull/56",
@@ -29,6 +30,6 @@
   "dependencies": [],
   "created_at": 1795326755,
   "activated_at": 1795778458,
-  "revision_note": "Replanned after local review: diagnostic rows retain malformed, schema-invalid, and timestamp-invalid records in every report format.",
-  "updated_at": 1795834150
+  "revision_note": "Replanned after external review: listing, preflight, S-sized workflow, index diagnostics and coverage.",
+  "updated_at": 1795839798
 }

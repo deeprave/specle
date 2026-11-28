@@ -63,7 +63,9 @@ class ChangeStateSnapshot:
     diagnostics: tuple[str, ...]
 
 
-async def read_change_state(target_directory: Path) -> ChangeStateSnapshot:
+async def read_change_state(
+    target_directory: Path, *, tolerant_archive_dates: bool = False
+) -> ChangeStateSnapshot:
     """Asynchronously read all discoverable state without changing the target."""
     target = await anyio.Path(target_directory).expanduser()
     target = await target.resolve()
@@ -72,7 +74,10 @@ async def read_change_state(target_directory: Path) -> ChangeStateSnapshot:
         target / ".specle" / "changes", False, diagnostics
     )
     archived, archived_issues = await _read_change_collection(
-        target / ".specle" / "archive", True, diagnostics
+        target / ".specle" / "archive",
+        True,
+        diagnostics,
+        tolerant_archive_dates=tolerant_archive_dates,
     )
     _report_duplicate_names(active, archived, diagnostics)
     selected_name = await _read_current_change(
@@ -115,7 +120,11 @@ def resolve_change(
 
 
 async def _read_change_collection(
-    root: anyio.Path, archived: bool, diagnostics: list[str]
+    root: anyio.Path,
+    archived: bool,
+    diagnostics: list[str],
+    *,
+    tolerant_archive_dates: bool = False,
 ) -> tuple[list[ChangeRecord], list[ChangeIssue]]:
     if not await root.exists():
         return [], []
@@ -130,10 +139,11 @@ async def _read_change_collection(
         if not _is_change_name(directory.name):
             diagnostic = f"{directory}: invalid change directory name"
             diagnostics.append(diagnostic)
-            issues.append(ChangeIssue(directory.name, path, archived, diagnostic))
             continue
         status_path = directory / "status.json"
-        status, diagnostic = await _read_status(status_path)
+        status, diagnostic = await _read_status(
+            status_path, tolerant_archive_dates=tolerant_archive_dates
+        )
         if status is not None:
             records.append(ChangeRecord(directory.name, path, status, archived))
         else:
@@ -145,6 +155,8 @@ async def _read_change_collection(
 
 async def _read_status(
     path: anyio.Path,
+    *,
+    tolerant_archive_dates: bool = False,
 ) -> tuple[dict[str, object] | None, str | None]:
     try:
         value = json.loads(await read_regular_text(path))
@@ -156,12 +168,24 @@ async def _read_status(
         return None, f"{path}: unreadable JSON: {error}"
     if not isinstance(value, dict):
         return None, f"{path}: expected a JSON object"
+    dependencies = value.get("dependencies")
+    if isinstance(dependencies, list) and any(
+        not isinstance(name, str) or not _is_change_name(name) for name in dependencies
+    ):
+        return None, f"{path}: invalid dependencies"
     try:
         if value.get("$schema") != SCHEMA_IDENTIFIERS["change-status"]:
             raise SchemaRegistryError(
                 f"expected schema {SCHEMA_IDENTIFIERS['change-status']!r}"
             )
-        await validate_instance(value)
+        checked = value
+        if tolerant_archive_dates:
+            checked = {
+                key: item
+                for key, item in value.items()
+                if key not in {"archived_at", "cancelled_at"}
+            }
+        await validate_instance(checked)
     except SchemaRegistryError as error:
         return None, f"{path}: invalid contract: {error}"
     return value, None

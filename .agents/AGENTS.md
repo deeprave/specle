@@ -20,7 +20,7 @@ Use the local skills in the following order for feature work:
 
 `define` → `activate` → `estimate` → `design` → `tasks` → `build` → `verify` → `review` → `commit` → `complete`.
 
-Before activation, an explicitly named normal change may be estimated, designed, or given tasks without becoming current or continuing automatically. Tasks require a design. `activate` is the only operation that makes normal work current and begins the required estimate → design → tasks preparation chain before build.
+Before activation, an explicitly named normal change may be estimated, designed, or given tasks without becoming current or continuing automatically. Tasks require a design for M/L/XL work; S-sized work may skip it. `activate` is the only operation that makes normal work current and begins the required estimate → design (for M/L/XL) → tasks preparation chain before build.
 
 A clean verification result is `verified`, not `complete`; a subsequent passing review makes the work `approved`. `commit` records the delivery event and moves the work to `committed`; `complete` archive-finalises every delivery model. After review findings, use `triage` to record decisions, then `resolve` to route accepted decisions; it uses `revise` for corrections to the selected change's requirements, design, or plan. Use `status` to orient current work and `changes` to inspect pending lifecycle state.
 

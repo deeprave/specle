@@ -38,7 +38,7 @@ Specle has durable change records but no concise CLI view of work that remains i
 
 1. `specle changes --archive` SHALL list valid records in `.specle/archive/` and SHALL not include active changes.
 2. Archive output SHALL use the same name, kind, status, dependencies, and next-action fields as the active listing. A diagnostic SHALL appear only for a record that has one.
-3. Archive output SHALL display its applicable terminal date in `YYYY-MM-DD` form instead of creation date: `archived_at` for `complete`, or `cancelled_at` for `cancelled`. These timestamps are optional; an absent value SHALL use the standard empty placeholder.
+3. Archive output SHALL display its applicable terminal date in `YYYY-MM-DD` form instead of creation date: `archived_at` for `complete`, or `cancelled_at` for `cancelled`. Missing or invalid optional timestamps and dates for nonterminal records SHALL be empty.
 4. Archive output SHALL remain read-only and deterministic.
 5. Missing archive collections SHALL produce a successful, clear empty result rather than an error.
 
@@ -49,10 +49,14 @@ Specle has durable change records but no concise CLI view of work that remains i
 #### Acceptance Criteria
 
 1. The command SHALL reuse the established change-state reader and schema validation path for discovering records.
-2. A discoverable record with malformed or schema-invalid state, or an unrenderable timestamp, SHALL remain represented in its collection with its stable directory name and an explicit diagnostic. It SHALL not be omitted or abort the rest of the listing. Lifecycle-invalid records remain inspectable by this listing command.
+2. A discoverable record with malformed or schema-invalid state, other than an invalid optional archive date, or an unrenderable active timestamp, SHALL remain represented in its collection with its stable directory name and an explicit diagnostic. It SHALL not be omitted or abort the rest of the listing. Lifecycle-invalid records remain inspectable by this listing command.
 3. The mapping from a record and local selection context to its next action SHALL be defined once in package-owned lifecycle code and remain consistent with the documented lifecycle policy.
 4. The command SHALL not select, activate, update, archive, repair, or otherwise mutate a change.
-5. Archive output SHALL use the applicable optional terminal timestamp: `archived_at` for `complete`, or `cancelled_at` for `cancelled`. A missing optional timestamp is represented as an empty placeholder or `null`; a non-finite or unrenderable numeric timestamp is represented by an actionable diagnostic on that record.
+5. Archive output SHALL use the applicable optional terminal timestamp: `archived_at` for `complete`, or `cancelled_at` for `cancelled`. A missing or invalid optional timestamp, and any date for a nonterminal archive record, SHALL be empty or `null`.
+6. Directories whose names violate the change-name policy SHALL NOT be presented as changes or synthetic rows.
+7. Report diagnostics SHALL give a static cause without embedding offending values, paths, or other dynamic data. Dependency names SHALL follow the change-name policy; their targets need not exist.
+8. For selected normal work, the next action SHALL reflect existing preparation artifacts: estimate, design when required, tasks, or build. Unselected defined normal changes and spikes SHALL show activate; other kinds SHALL use their owning workflow.
+9. S-sized normal changes SHALL proceed from estimate to tasks without requiring design, with lifecycle policy, preparation skills and metadata aligned.
 
 ### Requirement 4: Provide machine-readable change output
 
@@ -76,7 +80,7 @@ Specle has durable change records but no concise CLI view of work that remains i
 1. `specle changes --csv` SHALL emit RFC 4180-compatible CSV instead of the human-readable table.
 2. CSV output SHALL include a header row and the same rows and logical fields as text output, using its formatted `YYYY-MM-DD` date when available. It SHALL include a diagnostic column only when at least one emitted row has a diagnostic.
 3. `specle changes --archive --csv` SHALL select only archive rows and use its applicable optional terminal timestamp to produce its date or empty placeholder.
-4. CSV output SHALL remain deterministic and read-only, use portable line endings, and represent the same per-record diagnostics as text and JSON output.
+4. CSV output SHALL remain deterministic and read-only, use CRLF record separators, and represent the same per-record diagnostics as text and JSON output.
 5. `--csv` and `--json` SHALL be mutually exclusive; `--pretty` SHALL remain available only with `--json`.
 
 ### Requirement 6: Rebuild an installed-skill index without installation
@@ -92,6 +96,12 @@ Specle has durable change records but no concise CLI view of work that remains i
 5. The target SHALL contain a valid managed `specle` skill. A missing, unmanaged, or invalid `specle` skill SHALL produce an actionable non-zero diagnostic and SHALL leave the existing index unchanged. Other discovered managed skills are the installed inventory; the command SHALL not infer a separate expected-skill baseline.
 6. The command SHALL report the target and generated index location on success.
 7. The replacement index SHALL be UTF-8 encoded, retain normal readable permissions, and reject a directory at the index destination with an actionable diagnostic.
+8. Lifecycle diagnostics SHALL be displayed and block regeneration by default. `--force` SHALL allow regeneration despite those diagnostics while still displaying them; it SHALL NOT bypass the valid managed `specle` skill requirement.
+
+### Requirement 7: Check project directory types
+
+1. Project-targeting CLI commands SHALL perform common preflight checks for `.specle/changes`, `.specle/archive`, `.agents`, and `.agents/skills`: absent paths are permitted, but existing paths must be directories. Command-specific existence requirements remain in force.
+2. Standalone schema export and blueprint validation SHALL NOT inspect current-project state. Invalid or unreadable selectors SHALL be reported without creating synthetic change rows.
 
 ## Non-Functional Requirements
 

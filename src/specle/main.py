@@ -119,6 +119,9 @@ def build_parser() -> argparse.ArgumentParser:
         "index", help="Regenerate an installed Specle skill index."
     )
     index.add_argument("target_directory", help="Existing deployment directory.")
+    index.add_argument(
+        "--force", action="store_true", help="Regenerate despite lifecycle diagnostics."
+    )
     validate.add_argument(
         "--blueprint",
         action="store_true",
@@ -152,6 +155,16 @@ async def main(args: list[str] | None = None) -> None:
     parser = build_parser()
     parsed = parser.parse_args(args)
 
+    if parsed.command in {"changes", "init", "update", "index"} or (
+        parsed.command == "validate"
+        and not parsed.blueprint
+        and parsed.target_directory
+    ):
+        target = (
+            Path.cwd() if parsed.command == "changes" else Path(parsed.target_directory)
+        )
+        await _preflight_project(target)
+
     if parsed.command == "changes":
         if parsed.pretty and not parsed.json:
             parser.error("changes --pretty requires --json")
@@ -169,7 +182,7 @@ async def main(args: list[str] | None = None) -> None:
             await (await anyio.Path(parsed.target_directory).expanduser()).resolve()
         )
         try:
-            await _regenerate_index(target)
+            await _regenerate_index(target, force=parsed.force)
         except (OSError, SkillMetadataError) as error:
             raise SystemExit(str(error)) from error
         print(target / ".agents" / "skills" / "specle" / "index.json")
@@ -330,7 +343,13 @@ async def _report_changes(
     pretty: bool = False,
 ) -> None:
     """Render one read-only deterministic view of durable change records."""
-    snapshot = await read_change_state(target)
+    snapshot = await read_change_state(target, tolerant_archive_dates=True)
+    for diagnostic in snapshot.diagnostics:
+        if "current-change" in diagnostic and (
+            "unreadable selector" in diagnostic
+            or "expected one stable change name" in diagnostic
+        ):
+            raise SystemExit("invalid or unreadable selector")
     records = snapshot.archived if archived else snapshot.active
     issues = snapshot.archived_issues if archived else snapshot.active_issues
     rows = []
@@ -344,8 +363,10 @@ async def _report_changes(
                 "dependencies": record.status.get("dependencies", []),
                 "timestamp": timestamp,
                 "date": date,
-                "next_action": next_lifecycle_action(record, snapshot.selected_name),
-                "diagnostic": diagnostic,
+                "next_action": await next_lifecycle_action(
+                    record, snapshot.selected_name
+                ),
+                "diagnostic": _static_diagnostic(diagnostic) if diagnostic else None,
             }
         )
     rows.extend(_issue_row(issue) for issue in issues)
@@ -378,7 +399,7 @@ async def _report_changes(
         )
         return
     if as_csv:
-        writer = csv.writer(sys.stdout, lineterminator="\n")
+        writer = csv.writer(sys.stdout, lineterminator="\r\n")
         headers = ["name", "date", "kind", "status", "dependencies", "next_action"]
         if include_diagnostics:
             headers.append("diagnostic")
@@ -415,8 +436,36 @@ async def _report_changes(
             next_action,
         ]
         if include_diagnostics:
-            values.append(row["diagnostic"] or "")
+            diagnostic = row["diagnostic"]
+            values.append(_static_diagnostic(diagnostic) if diagnostic else "")
         print("\t".join(str(value) for value in values))
+
+
+async def _preflight_project(target: Path) -> None:
+    root = await anyio.Path(target).expanduser()
+    for relative in (".specle/changes", ".specle/archive", ".agents", ".agents/skills"):
+        candidate = root / relative
+        if (
+            await candidate.exists() or await candidate.is_symlink()
+        ) and not await candidate.is_dir():
+            raise SystemExit(f"{candidate}: expected a directory")
+
+
+def _static_diagnostic(value: object) -> str:
+    """Return a stable text-report cause without embedded source data."""
+    message = str(value)
+    for reason in (
+        "invalid dependencies",
+        "malformed JSON",
+        "unreadable JSON",
+        "invalid contract",
+        "invalid created_at",
+        "missing",
+        "expected a JSON object",
+    ):
+        if reason in message:
+            return reason
+    return "invalid change record"
 
 
 def _report_timestamp(
@@ -426,6 +475,8 @@ def _report_timestamp(
     field = "created_at"
     optional = False
     if archived:
+        if record.status.get("status") not in {"complete", "cancelled"}:
+            return None, None, None
         field = (
             "cancelled_at"
             if record.status.get("status") == "cancelled"
@@ -436,13 +487,13 @@ def _report_timestamp(
     if timestamp is None and optional:
         return None, None, None
     if not isinstance(timestamp, (int, float)) or isinstance(timestamp, bool):
-        return None, None, _timestamp_diagnostic(record, field)
+        return None, None, None if optional else _timestamp_diagnostic(record, field)
     try:
         finite = math.isfinite(timestamp)
     except OverflowError:
         finite = False
     if not finite:
-        return None, None, _timestamp_diagnostic(record, field)
+        return None, None, None if optional else _timestamp_diagnostic(record, field)
     assert isinstance(timestamp, (int, float)) and not isinstance(timestamp, bool)
     try:
         return (
@@ -451,7 +502,7 @@ def _report_timestamp(
             None,
         )
     except (OverflowError, OSError, ValueError):
-        return None, None, _timestamp_diagnostic(record, field)
+        return None, None, None if optional else _timestamp_diagnostic(record, field)
 
 
 def _timestamp_diagnostic(record: ChangeRecord, field: str) -> str:
@@ -468,7 +519,7 @@ def _issue_row(issue: ChangeIssue) -> dict[str, object]:
         "timestamp": None,
         "date": None,
         "next_action": None,
-        "diagnostic": issue.diagnostic,
+        "diagnostic": _static_diagnostic(issue.diagnostic),
     }
 
 
@@ -479,11 +530,14 @@ def _format_dependencies(value: object, *, empty: str) -> str:
     return ",".join(str(item) for item in value)
 
 
-async def _regenerate_index(target: Path) -> None:
+async def _regenerate_index(target: Path, *, force: bool = False) -> None:
     """Atomically replace only an existing deployment's generated skill index."""
     inventory = await scan_managed_inventory(target / ".agents")
     if inventory.lifecycle.diagnostics:
-        raise SkillMetadataError(inventory.lifecycle.diagnostics[0].message)
+        for diagnostic in inventory.lifecycle.diagnostics:
+            print(diagnostic.message, file=sys.stderr)
+        if not force:
+            raise SkillMetadataError("lifecycle diagnostics prevent index regeneration")
     if not any(record.metadata.name == "specle" for record in inventory.skills):
         raise SkillMetadataError(
             "the installed managed skill inventory has no valid 'specle' skill"

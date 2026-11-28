@@ -7,8 +7,12 @@ usage: >-
   Use after normal requirements and any necessary design exist to create or reconcile an ordered TDD task plan; do not infer completed work from a diff.
 lifecycle:
   accepts:
+    - estimated
     - designed
   transitions:
+    - from: estimated
+      to: planned
+      next: build
     - from: designed
       to: planned
       next: build
@@ -28,7 +32,7 @@ Changes are independent by default. A queued or future change must not create a 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
 1. Read `.specle/current-change` when present and the target `status.json` to locate the selected change. A named unselected normal change is also valid for explicit planning; it must remain unselected.
-2. Require and read `requirements.md`, `spec.md`, and `design.md` (for architecture and dependency ordering). Stop if the target has no design.
+2. Require and read `requirements.md`, `spec.md`, and `estimate.md`. For M/L/XL work require and read `design.md` for architecture and dependency ordering; S-sized work may proceed without design.
    Read applicable authoritative `.agents/project/` documents for project constraints that the
    implementation tasks must preserve.
 3. Inspect relevant repository changes before planning: use `git status --short`, staged and unstaged diffs, and recent commits for the code affected by the change. Account for relevant existing implementation or partial work, but ignore unrelated changes.

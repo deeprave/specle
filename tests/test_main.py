@@ -214,8 +214,8 @@ def test_changes_text_and_csv_use_headered_dates(
     anyio.run(main, ["changes", "--archive", "--csv"])
 
     assert capsys.readouterr().out == (
-        "name,date,kind,status,dependencies,next_action\n"
-        "archived,1970-01-02,change,complete,,\n"
+        "name,date,kind,status,dependencies,next_action\r\n"
+        "archived,1970-01-02,change,complete,,\r\n"
     )
 
 
@@ -324,7 +324,9 @@ def test_changes_reports_empty_text_and_header_only_csv(
 
     anyio.run(main, ["changes", "--archive", "--csv"])
 
-    assert capsys.readouterr().out == "name,date,kind,status,dependencies,next_action\n"
+    assert (
+        capsys.readouterr().out == "name,date,kind,status,dependencies,next_action\r\n"
+    )
 
 
 def test_changes_uses_cancelled_at_when_available(
@@ -342,7 +344,9 @@ def test_changes_uses_cancelled_at_when_available(
 
     anyio.run(main, ["changes", "--archive", "--csv"])
 
-    assert capsys.readouterr().out.endswith("cancelled,1970-01-02,change,cancelled,,\n")
+    assert capsys.readouterr().out.endswith(
+        "cancelled,1970-01-02,change,cancelled,,\r\n"
+    )
 
 
 def test_changes_reports_non_finite_timestamps_as_diagnostics(
@@ -361,7 +365,7 @@ def test_changes_reports_non_finite_timestamps_as_diagnostics(
     anyio.run(main, ["changes", "--csv"])
 
     assert capsys.readouterr().out.endswith(
-        f"bad,,change,defined,,activate,{status_path}: invalid created_at\n"
+        "bad,,change,defined,,activate,invalid created_at\r\n"
     )
 
 
@@ -384,7 +388,7 @@ def test_changes_reports_malformed_records_alongside_valid_rows(
 
     rows = json.loads(capsys.readouterr().out)["changes"]
     assert [row["name"] for row in rows] == ["invalid", "valid"]
-    assert rows[0]["diagnostic"].startswith(f"{invalid_path}: malformed JSON")
+    assert rows[0]["diagnostic"] == "malformed JSON"
     assert "diagnostic" not in rows[1]
 
 
@@ -407,7 +411,7 @@ def test_changes_reports_schema_invalid_records_alongside_valid_rows(
 
     rows = json.loads(capsys.readouterr().out)["changes"]
     assert [row["name"] for row in rows] == ["invalid", "valid"]
-    assert rows[0]["diagnostic"].startswith(f"{invalid_path}: invalid contract:")
+    assert rows[0]["diagnostic"] == "invalid contract"
     assert "diagnostic" not in rows[1]
 
 
@@ -428,7 +432,7 @@ def test_changes_reports_unrenderable_timestamps_as_diagnostic_rows(
 
     row = json.loads(capsys.readouterr().out)["changes"][0]
     assert row["timestamp"] is None
-    assert row["diagnostic"] == f"{status_path}: invalid created_at"
+    assert row["diagnostic"] == "invalid created_at"
 
 
 def test_index_regenerates_only_the_installed_index(tmp_path: Path, capsys) -> None:
@@ -438,12 +442,23 @@ def test_index_regenerates_only_the_installed_index(tmp_path: Path, capsys) -> N
     capsys.readouterr()
     index = target / ".agents" / "skills" / "specle" / "index.json"
     skill = target / ".agents" / "skills" / "define" / "SKILL.md"
+    skill.write_text(
+        skill.read_text().replace(
+            "  Create or refine evidence-led, unselected normal change definitions under `.specle/changes/`.",
+            "  Local description for this installation.",
+        )
+    )
     original_skill = skill.read_text()
     index.write_text("{}\n")
 
     anyio.run(main, ["index", str(target)])
 
-    assert json.loads(index.read_text())["groups"]
+    groups = json.loads(index.read_text())["groups"]
+    entries = [entry for group in groups for entry in group["skills"]]
+    assert (
+        next(entry for entry in entries if entry["name"] == "define")["description"]
+        == "Local description for this installation."
+    )
     assert skill.read_text() == original_skill
     assert stat.S_IMODE(index.stat().st_mode) == 0o644
 
@@ -721,3 +736,120 @@ def test_init_installs_the_context_policy(tmp_path, capsys) -> None:
     assert (target / ".agents" / "policies" / "external-inputs.md").read_text() == (
         source / "policies" / "external-inputs.md"
     ).read_text()
+
+
+def test_changes_excludes_invalid_names_and_rejects_invalid_dependencies(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    target = tmp_path / "target"
+    _write_change_status(
+        target / ".specle/changes/bad\tname/status.json",
+        kind="change",
+        status="defined",
+        created_at=0,
+    )
+    _write_change_status(
+        target / ".specle/changes/valid/status.json",
+        kind="change",
+        status="defined",
+        created_at=0,
+        dependencies=["bad\tdependency"],
+    )
+    monkeypatch.chdir(target)
+    anyio.run(main, ["changes"])
+    output = capsys.readouterr().out
+    assert "bad\tname" not in output
+    assert "bad\tdependency" not in output
+    assert "valid" in output
+    assert "invalid dependencies" in output
+    assert str(target) not in output
+
+
+@pytest.mark.parametrize(
+    "relative", [".specle/changes", ".specle/archive", ".agents", ".agents/skills"]
+)
+def test_changes_preflight_rejects_non_directory(
+    tmp_path: Path, monkeypatch, relative: str
+) -> None:
+    bad = tmp_path / relative
+    bad.parent.mkdir(parents=True, exist_ok=True)
+    bad.write_text("not a directory")
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(SystemExit, match="expected a directory"):
+        anyio.run(main, ["changes"])
+
+
+def test_changes_reports_invalid_selector(tmp_path: Path, monkeypatch) -> None:
+    selector = tmp_path / ".specle/current-change"
+    selector.parent.mkdir()
+    selector.write_text("invalid/name\n")
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(SystemExit, match="selector"):
+        anyio.run(main, ["changes"])
+
+
+def test_selected_change_next_action_uses_preparation_artifacts(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    directory = tmp_path / ".specle/changes/example"
+    _write_change_status(
+        directory / "status.json", kind="change", status="defined", created_at=0
+    )
+    (tmp_path / ".specle/current-change").write_text("example\n")
+    monkeypatch.chdir(tmp_path)
+    for filename, contents, expected in [
+        (None, "", "estimate"),
+        ("estimate.md", "## T-shirt size\n\nS\n", "tasks"),
+        ("tasks.md", "- [ ] 1. Work\n", "build"),
+    ]:
+        if filename:
+            (directory / filename).write_text(contents)
+        anyio.run(main, ["changes", "--json"])
+        assert (
+            json.loads(capsys.readouterr().out)["changes"][0]["next_action"] == expected
+        )
+
+
+@pytest.mark.parametrize(
+    "status,field,value",
+    [
+        ("complete", "archived_at", "invalid"),
+        ("cancelled", "cancelled_at", 10**400),
+        ("building", "archived_at", 100),
+    ],
+)
+def test_archive_invalid_or_inapplicable_dates_are_empty(
+    tmp_path: Path, monkeypatch, capsys, status: str, field: str, value: object
+) -> None:
+    status_path = tmp_path / ".specle/archive/example/status.json"
+    _write_change_status(status_path, kind="change", status=status, created_at=0)
+    record = json.loads(status_path.read_text())
+    record[field] = value
+    status_path.write_text(json.dumps(record))
+    monkeypatch.chdir(tmp_path)
+    anyio.run(main, ["changes", "--archive", "--json"])
+    row = json.loads(capsys.readouterr().out)["changes"][0]
+    assert row["timestamp"] is None
+    assert "diagnostic" not in row
+
+
+def test_index_force_reports_lifecycle_diagnostics_and_regenerates(
+    tmp_path: Path, capsys
+) -> None:
+    anyio.run(main, ["init", str(tmp_path)])
+    capsys.readouterr()
+    skill = tmp_path / ".agents/skills/activate/SKILL.md"
+    skill.write_text(
+        skill.read_text().replace("      next: estimate", "      next: missing-skill")
+    )
+    index = tmp_path / ".agents/skills/specle/index.json"
+    index.write_text("{}")
+    with pytest.raises(SystemExit):
+        anyio.run(main, ["index", str(tmp_path)])
+    assert index.read_text() == "{}"
+    captured = capsys.readouterr()
+    assert "missing-skill" in captured.err
+    anyio.run(main, ["index", str(tmp_path), "--force"])
+    captured = capsys.readouterr()
+    assert "missing-skill" in captured.err
+    assert json.loads(index.read_text())["groups"]

@@ -41,7 +41,7 @@ Write `estimate.md` in the change folder with:
 - **T-shirt size**: S / M / L / XL
 - **Breakdown**: new files (~N), modified files (~N), estimated tasks (~N), key risks.
 - **Confidence**: High / Medium / Low
-- **Recommendation**: describe the planning risks and any reason to split the work. Active normal work always continues through design before tasks.
+- **Recommendation**: describe the planning risks and any reason to split the work. S-sized normal work proceeds to tasks; M/L/XL work proceeds to design.
 - **Similar past work**: reference relevant memory/changes.
 
 If estimating the selected change, update its lifecycle status to `estimated` and write `updated_at` as current Unix seconds. A named unselected
@@ -49,6 +49,6 @@ estimate records only that change's artifact; it does not change `.specle/curren
 
 ## Next
 
-After recording a successful estimate for the selected change, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `design <change-name>`; otherwise report it and wait. For a named unselected change, stop and report `activate <change-name>` regardless of progression policy.
+After recording a successful estimate for the selected change, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `tasks <change-name>` for S-sized work or `design <change-name>` for M/L/XL work; otherwise report it and wait. For a named unselected change, stop and report `activate <change-name>` regardless of progression policy.
 
-- `design` — required before tasks for active normal work.
+- `tasks` for S-sized work, or `design` for M/L/XL work.

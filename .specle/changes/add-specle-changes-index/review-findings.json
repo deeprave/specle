@@ -1,6 +1,97 @@
 {
   "sources": [
     {
+      "id": "sourcery-r4719802567",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/56#discussion_r4719802567",
+      "revision": "pr-head:60c59966c7df75ec193cc4c2fba74d5c3c73ba8f"
+    },
+    {
+      "id": "sourcery-r4719802584",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/56#discussion_r4719802584",
+      "revision": "pr-head:60c59966c7df75ec193cc4c2fba74d5c3c73ba8f"
+    },
+    {
+      "id": "sourcery-r4719802604",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/56#discussion_r4719802604",
+      "revision": "pr-head:60c59966c7df75ec193cc4c2fba74d5c3c73ba8f"
+    },
+    {
+      "id": "sourcery-r4719802620",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/56#discussion_r4719802620",
+      "revision": "pr-head:60c59966c7df75ec193cc4c2fba74d5c3c73ba8f"
+    },
+    {
+      "id": "sourcery-r4719802637",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/56#discussion_r4719802637",
+      "revision": "pr-head:60c59966c7df75ec193cc4c2fba74d5c3c73ba8f"
+    },
+    {
+      "id": "sourcery-r4719802647",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/56#discussion_r4719802647",
+      "revision": "pr-head:60c59966c7df75ec193cc4c2fba74d5c3c73ba8f"
+    },
+    {
+      "id": "sourcery-r4719802662",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/56#discussion_r4719802662",
+      "revision": "pr-head:60c59966c7df75ec193cc4c2fba74d5c3c73ba8f"
+    },
+    {
+      "id": "sourcery-r4719802667",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/56#discussion_r4719802667",
+      "revision": "pr-head:60c59966c7df75ec193cc4c2fba74d5c3c73ba8f"
+    },
+    {
+      "id": "sourcery-r4719802677",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/56#discussion_r4719802677",
+      "revision": "pr-head:60c59966c7df75ec193cc4c2fba74d5c3c73ba8f"
+    },
+    {
+      "id": "sourcery-r4719802695",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/56#discussion_r4719802695",
+      "revision": "pr-head:60c59966c7df75ec193cc4c2fba74d5c3c73ba8f"
+    },
+    {
+      "id": "sourcery-r4719802708",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/56#discussion_r4719802708",
+      "revision": "pr-head:60c59966c7df75ec193cc4c2fba74d5c3c73ba8f"
+    },
+    {
+      "id": "sourcery-r4719802721",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/56#discussion_r4719802721",
+      "revision": "pr-head:60c59966c7df75ec193cc4c2fba74d5c3c73ba8f"
+    },
+    {
+      "id": "sourcery-r4719802730",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/56#discussion_r4719802730",
+      "revision": "pr-head:60c59966c7df75ec193cc4c2fba74d5c3c73ba8f"
+    },
+    {
       "id": "local-review-20261127-add-specle-changes-index-1",
       "system": "specle",
       "kind": "local-review",
@@ -39,9 +130,321 @@
       "revision": "diff:990513b182585d9e7191434a103bcc48c281809ef470e62bd33ce5d2e5777317",
       "outcome": "approve",
       "findings": 0
+    },
+    {
+      "id": "local-review-20261128-add-specle-changes-index-5",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "diff:fc731b7578d1f8aad31f6ac3c93aa546553fd9113e62a26af3eb77de61fc8a75",
+      "outcome": "approve",
+      "findings": 0
     }
   ],
   "items": [
+    {
+      "id": "sourcery-r4719802647-static-diagnostics",
+      "severity": "P3",
+      "description": "TSV diagnostics and unchecked dependency names can contain control characters.",
+      "evidence": "_report_timestamp and change-state diagnostics include paths and error details; the change-status schema currently requires dependency values only to be non-empty strings.",
+      "analysis": "Even when invalid names are excluded and status and kind are constrained by enums, diagnostics may include dynamic filesystem or error data. Dependency entries are change names and must meet the same validity rules; the current schema and reader do not yet enforce those rules.",
+      "recommendation": "For TSV change-list diagnostics, present only a static reason describing the cause, without paths, offending values, or other dynamic data. Validate dependency entries using the change-name rules without requiring the named change to exist.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Diagnostics should communicate only a static cause; dependency entries are change names and are subject to the same name-validity rules.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4719802647"
+      ],
+      "related": [
+        "sourcery-r4719802647"
+      ],
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      }
+    },
+    {
+      "id": "sourcery-r4719802567",
+      "severity": "P2",
+      "description": "Index regeneration can follow a symlinked skill directory outside the target.",
+      "evidence": "_regenerate_index writes through the installed specle directory without a containment check.",
+      "analysis": "A symlink can redirect the generated index outside the requested target; the thread is outdated but the current path still follows it.",
+      "recommendation": "Reject redirected index paths or verify containment before writing.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "The target installation is user-controlled; users are responsible for their own symlinks and resulting changes to their Specle installation.",
+      "route": null,
+      "sources": [
+        "sourcery-r4719802567"
+      ]
+    },
+    {
+      "id": "sourcery-r4719802584",
+      "severity": "P2",
+      "description": "Invalid change names can inject terminal controls or spreadsheet formulas into reports.",
+      "evidence": "Invalid directory names are emitted unchanged in text and CSV rows.",
+      "analysis": "Rejected directory names are currently converted into synthetic change rows, despite not representing changes.",
+      "recommendation": "Exclude invalidly named directories from change rows rather than escaping synthetic rows.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "A rejected directory name is not a change and must not be presented as a synthetic change row.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4719802584"
+      ],
+      "possible_duplicates": [
+        "sourcery-r4719802647"
+      ],
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      }
+    },
+    {
+      "id": "sourcery-r4719802604",
+      "severity": "P3",
+      "description": "Index regeneration rejects inventories with lifecycle diagnostics.",
+      "evidence": "_regenerate_index checks inventory.lifecycle.diagnostics before generating the index.",
+      "analysis": "Lifecycle diagnostics may indicate an incomplete or inconsistent managed inventory, so the default should preserve the index and explain the problem.",
+      "recommendation": "Report lifecycle diagnostics and refuse index regeneration by default; add an index --force option that reports the diagnostics and permits regeneration despite them. Retain the separate valid managed specle skill requirement.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "An incomplete or inconsistent index should be blocked with an explanation by default; --force may override lifecycle diagnostics, which must still be displayed.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4719802604"
+      ],
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      }
+    },
+    {
+      "id": "sourcery-r4719802620",
+      "severity": "P3",
+      "description": "Collection and selector diagnostics are omitted from changes reports.",
+      "evidence": "_report_changes renders records and per-record issues but not snapshot.diagnostics.",
+      "analysis": "The thread is outdated, but the current reporting path still does not expose collection-level or selector diagnostics; lifecycle validation itself was previously declined.",
+      "recommendation": "Add a shared preflight for project-targeting CLI commands: absent .specle/changes, .specle/archive, .agents, and .agents/skills are allowed, while present paths must be directories; retain command-specific existence requirements. Standalone schemas export and blueprint validation do not inspect the current project's state. Address invalid or unreadable selectors separately without synthetic change rows.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "Use common project-target preflight validation to report invalid path types early, while allowing paths that do not exist yet and exempting standalone resource commands.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4719802620"
+      ],
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      }
+    },
+    {
+      "id": "sourcery-r4719802637",
+      "severity": "P3",
+      "description": "Concurrent update can replace an index after a scan with a stale index.",
+      "evidence": "The inventory scan and final index replacement have no mutual exclusion or concurrency check.",
+      "analysis": "The thread is outdated; the async implementation still has an interval between scanning and replacement.",
+      "recommendation": "Decline concurrent-operation coordination for this change.",
+      "state": "decided",
+      "decision": "decline",
+      "rationale": "Concurrent index and update operations against the same installation are outside the scope of this change.",
+      "route": null,
+      "sources": [
+        "sourcery-r4719802637"
+      ]
+    },
+    {
+      "id": "sourcery-r4719802647",
+      "severity": "P3",
+      "description": "Unescaped tab and newline characters corrupt text report columns and rows.",
+      "evidence": "_report_changes joins raw values using tab delimiters; the status schema accepts any non-empty string.",
+      "analysis": "Invalid names will be excluded under the separate accepted decision. Status values are currently open-ended in the JSON Schema and validated separately against lifecycle metadata; dependencies and diagnostics remain separate sources of text values.",
+      "recommendation": "Defer status and kind enum consolidation to the separately defined consolidate-state-enums change; leave delivery events and other JSON keys out of scope.",
+      "state": "decided",
+      "decision": "defer",
+      "rationale": "The status and kind enum refactor is independent follow-up work, tracked by the explicitly defined consolidate-state-enums change; event values are not included.",
+      "route": null,
+      "follow_up": "consolidate-state-enums",
+      "sources": [
+        "sourcery-r4719802647"
+      ],
+      "possible_duplicates": [
+        "sourcery-r4719802584"
+      ]
+    },
+    {
+      "id": "sourcery-r4719802662",
+      "severity": "P4",
+      "description": "CSV records use LF rather than RFC 4180 CRLF separators.",
+      "evidence": "csv.writer is explicitly configured with lineterminator='\\n'; the change requirements call for RFC 4180-compatible CSV.",
+      "analysis": "Strict RFC 4180 consumers expect CRLF record separators. Existing LF-specific tests must be updated along with the writer.",
+      "recommendation": "Emit CRLF record separators for CSV and update the affected behavioural tests.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Use CRLF for RFC 4180 compatibility despite a general preference for LF.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4719802662",
+        "sourcery-r4719802730"
+      ],
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      }
+    },
+    {
+      "id": "sourcery-r4719802667",
+      "severity": "P3",
+      "description": "A selected defined change is reported with next action activate.",
+      "evidence": "next_lifecycle_action maps defined to activate even when the selected record is already active.",
+      "analysis": "Activation automatically runs the preparation chain, but the list can observe a selected change before that chain finishes. The next action depends on kind and existing preparation artifacts, not just the recorded status.",
+      "recommendation": "For an unselected defined normal change or spike, report activate. For selected normal work, derive estimate, design when required by the estimate, tasks, or build from the preparation artifacts; for other kinds use their owning workflow.",
+      "state": "decided",
+      "decision": "vary",
+      "rationale": "A selected change should report the next applicable step in its actual preparation chain, taking existing artifacts and kind into account.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4719802667"
+      ],
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      }
+    },
+    {
+      "id": "sourcery-r4719802677",
+      "severity": "P3",
+      "description": "Selected S-sized estimated changes are reported with next action design.",
+      "evidence": "next_lifecycle_action maps every estimated status to design without reading the estimate.",
+      "analysis": "The lifecycle table directs S-sized work to tasks, but activation, estimate, and tasks currently require a design for all normal changes.",
+      "recommendation": "For S-sized normal changes, skip design and proceed to tasks; align lifecycle policy, preparation skills, lifecycle metadata and the displayed next action with the recorded estimate.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "S-sized changes should proceed from estimate to tasks without a design stage.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4719802677"
+      ],
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      }
+    },
+    {
+      "id": "sourcery-r4719802695",
+      "severity": "P4",
+      "description": "Nonterminal archive records may be assigned an archived completion date.",
+      "evidence": "_report_timestamp uses archived_at for all archive statuses other than cancelled.",
+      "analysis": "The listing intentionally exposes lifecycle-invalid records, but using a terminal date for a nonterminal record may mislead. Both terminal dates are optional.",
+      "recommendation": "Use archived_at only for complete records and cancelled_at only for cancelled records; present an empty date for nonterminal records and whenever the applicable optional timestamp is missing or invalid.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Archive dates are optional and missing or invalid terminal timestamps must display as empty values.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4719802695"
+      ],
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      }
+    },
+    {
+      "id": "sourcery-r4719802708",
+      "severity": "P4",
+      "description": "A building change with completed tasks is reported with next action build.",
+      "evidence": "next_lifecycle_action maps normal building to build without task completion context.",
+      "analysis": "The build workflow directs work with no unfinished tasks to verify. A reusable change record can load and interpret the task plan on demand without treating task boxes as proof of verification.",
+      "recommendation": "Defer artifact-aware next-action derivation to the separately defined refactor-change-record change.",
+      "state": "decided",
+      "decision": "defer",
+      "rationale": "The user chose a reusable lazy-loaded change record and cache, with a next-action method, as independent follow-up work.",
+      "route": null,
+      "follow_up": "refactor-change-record",
+      "sources": [
+        "sourcery-r4719802708"
+      ]
+    },
+    {
+      "id": "sourcery-r4719802721",
+      "severity": "P4",
+      "description": "The index regeneration test only checks that groups are nonempty.",
+      "evidence": "test_index_regenerates_only_the_installed_index checks the groups field for truthiness.",
+      "analysis": "That assertion cannot detect an index containing wrong managed skills; a behavioural comparison would tighten coverage.",
+      "recommendation": "Add a focused behavioural assertion that regenerated index metadata reflects the installed managed skill, including a valid local metadata edit.",
+      "state": "decided",
+      "decision": "accept",
+      "rationale": "Regeneration should reflect the installed inventory, including valid user edits, and the test should detect incorrect index content.",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4719802721"
+      ],
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "add-specle-changes-index"
+      }
+    },
+    {
+      "id": "sourcery-r4719802730",
+      "severity": "P5",
+      "description": "CSV tests assume LF record separators.",
+      "evidence": "CSV assertions in tests/test_main.py compare LF-only output.",
+      "analysis": "Updating these assertions is part of the accepted CRLF output correction.",
+      "recommendation": "Consolidate with the accepted CSV separator finding.",
+      "state": "decided",
+      "decision": "duplicate",
+      "rationale": "The same accepted CRLF change includes updating its affected tests.",
+      "route": null,
+      "sources": [
+        "sourcery-r4719802730"
+      ],
+      "duplicate_of": "sourcery-r4719802662"
+    },
     {
       "id": "local-review-add-specle-changes-index-1",
       "severity": "P2",
@@ -62,7 +465,9 @@
         "execution": "in-place",
         "resulting_change": "add-specle-changes-index"
       },
-      "sources": ["local-review-20261127-add-specle-changes-index-1"]
+      "sources": [
+        "local-review-20261127-add-specle-changes-index-1"
+      ]
     },
     {
       "id": "local-review-add-specle-changes-index-2",
@@ -84,7 +489,9 @@
         "execution": "in-place",
         "resulting_change": "add-specle-changes-index"
       },
-      "sources": ["local-review-20261127-add-specle-changes-index-1"]
+      "sources": [
+        "local-review-20261127-add-specle-changes-index-1"
+      ]
     },
     {
       "id": "local-review-add-specle-changes-index-3",
@@ -106,7 +513,9 @@
         "execution": "in-place",
         "resulting_change": "add-specle-changes-index"
       },
-      "sources": ["local-review-20261127-add-specle-changes-index-1"]
+      "sources": [
+        "local-review-20261127-add-specle-changes-index-1"
+      ]
     },
     {
       "id": "antigravity-add-specle-changes-index-1",
@@ -119,7 +528,9 @@
       "decision": "decline",
       "rationale": "`changes` is an observational schema-valid listing, not a lifecycle-validation command. Invalid lifecycle state should remain inspectable in the listing rather than being rejected.",
       "route": null,
-      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+      "sources": [
+        "antigravity-review-20261127-add-specle-changes-index-2"
+      ]
     },
     {
       "id": "antigravity-add-specle-changes-index-2",
@@ -141,7 +552,9 @@
         "execution": "in-place",
         "resulting_change": "add-specle-changes-index"
       },
-      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+      "sources": [
+        "antigravity-review-20261127-add-specle-changes-index-2"
+      ]
     },
     {
       "id": "antigravity-add-specle-changes-index-3",
@@ -163,7 +576,9 @@
         "execution": "in-place",
         "resulting_change": "add-specle-changes-index"
       },
-      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+      "sources": [
+        "antigravity-review-20261127-add-specle-changes-index-2"
+      ]
     },
     {
       "id": "antigravity-add-specle-changes-index-4",
@@ -185,7 +600,9 @@
         "execution": "in-place",
         "resulting_change": "add-specle-changes-index"
       },
-      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+      "sources": [
+        "antigravity-review-20261127-add-specle-changes-index-2"
+      ]
     },
     {
       "id": "antigravity-add-specle-changes-index-5",
@@ -207,7 +624,9 @@
         "execution": "in-place",
         "resulting_change": "add-specle-changes-index"
       },
-      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+      "sources": [
+        "antigravity-review-20261127-add-specle-changes-index-2"
+      ]
     },
     {
       "id": "antigravity-add-specle-changes-index-6",
@@ -229,7 +648,9 @@
         "execution": "in-place",
         "resulting_change": "add-specle-changes-index"
       },
-      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+      "sources": [
+        "antigravity-review-20261127-add-specle-changes-index-2"
+      ]
     },
     {
       "id": "antigravity-add-specle-changes-index-7",
@@ -251,7 +672,9 @@
         "execution": "in-place",
         "resulting_change": "add-specle-changes-index"
       },
-      "sources": ["antigravity-review-20261127-add-specle-changes-index-2"]
+      "sources": [
+        "antigravity-review-20261127-add-specle-changes-index-2"
+      ]
     },
     {
       "id": "local-review-add-specle-changes-index-4",
@@ -273,7 +696,9 @@
         "execution": "in-place",
         "resulting_change": "add-specle-changes-index"
       },
-      "sources": ["local-review-20261127-add-specle-changes-index-3"]
+      "sources": [
+        "local-review-20261127-add-specle-changes-index-3"
+      ]
     },
     {
       "id": "local-review-add-specle-changes-index-5",
@@ -295,7 +720,9 @@
         "execution": "in-place",
         "resulting_change": "add-specle-changes-index"
       },
-      "sources": ["local-review-20261127-add-specle-changes-index-3"]
+      "sources": [
+        "local-review-20261127-add-specle-changes-index-3"
+      ]
     }
   ]
 }

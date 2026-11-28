@@ -37,9 +37,9 @@ async def test_next_lifecycle_action_uses_kind_and_selection_context() -> None:
         False,
     )
 
-    assert next_lifecycle_action(planned_change, None) == "activate"
-    assert next_lifecycle_action(planned_change, "normal") == "build"
-    assert next_lifecycle_action(planned_bugfix, None) == "bugfix"
+    assert await next_lifecycle_action(planned_change, None) == "activate"
+    assert await next_lifecycle_action(planned_change, "normal") == "estimate"
+    assert await next_lifecycle_action(planned_bugfix, None) == "bugfix"
 
 
 @pytest.mark.anyio
