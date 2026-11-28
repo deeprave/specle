@@ -19,7 +19,13 @@
     "commit": "b79dcd88e3eba831438057c0fabec6cc3dd09f1c",
     "event": "pull-request-open"
   },
-  "relationships": [],
+  "relationships": [
+    {
+      "change": "correct-to-thread-abuse",
+      "type": "bugfix",
+      "delivery": "with-related-change"
+    }
+  ],
   "dependencies": [],
   "created_at": 1795326755,
   "activated_at": 1795778458,

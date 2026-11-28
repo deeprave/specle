@@ -465,6 +465,27 @@ def test_index_preserves_existing_index_without_a_managed_specle_skill(
     assert index.read_text() == '{"previous": true}\n'
 
 
+def test_index_preserves_a_colliding_temporary_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    target = tmp_path / "target"
+    target.mkdir()
+    anyio.run(main, ["init", str(target)])
+    directory = target / ".agents" / "skills" / "specle"
+    collision = directory / ".index.json.existing.tmp"
+    collision.write_text("preserve this\n")
+    identifiers = iter(("existing", "fresh"))
+
+    class Identifier:
+        def __init__(self, value: str) -> None:
+            self.hex = value
+
+    monkeypatch.setattr("specle.main.uuid4", lambda: Identifier(next(identifiers)))
+    anyio.run(main, ["index", str(target)])
+
+    assert collision.read_text() == "preserve this\n"
+
+
 def test_index_preserves_existing_index_with_an_invalid_managed_specle_skill(
     tmp_path: Path, capsys
 ) -> None:
@@ -554,7 +575,7 @@ def test_validate_blueprint_mode_requires_no_installed_target(capsys) -> None:
 def test_validate_reports_blueprint_inspection_errors_without_a_traceback(
     monkeypatch: pytest.MonkeyPatch, capsys
 ) -> None:
-    def fail_scan(*_args: object) -> None:
+    async def fail_scan(*_args: object) -> None:
         raise SkillMetadataError("invalid packaged blueprint")
 
     monkeypatch.setattr("specle.main.scan_managed_inventory", fail_scan)

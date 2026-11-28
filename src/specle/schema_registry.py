@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import json
-import os
-import shutil
 import uuid
 from collections.abc import Mapping
 from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Any
 
+import anyio
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 from referencing import Registry, Resource
@@ -40,7 +39,7 @@ def schema_identifiers() -> tuple[str, ...]:
     return tuple(SCHEMA_IDENTIFIERS.values())
 
 
-def load_schema(identifier: str) -> dict[str, Any]:
+async def load_schema(identifier: str) -> dict[str, Any]:
     """Load one packaged schema by its stable identifier."""
     resource_path = _RESOURCE_PATHS.get(identifier)
     if resource_path is None:
@@ -50,7 +49,8 @@ def load_schema(identifier: str) -> dict[str, Any]:
         )
     resource = files("specle").joinpath("schemas", *resource_path.split("/"))
     try:
-        value = json.loads(resource.read_text())
+        with as_file(resource) as resource_path:
+            value = json.loads(await anyio.Path(resource_path).read_text())
     except (
         FileNotFoundError,
         OSError,
@@ -71,14 +71,14 @@ def load_schema(identifier: str) -> dict[str, Any]:
     return value
 
 
-def validate_instance(instance: Mapping[str, object]) -> str:
+async def validate_instance(instance: Mapping[str, object]) -> str:
     """Validate a contract instance and return its schema identifier."""
     instance = dict(instance)
     identifier = instance.get("$schema")
     if not isinstance(identifier, str):
         raise SchemaRegistryError("contract instance is missing string '$schema'")
-    schema = load_schema(identifier)
-    validator = Draft202012Validator(schema, registry=_registry())
+    schema = await load_schema(identifier)
+    validator = Draft202012Validator(schema, registry=await _registry())
     try:
         validator.validate(instance)
     except ValidationError as error:
@@ -89,56 +89,75 @@ def validate_instance(instance: Mapping[str, object]) -> str:
     return identifier
 
 
-def export_schemas(destination: Path, *, force: bool = False) -> Path:
-    """Export the complete packaged schema tree using atomic replacement."""
-    destination = destination.expanduser().resolve()
-    if destination.exists() and not force:
-        raise SchemaRegistryError(f"schema destination already exists: {destination}")
-    temporary = destination.with_name(f".{destination.name}.tmp-{uuid.uuid4().hex}")
-    backup = destination.with_name(f".{destination.name}.backup-{uuid.uuid4().hex}")
+async def export_schemas(destination: Path, *, force: bool = False) -> Path:
+    """Asynchronously export the packaged schema tree with atomic replacement."""
+    resolved = await anyio.Path(destination).expanduser()
+    resolved = await resolved.resolve()
+    if await resolved.exists() and not force:
+        raise SchemaRegistryError(f"schema destination already exists: {resolved}")
+    temporary = resolved.with_name(f".{resolved.name}.tmp-{uuid.uuid4().hex}")
+    backup = resolved.with_name(f".{resolved.name}.backup-{uuid.uuid4().hex}")
     try:
         with as_file(files("specle").joinpath("schemas")) as source:
-            shutil.copytree(source, temporary)
-        (temporary / "registry.json").write_text(
-            json.dumps(_RESOURCE_PATHS, indent=2, sort_keys=True) + "\n"
+            await _copy_tree(anyio.Path(source), temporary)
+        await (temporary / "registry.json").write_text(
+            json.dumps(_RESOURCE_PATHS, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
         )
-        if destination.exists():
-            os.replace(destination, backup)
-        os.replace(temporary, destination)
+        with anyio.CancelScope(shield=True):
+            if await resolved.exists():
+                await resolved.replace(backup)
+            await temporary.replace(resolved)
+            if await backup.exists():
+                try:
+                    await _remove_path(backup)
+                except OSError as error:
+                    raise SchemaRegistryError(
+                        f"unable to clean up schema export backup at {backup}"
+                    ) from error
     except OSError as error:
-        if backup.exists() and not destination.exists():
-            os.replace(backup, destination)
-        raise SchemaRegistryError(
-            f"unable to export schemas to {destination}"
-        ) from error
+        if await backup.exists() and not await resolved.exists():
+            await backup.replace(resolved)
+        raise SchemaRegistryError(f"unable to export schemas to {resolved}") from error
     finally:
-        try:
-            _remove_path(temporary)
-        except OSError as error:
-            raise SchemaRegistryError(
-                f"unable to clean up schema export staging at {temporary}"
-            ) from error
-    if backup.exists():
-        try:
-            _remove_path(backup)
-        except OSError as error:
-            raise SchemaRegistryError(
-                f"unable to clean up schema export backup at {backup}"
-            ) from error
-    return destination
+        with anyio.CancelScope(shield=True):
+            try:
+                await _remove_path(temporary)
+            except OSError as error:
+                raise SchemaRegistryError(
+                    f"unable to clean up schema export staging at {temporary}"
+                ) from error
+    return Path(resolved)
 
 
-def _registry() -> Registry:
-    return Registry().with_resources(
-        (identifier, Resource.from_contents(load_schema(identifier)))
-        for identifier in _RESOURCE_PATHS
-    )
+async def _registry() -> Registry:
+    resources = []
+    for identifier in _RESOURCE_PATHS:
+        resources.append(
+            (identifier, Resource.from_contents(await load_schema(identifier)))
+        )
+    return Registry().with_resources(resources)
 
 
-def _remove_path(path: Path) -> None:
-    if not path.exists():
+async def _copy_tree(source: anyio.Path, destination: anyio.Path) -> None:
+    await destination.mkdir(parents=True)
+    async for child in source.iterdir():
+        target = destination / child.name
+        if await child.is_dir():
+            await _copy_tree(child, target)
+        else:
+            await target.write_bytes(await child.read_bytes())
+
+
+async def _remove_path(path: anyio.Path) -> None:
+    if await path.is_symlink():
+        await path.unlink()
         return
-    if path.is_dir():
-        shutil.rmtree(path)
+    if not await path.exists():
+        return
+    if await path.is_dir():
+        async for child in path.iterdir():
+            await _remove_path(child)
+        await path.rmdir()
     else:
-        path.unlink()
+        await path.unlink()

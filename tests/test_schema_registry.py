@@ -14,12 +14,13 @@ from specle.schema_registry import (
 )
 
 
-def test_loads_packaged_change_status_schema() -> None:
-    schema = load_schema(SCHEMA_IDENTIFIERS["change-status"])
+@pytest.mark.anyio
+async def test_loads_packaged_change_status_schema() -> None:
+    schema = await load_schema(SCHEMA_IDENTIFIERS["change-status"])
 
     assert schema["$id"] == SCHEMA_IDENTIFIERS["change-status"]
     assert (
-        validate_instance(
+        await validate_instance(
             {
                 "$schema": SCHEMA_IDENTIFIERS["change-status"],
                 "kind": "change",
@@ -38,7 +39,8 @@ def test_loads_packaged_change_status_schema() -> None:
     )
 
 
-def test_context_contract_accepts_handoff_collections_and_extensions() -> None:
+@pytest.mark.anyio
+async def test_context_contract_accepts_handoff_collections_and_extensions() -> None:
     instance = {
         "$schema": SCHEMA_IDENTIFIERS["context"],
         "milestones": [
@@ -63,7 +65,7 @@ def test_context_contract_accepts_handoff_collections_and_extensions() -> None:
         "project_handoff": {"owner": "developer"},
     }
 
-    assert validate_instance(instance) == SCHEMA_IDENTIFIERS["context"]
+    assert await validate_instance(instance) == SCHEMA_IDENTIFIERS["context"]
 
 
 @pytest.mark.parametrize(
@@ -80,27 +82,30 @@ def test_context_contract_accepts_handoff_collections_and_extensions() -> None:
         },
     ],
 )
-def test_context_contract_rejects_invalid_recognised_items(
+@pytest.mark.anyio
+async def test_context_contract_rejects_invalid_recognised_items(
     instance: dict[str, object],
 ) -> None:
     with pytest.raises(SchemaRegistryError):
-        validate_instance(instance)
+        await validate_instance(instance)
 
 
-def test_context_contract_accepts_a_minimal_document_and_exports_its_schema(
+@pytest.mark.anyio
+async def test_context_contract_accepts_a_minimal_document_and_exports_its_schema(
     tmp_path: Path,
 ) -> None:
     instance = {"$schema": SCHEMA_IDENTIFIERS["context"]}
 
-    assert validate_instance(instance) == SCHEMA_IDENTIFIERS["context"]
+    assert await validate_instance(instance) == SCHEMA_IDENTIFIERS["context"]
     destination = tmp_path / "schemas"
-    export_schemas(destination)
+    await export_schemas(destination)
     assert (destination / "context" / "1.0.json").is_file()
 
 
 @pytest.mark.parametrize("collection", ["milestones", "todos"])
 @pytest.mark.parametrize("value", ["", 1_795_252_440, True])
-def test_context_contract_rejects_empty_or_non_string_date_added(
+@pytest.mark.anyio
+async def test_context_contract_rejects_empty_or_non_string_date_added(
     collection: str, value: object
 ) -> None:
     instance = {
@@ -109,7 +114,7 @@ def test_context_contract_rejects_empty_or_non_string_date_added(
     }
 
     with pytest.raises(SchemaRegistryError):
-        validate_instance(instance)
+        await validate_instance(instance)
 
 
 @pytest.mark.parametrize("collection", ["milestones", "todos"])
@@ -122,7 +127,8 @@ def test_context_contract_rejects_empty_or_non_string_date_added(
         "2026-11-21T20:14:00",
     ],
 )
-def test_context_contract_accepts_human_readable_local_date_added(
+@pytest.mark.anyio
+async def test_context_contract_accepts_human_readable_local_date_added(
     collection: str, value: str
 ) -> None:
     instance = {
@@ -130,7 +136,7 @@ def test_context_contract_accepts_human_readable_local_date_added(
         collection: [{"date_added": value, "subject": "Recorded"}],
     }
 
-    assert validate_instance(instance) == SCHEMA_IDENTIFIERS["context"]
+    assert await validate_instance(instance) == SCHEMA_IDENTIFIERS["context"]
 
 
 @pytest.mark.parametrize(
@@ -149,33 +155,36 @@ def test_context_contract_accepts_human_readable_local_date_added(
         },
     ],
 )
-def test_context_contract_rejects_invalid_collection_shapes(
+@pytest.mark.anyio
+async def test_context_contract_rejects_invalid_collection_shapes(
     instance: dict[str, object],
 ) -> None:
     with pytest.raises(SchemaRegistryError):
-        validate_instance(instance)
+        await validate_instance(instance)
 
 
-def test_uses_package_owned_schema_identifiers(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_uses_package_owned_schema_identifiers(tmp_path: Path) -> None:
     assert all(
         identifier.startswith("specle://schemas/")
         for identifier in SCHEMA_IDENTIFIERS.values()
     )
 
     destination = tmp_path / "schemas"
-    export_schemas(destination)
+    await export_schemas(destination)
     registry = json.loads((destination / "registry.json").read_text())
 
     assert all(identifier.startswith("specle://schemas/") for identifier in registry)
 
 
-def test_rejects_unknown_and_invalid_contract_instances() -> None:
+@pytest.mark.anyio
+async def test_rejects_unknown_and_invalid_contract_instances() -> None:
     with pytest.raises(SchemaRegistryError, match="missing string"):
-        validate_instance({})
+        await validate_instance({})
     with pytest.raises(SchemaRegistryError, match="unknown schema"):
-        validate_instance({"$schema": "https://example.invalid/schema"})
+        await validate_instance({"$schema": "https://example.invalid/schema"})
     with pytest.raises(SchemaRegistryError, match="failed required"):
-        validate_instance(
+        await validate_instance(
             {
                 "$schema": SCHEMA_IDENTIFIERS["change-status"],
                 "kind": "change",
@@ -184,34 +193,39 @@ def test_rejects_unknown_and_invalid_contract_instances() -> None:
         )
 
 
-def test_change_status_validation_rejects_noncanonical_durable_timestamp() -> None:
+@pytest.mark.anyio
+async def test_change_status_validation_rejects_noncanonical_durable_timestamp() -> (
+    None
+):
     instance = _change_status(created_at="not-a-timestamp")
 
     with pytest.raises(SchemaRegistryError, match="failed type"):
-        validate_instance(instance)
+        await validate_instance(instance)
 
 
-def test_change_status_validates_optional_lifecycle_timestamps() -> None:
+@pytest.mark.anyio
+async def test_change_status_validates_optional_lifecycle_timestamps() -> None:
     instance = _change_status(created_at=1_795_252_440)
     instance["updated_at"] = 1_795_252_441
     instance["archived_at"] = 1_795_252_442.5
     instance["cancelled_at"] = 1_795_252_443
 
-    assert validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
+    assert await validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
 
     instance["updated_at"] = "tomorrow"
 
     with pytest.raises(SchemaRegistryError, match="failed type"):
-        validate_instance(instance)
+        await validate_instance(instance)
 
     instance["updated_at"] = 1_795_252_441
     instance["cancelled_at"] = "tomorrow"
 
     with pytest.raises(SchemaRegistryError, match="failed type"):
-        validate_instance(instance)
+        await validate_instance(instance)
 
 
-def test_change_status_validates_completion_delivery_evidence() -> None:
+@pytest.mark.anyio
+async def test_change_status_validates_completion_delivery_evidence() -> None:
     instance = _change_status(created_at=1_795_252_440)
     instance["delivery"] = {
         "reference": "https://github.com/deeprave/specle/pull/36",
@@ -224,27 +238,30 @@ def test_change_status_validates_completion_delivery_evidence() -> None:
         },
     }
 
-    assert validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
+    assert await validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
 
     instance["delivery"]["completion"]["commit"] = "abcdef0"
 
     with pytest.raises(SchemaRegistryError, match="failed additionalProperties"):
-        validate_instance(instance)
+        await validate_instance(instance)
 
     del instance["delivery"]["completion"]["commit"]
     instance["delivery"]["completion"]["event"] = "pull-request-open"
 
     with pytest.raises(SchemaRegistryError, match="failed additionalProperties"):
-        validate_instance(instance)
+        await validate_instance(instance)
 
     del instance["delivery"]["completion"]["event"]
     del instance["delivery"]["completion"]["reference"]
 
     with pytest.raises(SchemaRegistryError, match="failed required"):
-        validate_instance(instance)
+        await validate_instance(instance)
 
 
-def test_change_status_accepts_direct_delivery_without_completion_evidence() -> None:
+@pytest.mark.anyio
+async def test_change_status_accepts_direct_delivery_without_completion_evidence() -> (
+    None
+):
     instance = _change_status(created_at=1_795_252_440)
     instance["delivery"] = {
         "branch": "main",
@@ -252,10 +269,11 @@ def test_change_status_accepts_direct_delivery_without_completion_evidence() -> 
         "event": "direct-push",
     }
 
-    assert validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
+    assert await validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
 
 
-def test_change_status_accepts_a_concurrent_delivery_relationship() -> None:
+@pytest.mark.anyio
+async def test_change_status_accepts_a_concurrent_delivery_relationship() -> None:
     instance = _change_status(created_at=1_795_252_440)
     instance["relationships"] = [
         {
@@ -265,12 +283,12 @@ def test_change_status_accepts_a_concurrent_delivery_relationship() -> None:
         }
     ]
 
-    assert validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
+    assert await validate_instance(instance) == SCHEMA_IDENTIFIERS["change-status"]
 
     instance["relationships"][0]["delivery"] = ""
 
     with pytest.raises(SchemaRegistryError, match="minLength"):
-        validate_instance(instance)
+        await validate_instance(instance)
 
 
 def _change_status(*, created_at: str | float) -> dict[str, object]:
@@ -289,23 +307,25 @@ def _change_status(*, created_at: str | float) -> dict[str, object]:
     }
 
 
-def test_exports_complete_schema_tree_safely(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_exports_complete_schema_tree_safely(tmp_path: Path) -> None:
     destination = tmp_path / "schemas"
 
-    assert export_schemas(destination) == destination
+    assert await export_schemas(destination) == destination
     assert (destination / "change-status" / "1.0.json").is_file()
     with pytest.raises(SchemaRegistryError, match="already exists"):
-        export_schemas(destination)
+        await export_schemas(destination)
 
     (destination / "obsolete.json").write_text("obsolete")
-    export_schemas(destination, force=True)
+    await export_schemas(destination, force=True)
 
     assert not (destination / "obsolete.json").exists()
 
 
-def test_accepts_agent_meaningful_tracker_locators(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_accepts_agent_meaningful_tracker_locators(tmp_path: Path) -> None:
     assert (
-        validate_instance(
+        await validate_instance(
             {
                 "$schema": SCHEMA_IDENTIFIERS["tracker-links"],
                 "sources": [
@@ -328,7 +348,7 @@ def test_accepts_agent_meaningful_tracker_locators(tmp_path: Path) -> None:
     )
 
     with pytest.raises(SchemaRegistryError, match="failed enum"):
-        validate_instance(
+        await validate_instance(
             {
                 "$schema": SCHEMA_IDENTIFIERS["findings"],
                 "question": "q",
@@ -343,7 +363,7 @@ def test_accepts_agent_meaningful_tracker_locators(tmp_path: Path) -> None:
             }
         )
     destination = tmp_path / "schemas"
-    export_schemas(destination)
+    await export_schemas(destination)
     assert (
         json.loads((destination / "registry.json").read_text())[
             SCHEMA_IDENTIFIERS["change-status"]
@@ -352,5 +372,5 @@ def test_accepts_agent_meaningful_tracker_locators(tmp_path: Path) -> None:
     )
     file_destination = tmp_path / "file"
     file_destination.write_text("old")
-    export_schemas(file_destination, force=True)
+    await export_schemas(file_destination, force=True)
     assert (file_destination / "registry.json").is_file()

@@ -8,6 +8,8 @@ import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
+import anyio
+
 from specle.file_reading import read_regular_text
 from specle.schema_registry import (
     SCHEMA_IDENTIFIERS,
@@ -61,18 +63,19 @@ class ChangeStateSnapshot:
     diagnostics: tuple[str, ...]
 
 
-def read_change_state(target_directory: Path) -> ChangeStateSnapshot:
-    """Read all discoverable state once without changing the target."""
-    target = target_directory.expanduser().resolve()
+async def read_change_state(target_directory: Path) -> ChangeStateSnapshot:
+    """Asynchronously read all discoverable state without changing the target."""
+    target = await anyio.Path(target_directory).expanduser()
+    target = await target.resolve()
     diagnostics: list[str] = []
-    active, active_issues = _read_change_collection(
+    active, active_issues = await _read_change_collection(
         target / ".specle" / "changes", False, diagnostics
     )
-    archived, archived_issues = _read_change_collection(
+    archived, archived_issues = await _read_change_collection(
         target / ".specle" / "archive", True, diagnostics
     )
     _report_duplicate_names(active, archived, diagnostics)
-    selected_name = _read_current_change(
+    selected_name = await _read_current_change(
         target / ".specle" / "current-change", diagnostics
     )
     if selected_name is not None and selected_name not in {
@@ -111,36 +114,40 @@ def resolve_change(
     return matches[0]
 
 
-def _read_change_collection(
-    root: Path, archived: bool, diagnostics: list[str]
+async def _read_change_collection(
+    root: anyio.Path, archived: bool, diagnostics: list[str]
 ) -> tuple[list[ChangeRecord], list[ChangeIssue]]:
-    if not root.exists():
+    if not await root.exists():
         return [], []
-    if not root.is_dir():
+    if not await root.is_dir():
         diagnostics.append(f"{root}: expected a directory")
         return [], []
     records: list[ChangeRecord] = []
     issues: list[ChangeIssue] = []
-    for directory in sorted(path for path in root.iterdir() if path.is_dir()):
+    directories = [path async for path in root.iterdir() if await path.is_dir()]
+    for directory in sorted(directories, key=lambda path: path.name):
+        path = Path(directory)
         if not _is_change_name(directory.name):
             diagnostic = f"{directory}: invalid change directory name"
             diagnostics.append(diagnostic)
-            issues.append(ChangeIssue(directory.name, directory, archived, diagnostic))
+            issues.append(ChangeIssue(directory.name, path, archived, diagnostic))
             continue
         status_path = directory / "status.json"
-        status, diagnostic = _read_status(status_path)
+        status, diagnostic = await _read_status(status_path)
         if status is not None:
-            records.append(ChangeRecord(directory.name, directory, status, archived))
+            records.append(ChangeRecord(directory.name, path, status, archived))
         else:
             assert diagnostic is not None
             diagnostics.append(diagnostic)
-            issues.append(ChangeIssue(directory.name, directory, archived, diagnostic))
+            issues.append(ChangeIssue(directory.name, path, archived, diagnostic))
     return records, issues
 
 
-def _read_status(path: Path) -> tuple[dict[str, object] | None, str | None]:
+async def _read_status(
+    path: anyio.Path,
+) -> tuple[dict[str, object] | None, str | None]:
     try:
-        value = json.loads(read_regular_text(path))
+        value = json.loads(await read_regular_text(path))
     except FileNotFoundError:
         return None, f"missing {path}"
     except json.JSONDecodeError as error:
@@ -154,15 +161,15 @@ def _read_status(path: Path) -> tuple[dict[str, object] | None, str | None]:
             raise SchemaRegistryError(
                 f"expected schema {SCHEMA_IDENTIFIERS['change-status']!r}"
             )
-        validate_instance(value)
+        await validate_instance(value)
     except SchemaRegistryError as error:
         return None, f"{path}: invalid contract: {error}"
     return value, None
 
 
-def _read_current_change(path: Path, diagnostics: list[str]) -> str | None:
+async def _read_current_change(path: anyio.Path, diagnostics: list[str]) -> str | None:
     try:
-        contents = read_regular_text(path)
+        contents = await read_regular_text(path)
     except FileNotFoundError:
         return None
     except (OSError, UnicodeDecodeError) as error:

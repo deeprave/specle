@@ -6,14 +6,12 @@ import argparse
 import csv
 import json
 import math
-import os
 import sys
-import tempfile
 from datetime import UTC, datetime
-from functools import partial
 from importlib.resources import as_file
 from pathlib import Path
 from typing import cast
+from uuid import uuid4
 
 import anyio
 
@@ -157,7 +155,7 @@ async def main(args: list[str] | None = None) -> None:
     if parsed.command == "changes":
         if parsed.pretty and not parsed.json:
             parser.error("changes --pretty requires --json")
-        _report_changes(
+        await _report_changes(
             Path.cwd(),
             archived=parsed.archive,
             as_json=parsed.json,
@@ -167,9 +165,11 @@ async def main(args: list[str] | None = None) -> None:
         return
 
     if parsed.command == "index":
-        target = Path(parsed.target_directory).expanduser().resolve()
+        target = Path(
+            await (await anyio.Path(parsed.target_directory).expanduser()).resolve()
+        )
         try:
-            _regenerate_index(target)
+            await _regenerate_index(target)
         except (OSError, SkillMetadataError) as error:
             raise SystemExit(str(error)) from error
         print(target / ".agents" / "skills" / "specle" / "index.json")
@@ -178,10 +178,10 @@ async def main(args: list[str] | None = None) -> None:
     if parsed.command == "manifest":
         try:
             version = __version__
-            with as_file(packaged_distribution_root()) as source_root:
-                inventory = scan_managed_inventory(source_root)
-                appended = await anyio.to_thread.run_sync(
-                    partial(append_manifest, Path(parsed.output), inventory, version)
+            with as_file(await packaged_distribution_root()) as source_root:
+                inventory = await scan_managed_inventory(source_root)
+                appended = await append_manifest(
+                    Path(parsed.output), inventory, version
                 )
         except (ManifestError, SkillMetadataError) as error:
             raise SystemExit(str(error)) from error
@@ -195,8 +195,8 @@ async def main(args: list[str] | None = None) -> None:
             )
         if parsed.blueprint:
             try:
-                with as_file(packaged_distribution_root()) as source_root:
-                    inventory = scan_managed_inventory(source_root)
+                with as_file(await packaged_distribution_root()) as source_root:
+                    inventory = await scan_managed_inventory(source_root)
                     skills = tuple(record.metadata for record in inventory.skills)
                     diagnostics = list(inventory.lifecycle.diagnostics)
                     diagnostics.extend(
@@ -212,7 +212,7 @@ async def main(args: list[str] | None = None) -> None:
                 print(_diagnostic(str(error)).message)
                 raise SystemExit(1) from error
             try:
-                validate_instance(index)
+                await validate_instance(index)
             except SchemaRegistryError as error:
                 diagnostics.append(
                     _diagnostic(f"invalid generated skill index: {error}")
@@ -232,62 +232,48 @@ async def main(args: list[str] | None = None) -> None:
         return
 
     if parsed.command == "update":
-        target = Path(parsed.target_directory).expanduser().resolve()
+        target = Path(
+            await (await anyio.Path(parsed.target_directory).expanduser()).resolve()
+        )
         try:
-            with as_file(packaged_distribution_root()) as source_root:
-                blueprint = await anyio.to_thread.run_sync(
-                    partial(scan_managed_inventory, source_root)
-                )
+            with as_file(await packaged_distribution_root()) as source_root:
+                blueprint = await scan_managed_inventory(source_root)
                 if blueprint.package_diagnostics:
                     raise SkillMetadataError(blueprint.package_diagnostics[0])
                 if blueprint.lifecycle.diagnostics:
                     raise SkillMetadataError(blueprint.lifecycle.diagnostics[0].message)
-                installed = await anyio.to_thread.run_sync(
-                    partial(scan_managed_inventory, target / ".agents")
-                )
+                installed = await scan_managed_inventory(target / ".agents")
                 if installed.lifecycle.diagnostics:
                     raise SkillInstallationError(
                         installed.lifecycle.diagnostics[0].message
                     )
-                generations = await anyio.to_thread.run_sync(
-                    partial(read_manifest_generations, source_root / "manifest")
+                generations = await read_manifest_generations(source_root / "manifest")
+                detection = detect_installed_version(
+                    managed_resource_checksums(installed), generations
                 )
-                detection = await anyio.to_thread.run_sync(
-                    partial(
-                        detect_installed_version,
-                        managed_resource_checksums(installed),
-                        generations,
-                    )
-                )
-                plan = await anyio.to_thread.run_sync(
-                    partial(
-                        update_distribution,
-                        source_root,
-                        target,
-                        blueprint,
-                        installed,
-                        generations,
-                        detection,
-                        dry_run=True,
-                    )
+                plan = await update_distribution(
+                    source_root,
+                    target,
+                    blueprint,
+                    installed,
+                    generations,
+                    detection,
+                    dry_run=True,
                 )
                 _report_update_plan(plan, force=parsed.force, dry_run=parsed.dry_run)
                 if parsed.dry_run:
                     print("dry run: no changes made")
                     return
-                result = await anyio.to_thread.run_sync(
-                    partial(
-                        update_distribution,
-                        source_root,
-                        target,
-                        blueprint,
-                        installed,
-                        generations,
-                        detection,
-                        plan=plan,
-                        force=parsed.force,
-                        approve_conflicts=parsed.yes,
-                    )
+                result = await update_distribution(
+                    source_root,
+                    target,
+                    blueprint,
+                    installed,
+                    generations,
+                    detection,
+                    plan=plan,
+                    force=parsed.force,
+                    approve_conflicts=parsed.yes,
                 )
         except (ManifestError, SkillInstallationError, SkillMetadataError) as error:
             raise SystemExit(str(error)) from error
@@ -309,8 +295,8 @@ async def main(args: list[str] | None = None) -> None:
 
     if parsed.command == "schemas":
         try:
-            destination = await anyio.to_thread.run_sync(
-                partial(export_schemas, Path(parsed.destination), force=parsed.force)
+            destination = await export_schemas(
+                Path(parsed.destination), force=parsed.force
             )
         except SchemaRegistryError as error:
             raise SystemExit(str(error)) from error
@@ -318,14 +304,11 @@ async def main(args: list[str] | None = None) -> None:
         return
 
     try:
-        with as_file(packaged_distribution_root()) as source_root:
-            installed = await anyio.to_thread.run_sync(
-                partial(
-                    initialise_distribution,
-                    source_root,
-                    Path(parsed.target_directory),
-                    force=parsed.force,
-                )
+        with as_file(await packaged_distribution_root()) as source_root:
+            installed = await initialise_distribution(
+                source_root,
+                Path(parsed.target_directory),
+                force=parsed.force,
             )
     except (SkillInstallationError, SkillMetadataError) as error:
         raise SystemExit(str(error)) from error
@@ -338,7 +321,7 @@ def _diagnostic(message: str) -> LifecycleDiagnostic:
     return LifecycleDiagnostic("invalid-index", message)
 
 
-def _report_changes(
+async def _report_changes(
     target: Path,
     *,
     archived: bool,
@@ -347,7 +330,7 @@ def _report_changes(
     pretty: bool = False,
 ) -> None:
     """Render one read-only deterministic view of durable change records."""
-    snapshot = read_change_state(target)
+    snapshot = await read_change_state(target)
     records = snapshot.archived if archived else snapshot.active
     issues = snapshot.archived_issues if archived else snapshot.active_issues
     rows = []
@@ -496,57 +479,63 @@ def _format_dependencies(value: object, *, empty: str) -> str:
     return ",".join(str(item) for item in value)
 
 
-def _regenerate_index(target: Path) -> None:
+async def _regenerate_index(target: Path) -> None:
     """Atomically replace only an existing deployment's generated skill index."""
-    inventory = scan_managed_inventory(target / ".agents")
+    inventory = await scan_managed_inventory(target / ".agents")
     if inventory.lifecycle.diagnostics:
         raise SkillMetadataError(inventory.lifecycle.diagnostics[0].message)
     if not any(record.metadata.name == "specle" for record in inventory.skills):
         raise SkillMetadataError(
             "the installed managed skill inventory has no valid 'specle' skill"
         )
-    destination = target / ".agents" / "skills" / "specle" / "index.json"
-    if not destination.parent.is_dir():
+    destination = anyio.Path(target / ".agents" / "skills" / "specle" / "index.json")
+    if not await destination.parent.is_dir():
         raise SkillMetadataError(
             f"installed skill index directory is unavailable: {destination.parent}"
         )
-    if destination.is_dir():
+    if await destination.is_dir():
         raise SkillMetadataError(
             f"installed skill index destination is a directory: {destination}"
         )
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{destination.name}.", dir=destination.parent
-    )
+    temporary: anyio.Path | None = None
     try:
-        os.fchmod(descriptor, 0o644)
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            stream.write(
-                json.dumps(
-                    build_skill_index(
-                        tuple(record.metadata for record in inventory.skills)
-                    ),
-                    indent=2,
+        for _ in range(10):
+            candidate = destination.with_name(f".{destination.name}.{uuid4().hex}.tmp")
+            try:
+                handle = await candidate.open("x", encoding="utf-8")
+            except FileExistsError:
+                continue
+            temporary = candidate
+            async with handle:
+                await handle.write(
+                    json.dumps(
+                        build_skill_index(
+                            tuple(record.metadata for record in inventory.skills)
+                        ),
+                        indent=2,
+                    )
+                    + "\n"
                 )
-                + "\n"
-            )
-        os.replace(temporary_name, destination)
+            break
+        else:
+            raise OSError(f"unable to create temporary skill index: {destination}")
+        await temporary.chmod(0o644)
+        await temporary.replace(destination)
     except BaseException:
-        Path(temporary_name).unlink(missing_ok=True)
+        if temporary is not None:
+            with anyio.CancelScope(shield=True):
+                await temporary.unlink(missing_ok=True)
         raise
 
 
 async def _validate_installed_target(target: Path, *, verbose: bool = False) -> None:
     """Validate one installed target without re-entering the CLI dispatcher."""
-    resolved_target = target.expanduser().resolve()
+    resolved_target = Path(await (await anyio.Path(target).expanduser()).resolve())
     diagnostics: list[LifecycleDiagnostic] = []
-    with as_file(packaged_distribution_root()) as source_root:
+    with as_file(await packaged_distribution_root()) as source_root:
         try:
-            blueprint = await anyio.to_thread.run_sync(
-                partial(scan_managed_inventory, source_root)
-            )
-            installed = await anyio.to_thread.run_sync(
-                partial(scan_managed_inventory, resolved_target / ".agents")
-            )
+            blueprint = await scan_managed_inventory(source_root)
+            installed = await scan_managed_inventory(resolved_target / ".agents")
         except SkillMetadataError as error:
             diagnostics.append(_diagnostic(str(error)))
             skills = ()
@@ -557,17 +546,13 @@ async def _validate_installed_target(target: Path, *, verbose: bool = False) -> 
                 _diagnostic(message)
                 for message in compare_managed_inventories(blueprint, installed)
             )
-            runtime = await anyio.to_thread.run_sync(
-                partial(read_runtime_snapshot, resolved_target)
-            )
+            runtime = await read_runtime_snapshot(resolved_target)
             diagnostics.extend(
-                await anyio.to_thread.run_sync(
-                    partial(validate_runtime_records, resolved_target, skills, runtime)
-                )
+                await validate_runtime_records(resolved_target, skills, runtime)
             )
     index_path = resolved_target / ".agents" / "skills" / "specle" / "index.json"
     try:
-        index = await anyio.to_thread.run_sync(partial(_read_index, index_path))
+        index = await _read_index(index_path)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
         diagnostics.append(
             _diagnostic(f"invalid generated skill index: {index_path}: {error}")
@@ -580,7 +565,7 @@ async def _validate_installed_target(target: Path, *, verbose: bool = False) -> 
             )
         else:
             try:
-                validate_instance(index)
+                await validate_instance(index)
             except SchemaRegistryError as error:
                 diagnostics.append(
                     _diagnostic(f"invalid generated skill index: {index_path}: {error}")
@@ -598,9 +583,11 @@ async def _validate_installed_target(target: Path, *, verbose: bool = False) -> 
     print(f"validated {resolved_target}")
 
 
-def _read_index(path: Path) -> dict[str, object]:
-    """Read generated JSON in a worker thread for installed-target validation."""
-    return cast(dict[str, object], json.loads(read_regular_text(path)))
+async def _read_index(path: Path) -> dict[str, object]:
+    """Read generated JSON for installed-target validation."""
+    return cast(
+        dict[str, object], json.loads(await read_regular_text(anyio.Path(path)))
+    )
 
 
 def _report_validation_summary(

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import anyio
+
 from specle.inventory import DistributionInventory, ManagedSkillInventory
 from specle.update_models import (
     ManifestGeneration,
@@ -13,7 +15,7 @@ from specle.update_models import (
 )
 
 
-def build_update_plan(
+async def build_update_plan(
     blueprint: DistributionInventory,
     installed: DistributionInventory,
     generations: tuple[ManifestGeneration, ...],
@@ -96,12 +98,12 @@ def build_update_plan(
                 UpdateAction("upgrade", path, requires_confirmation=old != existing)
             )
 
-    project_root = target_directory / ".agents" / "project"
-    if project_root.exists() and not project_root.is_dir():
+    project_root = anyio.Path(target_directory) / ".agents" / "project"
+    if await project_root.exists() and not await project_root.is_dir():
         guidance = ("project guidance has an unexpected path type; run onboard",)
-    elif not project_root.is_dir():
+    elif not await project_root.is_dir():
         guidance = ("project guidance is missing; run onboard",)
-    elif not (project_root / "README.md").is_file():
+    elif not await (project_root / "README.md").is_file():
         guidance = ("project README is missing; run onboard",)
     else:
         guidance = ()
