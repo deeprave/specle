@@ -40,13 +40,46 @@ async def next_lifecycle_action(
     status = record.status.get("status")
     if not isinstance(kind, str) or not isinstance(status, str):
         return None
+    if kind not in {"change", "spike", "bugfix", "refactor"} and status in {
+        "defined",
+        "estimated",
+        "designed",
+        "planned",
+    }:
+        return None
     if kind == "spike" and status == "defined" and record.name == selected_name:
         return "spike"
     if kind in {"bugfix", "refactor"}:
         if status in {"defined", "planned"}:
-            return kind
+            return "activate"
         if status == "building":
-            return "verify"
+            try:
+                tasks = await read_regular_text(
+                    anyio.Path(record.directory) / "tasks.md"
+                )
+            except (OSError, UnicodeDecodeError):
+                return "build"
+            lines = []
+            fence: str | None = None
+            for line in tasks.splitlines():
+                marker = re.match(r"^\s*(`{3,}|~{3,})", line)
+                if marker:
+                    value = marker.group(1)
+                    if fence is None:
+                        fence = value
+                    elif value[0] == fence[0] and len(value) >= len(fence):
+                        fence = None
+                    continue
+                if fence is None and re.match(r"^\s*[-*+]\s+\[", line):
+                    lines.append(line)
+            if fence is not None:
+                return "build"
+            return (
+                "verify"
+                if lines
+                and all(re.match(r"^\s*[-*+]\s+\[[xX]\]\s+\S", line) for line in lines)
+                else "build"
+            )
     if (
         kind == "change"
         and record.name == selected_name

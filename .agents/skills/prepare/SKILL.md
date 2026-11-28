@@ -25,7 +25,7 @@ Before creating or recording lifecycle state, consult this skill's `lifecycle` f
 2. Determine the work kind. Use `bugfix` for a bounded defect whose intended behaviour is known. Use `refactor` for a behaviour-preserving structural change. Ask the user if that distinction is unclear.
 3. Invoke the selected owning workflow in prepare mode. It must create the uniquely named change directory, write the abbreviated `spec.md` and `tasks.md`, and create the matching status record without executing any task.
 4. Confirm the status record has the selected `kind` and `status: "planned"`. Preserve `.specle/current-change`.
-5. Report the exact generated change name. Later invocation must name that item's owning `bugfix` or `refactor` skill; `verify <change-name>` verifies it after those tasks are complete.
+5. Report the exact generated change name. Later activation must name that item; `verify <change-name>` verifies it after those tasks are complete.
 
 ## Critical
 
@@ -35,4 +35,4 @@ Before creating or recording lifecycle state, consult this skill's `lifecycle` f
 
 ## Next
 
-- `bugfix <change-name>` or `refactor <change-name>` — resume prepared abbreviated work.
+- `activate <change-name>` — commence prepared abbreviated work.

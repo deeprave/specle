@@ -1,0 +1,222 @@
+{
+  "sources": [
+    {
+      "id": "local-review-allow-sidecar-activation-1",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "diff:0c6838352795f0c375aa66c4a142e115161fc8f51a56d34ffd887aecae25b350",
+      "outcome": "approve",
+      "findings": 0
+    },
+    {
+      "id": "claude-sidecar-activation-7694cadc7053",
+      "system": "claude",
+      "kind": "provided-review",
+      "revision": "content:7694cadc705319865c3946e1706ac0c044251a7faa5387dc8dc9853aa86d85a6",
+      "findings": 10
+    },
+    {
+      "id": "local-review-sidecar-registry-1",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "diff:b589cc072d38cedb595aa73441e1e3c916b4c6209950d62ef2eb124ba56ae169",
+      "outcome": "approve",
+      "findings": 0
+    }
+  ],
+  "items": [
+    {
+      "id": "claude-existing-sidecar-link",
+      "severity": "P3",
+      "description": "Existing prepared sidecars have no explicit path to establish a concurrent-delivery relationship.",
+      "evidence": "Existing records skip the creation step containing reciprocal-link instructions; activate and build require the link without creating it.",
+      "analysis": "Review claims are evidence to assess; disposition is pending user decision.",
+      "recommendation": "Allow an explicitly requested existing sidecar to be linked to a selected parent through a recoverable reciprocal update, without inferring a relationship.",
+      "state": "decided",
+      "decision": "accept",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "claude-sidecar-activation-7694cadc7053"
+      ],
+      "source_items": [
+        1
+      ],
+      "rationale": "A user must be able to explicitly establish reciprocal delivery links for an existing prepared sidecar; activation must not infer them.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "allow-sidecar-activation"
+      }
+    },
+    {
+      "id": "claude-unsupported-kind-routing",
+      "severity": "P3",
+      "description": "Unsupported kinds still receive generic next actions in later lifecycle states.",
+      "evidence": "The guard excludes only preparation states; later states fall through to the general status map.",
+      "analysis": "Review claims are evidence to assess; disposition is pending user decision.",
+      "recommendation": "Determine whether generic later-stage workflows apply to these kinds and constrain or diagnose unsupported routes consistently.",
+      "state": "decided",
+      "decision": "defer",
+      "route": null,
+      "sources": [
+        "claude-sidecar-activation-7694cadc7053"
+      ],
+      "source_items": [
+        2,
+        7
+      ],
+      "rationale": "The consolidate-state-enums change will enumerate supported kinds and make unsupported kinds invalid.",
+      "follow_up": "consolidate-state-enums"
+    },
+    {
+      "id": "claude-lifecycle-documentation",
+      "severity": "P3",
+      "description": "The public lifecycle reference still describes the previous abbreviated workflow.",
+      "evidence": "docs/LIFECYCLE.md retains direct bugfix/refactor execution and an outdated Mermaid transition.",
+      "analysis": "Review claims are evidence to assess; disposition is pending user decision.",
+      "recommendation": "Align the public reference with the current lifecycle and skill guidance, including the S-sized design path.",
+      "state": "decided",
+      "decision": "accept",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "claude-sidecar-activation-7694cadc7053"
+      ],
+      "source_items": [
+        3
+      ],
+      "rationale": "Public lifecycle documentation must reflect the implemented workflow, including abbreviated activation and the S-sized design skip.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "allow-sidecar-activation"
+      }
+    },
+    {
+      "id": "claude-resolve-handoff",
+      "severity": "P4",
+      "description": "Resolve still describes dispatching abbreviated execution via bugfix or refactor.",
+      "evidence": "The named skill now hands off to build; the report does not establish that resolve fails to reconcile the resulting work.",
+      "analysis": "Review claims are evidence to assess; disposition is pending user decision.",
+      "recommendation": "Check resolve’s dispatch and reconciliation contract against the new handoff and clarify any real mismatch.",
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "sources": [
+        "claude-sidecar-activation-7694cadc7053"
+      ],
+      "source_items": [
+        4
+      ],
+      "rationale": "The authorised abbreviated workflow can delegate execution to build; no reconciliation failure was demonstrated."
+    },
+    {
+      "id": "claude-verify-review-reconciliation",
+      "severity": "P5",
+      "description": "The task claims verify and review guidance was reconciled although those files were not edited.",
+      "evidence": "Neither file changed; lack of edits alone does not show that existing instructions are inconsistent.",
+      "analysis": "Review claims are evidence to assess; disposition is pending user decision.",
+      "recommendation": "Inspect the actual verification and review guidance and correct only demonstrable gaps or the task wording.",
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "sources": [
+        "claude-sidecar-activation-7694cadc7053"
+      ],
+      "source_items": [
+        5
+      ],
+      "rationale": "Existing verify and review support named non-selected abbreviated work; no conflicting instruction was identified."
+    },
+    {
+      "id": "claude-task-parser-duplication",
+      "severity": "P3",
+      "description": "Next-action reporting now interprets task completion in a new sidecar-specific parser.",
+      "evidence": "The code parses Markdown tasks and fences, while normal building records report build without task inspection; progress is not proof of task completion.",
+      "analysis": "Review claims are evidence to assess; disposition is pending user decision.",
+      "recommendation": "Assess the parser against the agreed deterministic build behaviour and avoid competing task interpretations.",
+      "state": "decided",
+      "decision": "defer",
+      "route": null,
+      "sources": [
+        "claude-sidecar-activation-7694cadc7053"
+      ],
+      "source_items": [
+        6
+      ],
+      "rationale": "The reinstated refactor-change-record change owns a shared lazy-loaded record and next-action interpretation using lifecycle and artifact evidence.",
+      "follow_up": "refactor-change-record"
+    },
+    {
+      "id": "claude-sequential-task-reads",
+      "severity": "P4",
+      "description": "Sidecar task plans are read sequentially when listing changes.",
+      "evidence": "Each building abbreviated record is awaited during row construction; practical impact depends on workload.",
+      "analysis": "Review claims are evidence to assess; disposition is pending user decision.",
+      "recommendation": "Consider whether measured listing latency warrants concurrent reads, rather than adding concurrency speculatively.",
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "sources": [
+        "claude-sidecar-activation-7694cadc7053"
+      ],
+      "source_items": [
+        8
+      ],
+      "rationale": "No measured performance problem justifies introducing concurrency for these reads."
+    },
+    {
+      "id": "claude-preparation-mode-handoff",
+      "severity": "P3",
+      "description": "Activation refers to preparation mode without a clear entry point in abbreviated skills.",
+      "evidence": "The owning skills describe a user request to prepare without execution, but activation has no explicit mechanism for passing that intent.",
+      "analysis": "Review claims are evidence to assess; disposition is pending user decision.",
+      "recommendation": "Make the preparation-only handoff explicit and ensure it returns to activation rather than executing or stopping ambiguously.",
+      "state": "decided",
+      "decision": "accept",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "claude-sidecar-activation-7694cadc7053"
+      ],
+      "source_items": [
+        9
+      ],
+      "rationale": "Explicitly define preparation-only invocation and return to activation before named build.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "allow-sidecar-activation"
+      }
+    },
+    {
+      "id": "claude-direct-resume-guidance",
+      "severity": "P5",
+      "description": "Prepare advertises activation while direct named bugfix/refactor invocation remains supported.",
+      "evidence": "Different advertised and available entry points are not necessarily contradictory.",
+      "analysis": "Review claims are evidence to assess; disposition is pending user decision.",
+      "recommendation": "Clarify direct invocation only if the workflow is materially ambiguous; otherwise decline.",
+      "state": "decided",
+      "decision": "defer",
+      "route": null,
+      "sources": [
+        "claude-sidecar-activation-7694cadc7053"
+      ],
+      "source_items": [
+        10
+      ],
+      "rationale": "The remove-prepare-skill change will remove prepare and reconcile its callers and direct-entry guidance.",
+      "follow_up": "remove-prepare-skill"
+    }
+  ]
+}

@@ -78,4 +78,4 @@ Changes are independent by default. A queued or future change must not create a 
 ## Next
 
 - `build` — implement the reconciled active normal plan.
-- `bugfix <change-name>` or `refactor <change-name>` — resume reconciled abbreviated work.
+- `build <change-name>` — resume reconciled abbreviated work.

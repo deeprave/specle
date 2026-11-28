@@ -1,21 +1,23 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "planned",
+  "status": "approved",
   "progress": {
-    "tasks_completed": 0,
-    "tasks_total": 4
+    "tasks_completed": 9,
+    "tasks_total": 9
   },
   "verification": {
-    "status": "not-run"
+    "status": "pass"
   },
   "review": {
-    "status": "not-run"
+    "status": "pass",
+    "findings": 0
   },
   "delivery": null,
   "relationships": [],
   "dependencies": [],
   "created_at": 1795840913,
   "activated_at": 1795843682,
-  "updated_at": 1795843696
+  "updated_at": 1795852551,
+  "revision_note": "Replanned sidecar activation, worktree-local registry, lifecycle, and review corrections as one change."
 }

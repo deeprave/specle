@@ -236,6 +236,22 @@ def test_changes_reports_spiking_next_action(
     assert json.loads(capsys.readouterr().out)["changes"][0]["next_action"] == "spike"
 
 
+def test_changes_reports_activation_for_prepared_sidecar(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    _write_change_status(
+        tmp_path / ".specle/changes/repair/status.json",
+        kind="bugfix",
+        status="planned",
+        created_at=0,
+    )
+    monkeypatch.chdir(tmp_path)
+    anyio.run(main, ["changes", "--json"])
+    assert (
+        json.loads(capsys.readouterr().out)["changes"][0]["next_action"] == "activate"
+    )
+
+
 def test_changes_rejects_archive_records_without_archived_at(
     tmp_path: Path, monkeypatch, capsys
 ) -> None:

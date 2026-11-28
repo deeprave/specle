@@ -4,7 +4,7 @@ specle_group: Implementation
 description: >-
   Implement active Specle tasks with TDD.
 usage: >-
-  Use when the active normal change, or an explicitly named committed normal target, is planned or building with incomplete tasks; execute tasks in order and stop at verify when they are complete.
+  Use for a planned or building normal change or explicitly named bugfix or refactor; execute its tasks and continue to verification.
 lifecycle:
   accepts:
     - planned
@@ -22,18 +22,17 @@ lifecycle:
       next: verify
 ---
 
-# Build the current change (TDD)
+# Build change tasks
 
-Work through the active change's tasks one at a time, test-first, keeping the change's tracking files
-in sync.
+Work through the target change’s tasks one at a time, keeping its tracking files in sync. Apply test-first bugfix work and behaviour-preserving refactor safeguards.
 
 ## Workflow
 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.
 
-1. Read `.specle/current-change` when present, the selected target's `status.json`, `.agents/policies/lifecycle.md`, applicable `.agents/steering/` overrides, and the relevant authoritative `.agents/project/` documents. Default to the selected normal change. A named non-selected committed normal target is permitted only when explicitly requested; update only that target and preserve the local selection. Reject archived targets: archival records are immutable and cannot be built.
+1. Read `.specle/current-change` when present, the selected target's `status.json`, `.agents/policies/lifecycle.md`, applicable `.agents/steering/` overrides, and the relevant authoritative `.agents/project/` documents. Default to the selected normal change. A named non-selected committed normal target, bugfix, or refactor is permitted only when explicitly requested; update only that target and preserve the local selection. For an abbreviated target, require its kind-specific `spec.md` and `tasks.md` and the explicit reciprocal concurrent-delivery relationship if a different parent is selected. Otherwise report missing prerequisites or direct unlinked work to a separate worktree. Reject archived targets: archival records are immutable and cannot be built.
 2. Run a lifecycle preflight before reading or changing `tasks.md`:
-   - `defined` — stop and advise `estimate`, or `design`/`tasks` only for small, understood work.
+   - `defined` — advise `activate <change-name>` for abbreviated work or `estimate` for normal work.
    - `estimated` — stop and advise `design`.
    - `designed` — stop and advise `tasks`.
    - `planned`, `building`, or `review-findings` — continue only when `tasks.md` exists and has an
@@ -44,10 +43,10 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
    If `review-findings` has no uncompleted task, advise `triage` so the reviewed decisions
    can be routed and recorded. If `planned` or `building` has no uncompleted task, advise `verify`.
 3. For a `planned` normal change, read its `spec.md`, `requirements.md`, `estimate.md`, `tasks.md`, and `design.md` when required or present, then present a concise alignment summary: intended outcome, scope and non-goals, acceptance direction, planned tasks, and material assumptions or limits. Require the user's explicit confirmation before changing implementation, task completion, or lifecycle state. This is a mandatory stop in every progression mode, including decision-gated. If the user corrects the summary, stop for revision rather than commencing the build.
-4. Read `tasks.md`; find the first uncompleted task (`- [ ]`).
+4. For an explicitly named bugfix or refactor, register its name idempotently in the worktree-local sidecar registry under lifecycle policy before implementation. Preserve other entries and the normal selection; if registry validation or update fails, report it and stop. Read `tasks.md`; find the first uncompleted task (`- [ ]`).
 5. For each task, in order:
-   a. Write the test(s) first (TDD).
-   b. Implement the minimum code to pass — no speculative code.
+   a. For a bugfix, reproduce the defect and write a failing regression test before the fix. For a refactor, establish its baseline and behaviour-preserving invariants before restructuring; retain equivalent coverage. For normal changes, use test-first development.
+   b. Implement the task without speculative changes or intentional behaviour changes for refactors.
    c. Run the focused test and any project checks needed to keep the change safe.
    d. Mark the task complete: change `- [ ]` to `- [x]` in `tasks.md`.
    e. Update the target `status.json` with the new progress, the `building` transition, and current Unix-second `updated_at`. Invalidate
@@ -65,5 +64,5 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
 
 After all tasks complete, read `.agents/project/automation.md`. In `decision-gated` mode, invoke `verify <change-name>`; otherwise report it and wait.
 
-- When all tasks are complete: use `verify` to confirm the implementation against the change.
+- When all tasks are complete: use `verify <change-name>` to confirm the implementation against the change.
 - Use `review` for a quality pass on the diff.
