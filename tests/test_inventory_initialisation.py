@@ -40,7 +40,7 @@ async def test_initialises_a_fresh_project_target_and_generates_an_index(
     assert (target / ".agents" / "policies" / "testing.md").is_file()
     assert (
         target / ".specle" / ".gitignore"
-    ).read_text() == "/current-change\n/context.json\n"
+    ).read_text() == "/current-change\n/context.json\n/current-sidecars\n"
     index = json.loads((skills_root / "specle" / "index.json").read_text())
     indexed_skills = [skill for group in index["groups"] for skill in group["skills"]]
     assert next(skill for skill in indexed_skills if skill["name"] == "define") == {
@@ -154,7 +154,8 @@ async def test_initialisation_preserves_existing_runtime_ignore_rules(
     await initialise_distribution(source_root, target)
 
     assert (
-        runtime_ignore.read_text() == "/agent-cache\n/current-change\n/context.json\n"
+        runtime_ignore.read_text()
+        == "/agent-cache\n/current-change\n/context.json\n/current-sidecars\n"
     )
 
 

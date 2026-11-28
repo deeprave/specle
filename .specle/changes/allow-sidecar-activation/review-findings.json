@@ -22,6 +22,105 @@
       "revision": "diff:b589cc072d38cedb595aa73441e1e3c916b4c6209950d62ef2eb124ba56ae169",
       "outcome": "approve",
       "findings": 0
+    },
+    {
+      "id": "sourcery-r4726129773",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/57#discussion_r4726129773",
+      "revision": "pr-head:68047951f77f0d2352301cc548e5af4649de6ffa"
+    },
+    {
+      "id": "sourcery-r4726129780",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/57#discussion_r4726129780",
+      "revision": "pr-head:68047951f77f0d2352301cc548e5af4649de6ffa"
+    },
+    {
+      "id": "sourcery-r4726129785",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/57#discussion_r4726129785",
+      "revision": "pr-head:68047951f77f0d2352301cc548e5af4649de6ffa"
+    },
+    {
+      "id": "sourcery-r4726129789",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/57#discussion_r4726129789",
+      "revision": "pr-head:68047951f77f0d2352301cc548e5af4649de6ffa"
+    },
+    {
+      "id": "sourcery-r4726129794",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/57#discussion_r4726129794",
+      "revision": "pr-head:68047951f77f0d2352301cc548e5af4649de6ffa"
+    },
+    {
+      "id": "sourcery-r4726129797",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/57#discussion_r4726129797",
+      "revision": "pr-head:68047951f77f0d2352301cc548e5af4649de6ffa"
+    },
+    {
+      "id": "sourcery-r4726129800",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/57#discussion_r4726129800",
+      "revision": "pr-head:68047951f77f0d2352301cc548e5af4649de6ffa"
+    },
+    {
+      "id": "sourcery-r4726129803",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/57#discussion_r4726129803",
+      "revision": "pr-head:68047951f77f0d2352301cc548e5af4649de6ffa"
+    },
+    {
+      "id": "sourcery-r4726129808",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/57#discussion_r4726129808",
+      "revision": "pr-head:68047951f77f0d2352301cc548e5af4649de6ffa"
+    },
+    {
+      "id": "sourcery-r4726129809",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/57#discussion_r4726129809",
+      "revision": "pr-head:68047951f77f0d2352301cc548e5af4649de6ffa"
+    },
+    {
+      "id": "sourcery-r4726129813",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/57#discussion_r4726129813",
+      "revision": "pr-head:68047951f77f0d2352301cc548e5af4649de6ffa"
+    },
+    {
+      "id": "sourcery-r4726129816",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/57#discussion_r4726129816",
+      "revision": "pr-head:68047951f77f0d2352301cc548e5af4649de6ffa"
+    },
+    {
+      "id": "sourcery-r4726129820",
+      "system": "github",
+      "kind": "review-comment",
+      "url": "https://github.com/deeprave/specle/pull/57#discussion_r4726129820",
+      "revision": "pr-head:68047951f77f0d2352301cc548e5af4649de6ffa"
+    },
+    {
+      "id": "local-review-sidecar-delivery-revision-1",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "diff:0aa7f4aafec61761bb316566faa6ed7351de05321a1df21d9b9bad6fa439e395",
+      "outcome": "approve",
+      "findings": 0
     }
   ],
   "items": [
@@ -33,7 +132,7 @@
       "analysis": "Review claims are evidence to assess; disposition is pending user decision.",
       "recommendation": "Allow an explicitly requested existing sidecar to be linked to a selected parent through a recoverable reciprocal update, without inferring a relationship.",
       "state": "decided",
-      "decision": "accept",
+      "decision": "vary",
       "route": {
         "type": "current-change",
         "action": "revise"
@@ -44,7 +143,7 @@
       "source_items": [
         1
       ],
-      "rationale": "A user must be able to explicitly establish reciprocal delivery links for an existing prepared sidecar; activation must not infer them.",
+      "rationale": "Concurrent activation automatically establishes the reciprocal link in either order; completion resolves links according to which work is delivered.",
       "dispatch": {
         "state": "complete",
         "workflow": "revise",
@@ -63,7 +162,8 @@
       "decision": "defer",
       "route": null,
       "sources": [
-        "claude-sidecar-activation-7694cadc7053"
+        "claude-sidecar-activation-7694cadc7053",
+        "sourcery-r4726129789"
       ],
       "source_items": [
         2,
@@ -217,6 +317,249 @@
       ],
       "rationale": "The remove-prepare-skill change will remove prepare and reconcile its callers and direct-entry guidance.",
       "follow_up": "remove-prepare-skill"
+    },
+    {
+      "id": "sourcery-r4726129773",
+      "severity": "P3",
+      "description": "Unlinked sidecar work may remain in the checkout while normal activation continues.",
+      "evidence": "Activation continues after a declined or unanswered link prompt; mixed work could later be included in a delivery.",
+      "analysis": "Continuing normal work alongside unlinked active sidecar changes risks mixing work in a later delivery.",
+      "recommendation": "Stop before progressing normal work when a concurrently active sidecar is unlinked, and explain independent work options.",
+      "state": "decided",
+      "decision": "vary",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4726129773"
+      ],
+      "rationale": "Concurrent activation links automatically; independent delivery is allowed without auditing or automatically stashing work. Completion unlinks a surviving active sibling when only one is archived.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "allow-sidecar-activation"
+      }
+    },
+    {
+      "id": "sourcery-r4726129780",
+      "severity": "P3",
+      "description": "Concurrent builds of the same target can overwrite task work.",
+      "evidence": "Two agents can read and modify the same files and task plan concurrently.",
+      "analysis": "Assessment and disposition pending.",
+      "recommendation": "Assess whether concurrent builds of one target should be supported; locking adds coordination.",
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "sources": [
+        "sourcery-r4726129780"
+      ],
+      "rationale": "Concurrent builds of the same target in one worktree are outside the intended workflow; separate worktrees provide isolation."
+    },
+    {
+      "id": "sourcery-r4726129785",
+      "severity": "P3",
+      "description": "Concurrent activations can overwrite the normal selector.",
+      "evidence": "Selector check and write are separate operations.",
+      "analysis": "Assessment and disposition pending.",
+      "recommendation": "Assess whether concurrent activation against one worktree is in scope.",
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "sources": [
+        "sourcery-r4726129785"
+      ],
+      "rationale": "Simultaneous independent activations in one worktree are outside the intended workflow; use separate worktrees."
+    },
+    {
+      "id": "sourcery-r4726129794",
+      "severity": "P3",
+      "description": "Concurrent registry updates can lose entries.",
+      "evidence": "Atomic replacement does not serialize concurrent read-modify-write operations.",
+      "analysis": "Assessment and disposition pending.",
+      "recommendation": "Assess whether simultaneous mutations of one worktree registry are in scope.",
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "sources": [
+        "sourcery-r4726129794"
+      ],
+      "rationale": "Concurrent registry mutations by multiple agents in one worktree are outside the intended workflow."
+    },
+    {
+      "id": "sourcery-r4726129797",
+      "severity": "P3",
+      "description": "A stopped sidecar activation can leave a new registry entry.",
+      "evidence": "Activation registers before the prompt and can stop without invoking build, while policy says not to retain a new entry if work does not commence.",
+      "analysis": "Assessment and disposition pending.",
+      "recommendation": "Ensure stopped activation removes only its newly added entry or register only after commencement.",
+      "state": "decided",
+      "decision": "vary",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4726129797"
+      ],
+      "rationale": "Registration represents an activated sidecar; remove the link prompt and its declined/unanswered path. Registry cleanup follows completion or explicit local stop.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "allow-sidecar-activation"
+      }
+    },
+    {
+      "id": "sourcery-r4726129800",
+      "severity": "P3",
+      "description": "The changes CLI does not report the local sidecar registry.",
+      "evidence": "The changes skill reads the registry, but _report_changes reads only durable records.",
+      "analysis": "The CLI omits worktree-local sidecar registration and stale registry diagnostics.",
+      "recommendation": "Decide whether the CLI should expose local activity and stale entries, or defer it to dedicated CLI work.",
+      "state": "decided",
+      "decision": "accept",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4726129800"
+      ],
+      "rationale": "Expose registered local sidecars and stale registry entries through the changes CLI.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "allow-sidecar-activation"
+      }
+    },
+    {
+      "id": "sourcery-r4726129803",
+      "severity": "P3",
+      "description": "Branch completion removes registry entries before archival delivery is pushed.",
+      "evidence": "Complete removes entries after the local archive mutation but before commit and push.",
+      "analysis": "Completion only applies to delivered committed records; a local archive move alone is not the condition for ending local sidecar activity.",
+      "recommendation": "Clarify the lifecycle point at which local sidecar activity ends and preserve retryability.",
+      "state": "decided",
+      "decision": "vary",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4726129803"
+      ],
+      "rationale": "Remove a sidecar from current-sidecars when it is completed, not merely when its directory is archived; uncommitted or approved work cannot be completed. Cleanup must be retryable.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "allow-sidecar-activation"
+      }
+    },
+    {
+      "id": "sourcery-r4726129808",
+      "severity": "P3",
+      "description": "Cleanup retry after cancellation or direct completion is unclear.",
+      "evidence": "The entry can remain after its change is archived, while cancel and direct-delivery complete reject archived targets.",
+      "analysis": "Registry removal is driven by the complete event, independently of the directory being archived; the archive location is not the cleanup condition.",
+      "recommendation": "Provide an explicit idempotent local registry cleanup path for archived records.",
+      "state": "decided",
+      "decision": "vary",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4726129808"
+      ],
+      "rationale": "Make completion-triggered registry removal retryable regardless of archive location, without mutating archived records.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "allow-sidecar-activation"
+      }
+    },
+    {
+      "id": "sourcery-r4726129809",
+      "severity": "P3",
+      "description": "Recovery PR finalisation lacks explicit registry cleanup.",
+      "evidence": "Only direct and original-open PR paths mention registry cleanup.",
+      "analysis": "Completion-triggered cleanup must apply on the recovery path as on every completion path.",
+      "recommendation": "Align recovery and resumption cleanup with the chosen lifecycle policy.",
+      "state": "decided",
+      "decision": "vary",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4726129809"
+      ],
+      "rationale": "The complete event triggers sidecar registry removal irrespective of delivery path or archive location.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "allow-sidecar-activation"
+      }
+    },
+    {
+      "id": "sourcery-r4726129813",
+      "severity": "P3",
+      "description": "Fresh project initialisation does not add the sidecar registry ignore rule.",
+      "evidence": "_local_runtime_ignore_contents currently requires only current-change and context.json; lifecycle guidance separately requires ensuring the new rule.",
+      "analysis": "The repository ignore file already contains the rule, but new project initialisation does not add it.",
+      "recommendation": "Assess whether init/update should install the rule in addition to the existing agent instruction.",
+      "state": "decided",
+      "decision": "accept",
+      "route": {
+        "type": "current-change",
+        "action": "revise"
+      },
+      "sources": [
+        "sourcery-r4726129813"
+      ],
+      "rationale": "Add the current-sidecars ignore rule to project initialisation while preserving existing ignore-file contents.",
+      "dispatch": {
+        "state": "complete",
+        "workflow": "revise",
+        "execution": "in-place",
+        "resulting_change": "allow-sidecar-activation"
+      }
+    },
+    {
+      "id": "sourcery-r4726129816",
+      "severity": "P3",
+      "description": "Concurrent sidecar and normal activation can miss a linking prompt.",
+      "evidence": "Selector and registry reads can interleave across separate simultaneous agents.",
+      "analysis": "Assessment and disposition pending.",
+      "recommendation": "Assess whether same-worktree concurrent activation needs explicit coordination.",
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "sources": [
+        "sourcery-r4726129816"
+      ],
+      "rationale": "Simultaneous independent activations in one worktree are outside the intended workflow."
+    },
+    {
+      "id": "sourcery-r4726129820",
+      "severity": "P3",
+      "description": "The review disputes skipping design for S-sized work.",
+      "evidence": "The current policy and prior explicit user decision intentionally allow S-sized work to proceed to tasks.",
+      "analysis": "Assessment and disposition pending.",
+      "recommendation": "Decline: the S-sized design skip is deliberate.",
+      "state": "decided",
+      "decision": "decline",
+      "route": null,
+      "sources": [
+        "sourcery-r4726129820"
+      ],
+      "rationale": "Skipping design for S-sized normal changes is an explicit prior decision reflected in lifecycle policy."
     }
   ]
 }

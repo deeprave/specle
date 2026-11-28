@@ -1,10 +1,10 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "approved",
   "progress": {
-    "tasks_completed": 9,
-    "tasks_total": 9
+    "tasks_completed": 12,
+    "tasks_total": 12
   },
   "verification": {
     "status": "pass"
@@ -24,6 +24,6 @@
   "dependencies": [],
   "created_at": 1795840913,
   "activated_at": 1795843682,
-  "updated_at": 1795852748,
-  "revision_note": "Replanned sidecar activation, worktree-local registry, lifecycle, and review corrections as one change."
+  "updated_at": 1795856450,
+  "revision_note": "Replanned automatic concurrent links, completion cleanup, CLI sidecar reporting, and initialisation ignore rules."
 }
