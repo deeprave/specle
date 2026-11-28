@@ -1,7 +1,7 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "complete",
   "progress": {
     "tasks_completed": 12,
     "tasks_total": 12
@@ -18,12 +18,18 @@
     "head_branch": "feature/add-specle-status",
     "target_branch": "main",
     "commit": "af7affab73439113fdd353ec7a1d7d05b03b9e18",
-    "event": "pull-request-update"
+    "event": "pull-request-update",
+    "completion": {
+      "reference": "https://github.com/deeprave/specle/pull/58",
+      "head_branch": "feature/add-specle-status",
+      "target_branch": "main"
+    }
   },
   "relationships": [],
   "dependencies": [],
   "created_at": 1795830894,
   "activated_at": 1795861310,
   "updated_at": 1795867763,
-  "revision_note": "Show date-only lifecycle dates for changes and sidecars."
+  "revision_note": "Show date-only lifecycle dates for changes and sidecars.",
+  "archived_at": 1795867932
 }
