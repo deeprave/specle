@@ -1,7 +1,7 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "complete",
   "progress": {
     "tasks_completed": 9,
     "tasks_total": 9
@@ -18,7 +18,12 @@
     "head_branch": "feature/add-specle-changes-index",
     "target_branch": "main",
     "commit": "f7e82122deabbd4636c32464a56497d267fe6bd1",
-    "event": "pull-request-open"
+    "event": "pull-request-open",
+    "completion": {
+      "reference": "https://github.com/deeprave/specle/pull/56",
+      "head_branch": "feature/add-specle-changes-index",
+      "target_branch": "main"
+    }
   },
   "relationships": [
     {
@@ -31,5 +36,6 @@
   "created_at": 1795326755,
   "activated_at": 1795778458,
   "revision_note": "Replanned after external review: listing, preflight, S-sized workflow, index diagnostics and coverage.",
-  "updated_at": 1795841432
+  "updated_at": 1795841432,
+  "archived_at": 1795842261
 }
