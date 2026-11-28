@@ -16,7 +16,7 @@
     "reference": "https://github.com/deeprave/specle/pull/56",
     "head_branch": "feature/add-specle-changes-index",
     "target_branch": "main",
-    "commit": "b79dcd88e3eba831438057c0fabec6cc3dd09f1c",
+    "commit": "c388c7a71058b7e10aeb4ba0458a481b4f57d597",
     "event": "pull-request-open"
   },
   "relationships": [
@@ -30,5 +30,5 @@
   "created_at": 1795326755,
   "activated_at": 1795778458,
   "revision_note": "Replanned after local review: diagnostic rows retain malformed, schema-invalid, and timestamp-invalid records in every report format.",
-  "updated_at": 1795784763
+  "updated_at": 1795834150
 }
