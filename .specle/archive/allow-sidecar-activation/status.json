@@ -1,7 +1,7 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "committed",
+  "status": "complete",
   "progress": {
     "tasks_completed": 12,
     "tasks_total": 12
@@ -18,12 +18,18 @@
     "head_branch": "feature/allow-sidecar-activation",
     "target_branch": "main",
     "commit": "732d161bd567a124b1ae5f38b2b13118b1fdce7d",
-    "event": "pull-request-update"
+    "event": "pull-request-update",
+    "completion": {
+      "reference": "https://github.com/deeprave/specle/pull/57",
+      "head_branch": "feature/allow-sidecar-activation",
+      "target_branch": "main"
+    }
   },
   "relationships": [],
   "dependencies": [],
   "created_at": 1795840913,
   "activated_at": 1795843682,
   "updated_at": 1795856508,
-  "revision_note": "Replanned automatic concurrent links, completion cleanup, CLI sidecar reporting, and initialisation ignore rules."
+  "revision_note": "Replanned automatic concurrent links, completion cleanup, CLI sidecar reporting, and initialisation ignore rules.",
+  "archived_at": 1795858067
 }
