@@ -259,6 +259,7 @@ source = { editable = "." }
 dependencies = [
     { name = "anyio" },
     { name = "jsonschema" },
+    { name = "python-dateutil" },
     { name = "strictyaml" },
 ]
 
@@ -273,6 +274,7 @@ dev = [
 requires-dist = [
     { name = "anyio", specifier = ">=4.0" },
     { name = "jsonschema", specifier = ">=4.23" },
+    { name = "python-dateutil", specifier = ">=2.9" },
     { name = "strictyaml", specifier = ">=1.7.3" },
 ]
 

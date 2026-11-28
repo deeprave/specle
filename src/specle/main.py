@@ -52,6 +52,7 @@ from specle.schema_registry import (
     export_schemas,
     validate_instance,
 )
+from specle.status_report import report_status
 from specle.update_models import UpdatePlan
 
 
@@ -79,6 +80,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     update.add_argument(
         "target_directory", help="Existing directory containing the Specle deployment."
+    )
+    status = commands.add_parser(
+        "status", help="Report current change and worktree status."
+    )
+    status.add_argument(
+        "--markdown", action="store_true", help="Render Markdown source."
     )
     changes = commands.add_parser(
         "changes", help="List active or archived Specle changes."
@@ -159,6 +166,11 @@ async def main(args: list[str] | None = None) -> None:
     """Run the asynchronous Specle command-line application."""
     parser = build_parser()
     parsed = parser.parse_args(args)
+
+    if parsed.command == "status":
+        await _preflight_project(Path.cwd())
+        await report_status(Path.cwd(), markdown=parsed.markdown)
+        return
 
     if parsed.command in {"changes", "init", "update", "index"} or (
         parsed.command == "validate"

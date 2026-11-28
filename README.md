@@ -55,3 +55,7 @@ Use `--force` only when intentionally replacing an existing export. See [the lay
 ## Skill inventory
 
 In this repository, `src/specle/blueprints/` is the canonical source inventory of the portable `AGENTS.md`, reusable skill blueprints, and steering documents. Each skill blueprint declares a human-facing `specle_group`, concise `description`, detailed `usage`, and its direct `requires` dependencies in frontmatter. Any skill with `specle_group` is considered to be part of the Specle skill inventory.
+
+## Status
+
+Run `specle status` to see the selected change, local sidecars, Git worktree summary, and concise optional context. The command is read-only and does not list changed paths. Use `specle status --markdown` to output Markdown source.
