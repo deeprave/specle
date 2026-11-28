@@ -1085,7 +1085,7 @@ async def _apply_staged_changes(
 
 
 async def _local_runtime_ignore_contents(destination: anyio.Path) -> str | None:
-    required = ("/current-change", "/context.json")
+    required = ("/current-change", "/context.json", "/current-sidecars")
     try:
         existing = await destination.read_text()
     except FileNotFoundError:

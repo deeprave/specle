@@ -1,11 +1,8 @@
 {
   "$schema": "specle://schemas/change-status/1.0",
   "kind": "change",
-  "status": "planned",
-  "progress": {
-    "tasks_completed": 0,
-    "tasks_total": 4
-  },
+  "status": "defined",
+  "progress": {},
   "verification": {
     "status": "not-run"
   },
@@ -15,7 +12,7 @@
   "delivery": null,
   "relationships": [],
   "dependencies": [],
-  "created_at": 1795840913,
-  "activated_at": 1795843682,
-  "updated_at": 1795843696
+  "created_at": 1795838646,
+  "activated_at": null,
+  "updated_at": 1795850677
 }

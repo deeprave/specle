@@ -1,9 +1,0 @@
-# Allow sidecar activation
-
-`activate <name>` currently starts normal changes and spikes but rejects bugfixes and refactors, whose prepared work uses separate kind-specific execution commands. Make activation a common, kind-aware entry point: retain normal change and spike selection behaviour, and route named bugfixes and refactors through any missing abbreviated preparation into `build <name>` without changing `.specle/current-change`.
-
-Extend named build execution to abbreviated work while retaining bugfix reproduction and regression expectations, refactor behavioural invariants and baseline, lifecycle progress, verification, and delivery safeguards. Existing explicit reciprocal relationships remain required for concurrent parent/sidecar delivery; activation alone must not infer or create them. Reconcile lifecycle policy, skill instructions and metadata, installed and packaged copies, entrypoint documentation, and next-action reporting. An already selected defined spike may validly report and run `activate`, which invokes its spike workflow.
-
-Specify appropriate behaviour for all supported kinds from existing workflow ownership; unsupported kinds or states must produce a clear diagnostic rather than being treated as normal changes. This definition is independent of `refactor-change-record`, `consolidate-state-enums`, and the current listing change. It does not activate this change or introduce dependencies on future work.
-
-Verify kind- and state-specific dispatch, preparation and named build, preservation of selection, relationship boundaries, selected and unselected spike behaviour, next-action reporting, unsupported cases, and the existing normal workflow, alongside project quality gates.

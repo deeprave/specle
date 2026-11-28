@@ -16,7 +16,12 @@ from uuid import uuid4
 import anyio
 
 from specle import __version__
-from specle.change_state import ChangeIssue, ChangeRecord, read_change_state
+from specle.change_state import (
+    ChangeIssue,
+    ChangeRecord,
+    read_active_sidecars,
+    read_change_state,
+)
 from specle.file_reading import read_regular_text
 from specle.inventory import (
     DistributionInventory,
@@ -344,6 +349,9 @@ async def _report_changes(
 ) -> None:
     """Render one read-only deterministic view of durable change records."""
     snapshot = await read_change_state(target, tolerant_archive_dates=True)
+    has_registry, active_sidecars, sidecar_diagnostics = await read_active_sidecars(
+        target, snapshot
+    )
     for diagnostic in snapshot.diagnostics:
         if "current-change" in diagnostic and (
             "unreadable selector" in diagnostic
@@ -387,20 +395,28 @@ async def _report_changes(
             }
             for row in rows
         ]
+        result: dict[str, object] = {
+            "collection": "archive" if archived else "active",
+            "changes": json_rows,
+        }
+        if has_registry:
+            result["active_sidecars"] = active_sidecars
+            result["sidecar_diagnostics"] = sidecar_diagnostics
         print(
             json.dumps(
-                {
-                    "collection": "archive" if archived else "active",
-                    "changes": json_rows,
-                },
+                result,
                 indent=2 if pretty else None,
                 allow_nan=False,
             )
         )
         return
+    for diagnostic in sidecar_diagnostics:
+        print(diagnostic, file=sys.stderr)
     if as_csv:
         writer = csv.writer(sys.stdout, lineterminator="\r\n")
         headers = ["name", "date", "kind", "status", "dependencies", "next_action"]
+        if has_registry:
+            headers.append("local_active")
         if include_diagnostics:
             headers.append("diagnostic")
         writer.writerow(headers)
@@ -413,6 +429,8 @@ async def _report_changes(
                 _format_dependencies(row["dependencies"], empty=""),
                 row["next_action"] or "",
             ]
+            if has_registry:
+                values.append("yes" if row["name"] in active_sidecars else "")
             if include_diagnostics:
                 values.append(row["diagnostic"] or "")
             writer.writerow(values)
@@ -421,6 +439,8 @@ async def _report_changes(
         print("no archived changes" if archived else "no active changes")
         return
     headers = ["name", "date", "kind", "status", "dependencies", "next_action"]
+    if has_registry:
+        headers.append("local_active")
     if include_diagnostics:
         headers.append("diagnostic")
     print("\t".join(headers))
@@ -435,6 +455,8 @@ async def _report_changes(
             dependencies,
             next_action,
         ]
+        if has_registry:
+            values.append("yes" if row["name"] in active_sidecars else "—")
         if include_diagnostics:
             diagnostic = row["diagnostic"]
             values.append(_static_diagnostic(diagnostic) if diagnostic else "")

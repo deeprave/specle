@@ -236,6 +236,55 @@ def test_changes_reports_spiking_next_action(
     assert json.loads(capsys.readouterr().out)["changes"][0]["next_action"] == "spike"
 
 
+def test_changes_reports_local_sidecars_and_stale_registry(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    _write_change_status(
+        tmp_path / ".specle/changes/repair/status.json",
+        kind="bugfix",
+        status="building",
+        created_at=0,
+    )
+    (tmp_path / ".specle/current-sidecars").write_text("repair\nmissing\n")
+    monkeypatch.chdir(tmp_path)
+    anyio.run(main, ["changes", "--json"])
+    result = json.loads(capsys.readouterr().out)
+    assert result["active_sidecars"] == ["repair"]
+    assert result["sidecar_diagnostics"] == ["stale sidecar: missing"]
+    anyio.run(main, ["changes", "--csv"])
+    output = capsys.readouterr()
+    assert "local_active" in output.out
+    assert "stale sidecar: missing" in output.err
+
+
+def test_changes_rejects_invalid_registry_entries_without_echoing_them(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    (tmp_path / ".specle").mkdir()
+    (tmp_path / ".specle/current-sidecars").write_text("bad\tname\n")
+    monkeypatch.chdir(tmp_path)
+    anyio.run(main, ["changes", "--json"])
+    result = json.loads(capsys.readouterr().out)
+    assert result["active_sidecars"] == []
+    assert result["sidecar_diagnostics"] == ["invalid sidecar registry entry"]
+
+
+def test_changes_reports_activation_for_prepared_sidecar(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    _write_change_status(
+        tmp_path / ".specle/changes/repair/status.json",
+        kind="bugfix",
+        status="planned",
+        created_at=0,
+    )
+    monkeypatch.chdir(tmp_path)
+    anyio.run(main, ["changes", "--json"])
+    assert (
+        json.loads(capsys.readouterr().out)["changes"][0]["next_action"] == "activate"
+    )
+
+
 def test_changes_rejects_archive_records_without_archived_at(
     tmp_path: Path, monkeypatch, capsys
 ) -> None:

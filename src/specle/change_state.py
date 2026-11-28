@@ -63,6 +63,41 @@ class ChangeStateSnapshot:
     diagnostics: tuple[str, ...]
 
 
+async def read_active_sidecars(
+    target_directory: Path, snapshot: ChangeStateSnapshot
+) -> tuple[bool, tuple[str, ...], tuple[str, ...]]:
+    """Read worktree-local sidecars without interpreting membership as delivery."""
+    path = anyio.Path(target_directory) / ".specle" / "current-sidecars"
+    try:
+        contents = await read_regular_text(path)
+    except FileNotFoundError:
+        return False, (), ()
+    except (OSError, UnicodeDecodeError):
+        return True, (), ("unreadable sidecar registry",)
+    records = {record.name: record for record in snapshot.active}
+    names: list[str] = []
+    issues: list[str] = []
+    seen: set[str] = set()
+    for name in contents.splitlines():
+        if not _is_change_name(name):
+            issues.append("invalid sidecar registry entry")
+            continue
+        if name in seen:
+            issues.append("duplicate sidecar registry entry")
+            continue
+        seen.add(name)
+        record = records.get(name)
+        if (
+            record is None
+            or record.status.get("kind") not in {"bugfix", "refactor"}
+            or record.status.get("status") in {"complete", "cancelled"}
+        ):
+            issues.append(f"stale sidecar: {name}")
+        else:
+            names.append(name)
+    return True, tuple(sorted(names)), tuple(issues)
+
+
 async def read_change_state(
     target_directory: Path, *, tolerant_archive_dates: bool = False
 ) -> ChangeStateSnapshot:

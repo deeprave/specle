@@ -10,11 +10,11 @@ Local approval, delivery, and archival finalisation are distinct. `approved` rec
 
 | Status | Meaning | Usual next workflow command |
 | --- | --- | --- |
-| `defined` | A work artifact exists but work has not begun. | `activate <change-name>` for an unselected normal change; its named abbreviated owner or `spike` otherwise. |
+| `defined` | A work artifact exists but work has not begun. | `activate <change-name>` for an unselected normal change, spike, bugfix, or refactor. |
 | `estimated` | Complexity has been assessed. | `design` or `tasks` |
 | `designed` | Technical design exists. | `tasks` |
-| `planned` | Tasks exist and implementation has not begun. | `build`, or named `bugfix` / `refactor` for abbreviated work |
-| `building` | Implementation is in progress or incomplete. | `build` or named abbreviated workflow |
+| `planned` | Tasks exist and implementation has not begun. | `build` for selected normal work; named `activate` for an unselected bugfix or refactor |
+| `building` | Implementation is in progress or incomplete. | `build`, then `verify` |
 | `spiking` | A read-only investigation is in progress. | `spike` |
 | `verified` | Current implementation and required quality gates passed. | `review` |
 | `approved` | Local review passed; external delivery is not necessarily complete. | `commit` |
@@ -31,11 +31,11 @@ Local approval, delivery, and archival finalisation are distinct. `approved` rec
 | Workflow command | Status transition |
 | --- | --- |
 | `define` | Creates an unselected normal change as `defined`, reports its concise summary, and does not select or commence it. |
-| `activate` | The sole workflow writer of ignored local `current-change`. It selects a resumable normal change or a spike, fills a normal change's required estimate → design → tasks preparation chain before invoking build, and invokes a selected spike. |
-| `estimate` | Marks the selected target `estimated`; selected normal work continues to design, while a named unselected target writes only its advisory estimate and remains unselected. |
+| `activate` | The sole workflow writer of ignored local `current-change`. It selects a resumable normal change or spike; normal preparation uses estimate → design for M/L/XL → tasks before build. It prepares and builds a named bugfix or refactor without changing the normal selection. |
+| `estimate` | Marks the selected target `estimated`; selected S-sized normal work continues to tasks and M/L/XL work continues to design, while a named unselected target writes only its advisory estimate and remains unselected. |
 | `design` | Marks the selected normal change `designed`; a named unselected target writes only its design and remains unselected. |
-| `tasks` | Requires a design. Marks the selected normal change `planned`; a named unselected target writes only its task plan and remains unselected. |
-| `build` | For a planned normal change, first presents a specification alignment summary and requires explicit confirmation before implementation, including in decision-gated progression. It then marks the selected normal change `building` while completing its tasks. A named committed normal target may be built in place without replacing the local selection. |
+| `tasks` | Requires a design for M/L/XL work; S-sized work may skip it. Marks the selected normal change `planned`; a named unselected target writes only its task plan and remains unselected. |
+| `build` | For a planned normal change, first presents a specification alignment summary and requires explicit confirmation before implementation, including in decision-gated progression. It then marks the selected normal change `building` while completing its tasks. A named committed normal target or abbreviated bugfix/refactor may be built in place without replacing the local selection. |
 | `verify` | Sets a passing target `verified`; a failed target is `building`. A named committed normal target or unselected abbreviated target changes only its own record. |
 | `review` | On approval, sets the selected target `approved` with next `commit`. On findings, sets the selected target `review-findings`. |
 | `commit` | Applies the selected delivery model, records its delivery event and `updated_at`, and moves every delivered member to `committed`. A normal parent may include only sidecars it declares with concurrent delivery and that reciprocally agree and are ready; it never infers them from a reverse scan. |
@@ -44,8 +44,8 @@ Local approval, delivery, and archival finalisation are distinct. `approved` rec
 | `triage` | Sets a fully decided active target `triaged`. Archived records are immutable and do not enter triage. |
 | `resolve` | Reconciles previously dispatched accepted work, then dispatches any pending accepted follow-up. It reports `resolve <target>` as the later reconciliation step for incomplete follow-ups. A local no-action outcome returns to `approved`; a previously committed no-action outcome returns to `committed`. |
 | `revise` | Reconciles accepted feedback and returns eligible active work to the earliest viable planning state. Archived records are immutable; a later defect requires independent work. |
-| `prepare` | Creates an unselected bugfix or refactor as `planned` with its owning next skill. |
-| `bugfix` / `refactor` | When executed, move only the named abbreviated item to `building`; when called through `prepare`, they create artifacts without executing them. |
+| `prepare` | Creates an unselected bugfix or refactor as `planned` with next `activate`. |
+| `bugfix` / `refactor` | Prepare the named abbreviated contract and hand implementation to named `build`; preparation-only calls do not execute tasks. |
 | `spike` | Creates an unselected spike or, when invoked by `activate`, moves it through `defined` → `spiking` → `complete` while recording durable findings and a stable outcome-change name. |
 
 `analyse`, `specle`, `changes`, `status`, `summary`, and `track` do not themselves transition lifecycle status. `changes` inventories pending and dependency-context work, while `status` reports the selected active or archived change and compact local worktree state. `summary` requires a completed target but does not alter it.
@@ -56,10 +56,10 @@ Every non-terminal state has an owning workflow command and a valid next transit
 
 | State | Valid exit or terminal outcome | Audit result |
 | --- | --- | --- |
-| `defined` | `activate <change-name>` commences an unselected normal change; the named abbreviated owner or `spike` establishes the other paths. | Has an exit. |
+| `defined` | `activate <change-name>` commences an unselected normal change, spike, bugfix, or refactor. | Has an exit. |
 | `estimated` | `design` or, for sufficiently small understood work, `tasks`. | Has an exit. |
 | `designed` | `tasks`. | Has an exit. |
-| `planned` | `build` for selected normal work or named `bugfix` / `refactor` for unselected abbreviated work. | Has an exit. |
+| `planned` | `build` for selected normal work or named `activate` for unselected abbreviated work. | Has an exit. |
 | `building` | Further build work or `verify`. | Has an exit. |
 | `spiking` | `spike` records findings and completes the investigation. | Has an exit. |
 | `verified` | `review` either approves or creates review findings. | Has an exit. |
@@ -78,8 +78,8 @@ Every non-terminal state has an owning workflow command and a valid next transit
 flowchart TB
   unselected_defined[unselected defined] -->|activate| defined
   defined -->|estimate| estimated
-  estimated -->|design| designed
-  estimated -->|tasks| planned
+  estimated -->|design for M/L/XL| designed
+  estimated -->|tasks for S| planned
   designed -->|tasks| planned
   planned -->|build| building
   building -->|build| building
@@ -108,8 +108,8 @@ Branch archival finalisation stays on the original delivery PR and is pushed bef
 ```mermaid
 flowchart TB
   requested -->|prepare| planned
-  requested -->|bugfix or refactor executes| building
-  planned -->|named bugfix or refactor| building
+  requested -->|bugfix or refactor prepares| planned
+  planned -->|activate then named build| building
   building -->|named verify passes| verified
   building -->|named verify fails| building
   verified -->|named review approves| approved
@@ -132,7 +132,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-  defined -->|spike| spiking
+  defined -->|activate then spike| spiking
   spiking -->|spike records findings| complete
 ```
 
@@ -142,4 +142,8 @@ At any active non-terminal status, `cancel <change-name>` is available as an exp
 
 ## Concurrent sidecars
 
-Concurrent bugfixes and refactors are explicit, reciprocal delivery members rather than inferred work. The parent `status.json` names each sidecar with `type: "bugfix"` or `"refactor"` and `delivery: "with-related-change"`; the sidecar names the parent with `type: "origin"` and the same delivery value. Creation records both sides together. For commit and completion, the parent is the only candidate source, and every candidate must have exactly one matching reciprocal active record in the required lifecycle state. A missing, mismatched, duplicate, or unready declaration stops joint delivery with a diagnostic. Valid sidecars receive the shared delivery and completion evidence, archive with the parent, and have no separate completion cycle.
+Concurrent bugfixes and refactors are explicit, reciprocal delivery members rather than inferred work. The parent `status.json` names each sidecar with `type: "bugfix"` or `"refactor"` and `delivery: "with-related-change"`; the sidecar names the parent with `type: "origin"` and the same delivery value. Creation records both sides together. For joint delivery the parent is the candidate source and each included sidecar must have exactly one matching reciprocal active record in the required lifecycle state. Unready or separately delivered work remains active. A missing, mismatched, or duplicate relationship is reported. Sidecars delivered together retain their links when completed together. A separately delivered committed item can complete independently; completion removes matching links from the completed item and surviving active siblings without auditing the code the user chose to deliver.
+
+## Worktree-local sidecar activity
+
+The Git-ignored `.specle/current-sidecars` registry lists sidecars actively commenced in this worktree. It does not replace durable state or establish a delivery relationship. Activation automatically links eligible concurrent work in either activation order. Completion and an explicit local stop remove the appropriate registry entries; status and changes report stale entries without silently repairing them.

@@ -33,8 +33,8 @@ A change name MUST be Unicode NFC-normalised and consist of non-empty components
      section in `estimate.md`, listing their short change slugs, otherwise display `—`;
    - use the recorded lifecycle state as the status;
    - report checkbox progress only when `tasks.md` exists; and
-   - derive the next skill from recorded lifecycle status and kind using `lifecycle.md`.
-5. After the table, state the count and identify the locally selected change and its recorded lifecycle status.
+   - derive the next skill from recorded lifecycle status, kind, selection, and applicable task context using `lifecycle.md`; unselected defined or planned bugfixes and refactors use `activate`.
+5. Read the worktree-local `.specle/current-sidecars` registry under lifecycle policy. Identify valid registered sidecars as locally active independently of whether they are linked for delivery; report invalid, missing, archived, terminal, unreadable, or otherwise stale entries without modifying them. After the table, state the count and identify the locally selected change and its recorded lifecycle status.
    If there are no pending entries, say so directly.
 
 For a selected normal parent, also list only sidecars declared by the parent's own `relationships` entries with `delivery: "with-related-change"`. Show each named sidecar's declared kind, reciprocal-link validity, status, and next step. Report missing, mismatched, duplicate, or unready declarations rather than inferring sidecars from shared files, ordering, or worktree state.

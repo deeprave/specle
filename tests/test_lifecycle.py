@@ -39,7 +39,26 @@ async def test_next_lifecycle_action_uses_kind_and_selection_context() -> None:
 
     assert await next_lifecycle_action(planned_change, None) == "activate"
     assert await next_lifecycle_action(planned_change, "normal") == "estimate"
-    assert await next_lifecycle_action(planned_bugfix, None) == "bugfix"
+    assert await next_lifecycle_action(planned_bugfix, None) == "activate"
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("kind", ["bugfix", "refactor"])
+async def test_abbreviated_next_action_uses_task_completion(
+    tmp_path: Path, kind: str
+) -> None:
+    record = ChangeRecord(
+        "example", tmp_path, {"kind": kind, "status": "building"}, False
+    )
+    assert await next_lifecycle_action(record, None) == "build"
+    (tmp_path / "tasks.md").write_text("# Tasks\n")
+    assert await next_lifecycle_action(record, None) == "build"
+    (tmp_path / "tasks.md").write_text("```markdown\n- [x] Example\n```\n")
+    assert await next_lifecycle_action(record, None) == "build"
+    (tmp_path / "tasks.md").write_text("- [x] Done\n- [ ] Remaining\n")
+    assert await next_lifecycle_action(record, None) == "build"
+    (tmp_path / "tasks.md").write_text("- [x] Done\n")
+    assert await next_lifecycle_action(record, None) == "verify"
 
 
 @pytest.mark.anyio
@@ -52,6 +71,15 @@ async def test_defined_spike_next_action_depends_on_selection() -> None:
     )
     assert await next_lifecycle_action(spike, None) == "activate"
     assert await next_lifecycle_action(spike, "investigate") == "spike"
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("kind", ["docs", "release", "unknown-kind"])
+async def test_unsupported_kind_does_not_offer_activation(kind: str) -> None:
+    record = ChangeRecord(
+        "example", Path("example"), {"kind": kind, "status": "defined"}, False
+    )
+    assert await next_lifecycle_action(record, None) is None
 
 
 @pytest.mark.anyio

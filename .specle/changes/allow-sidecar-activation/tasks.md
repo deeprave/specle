@@ -1,6 +1,0 @@
-# Tasks: Allow sidecar activation
-
-- [ ] 1. Reconcile lifecycle policy and activation guidance for named bugfixes and refactors, their preparation and selection boundaries, explicit parent relationships, and unsupported kinds; update blueprint and installed metadata and entrypoint guidance. Files: `.agents/policies/`, `.agents/skills/activate/`, `.agents/AGENTS.md`, `src/specle/blueprints/`.
-- [ ] 2. Extend the named build workflow for abbreviated targets and reconcile bugfix, refactor, prepare, verify, and review instructions around one task executor and kind-specific safeguards. Files: `.agents/skills/`, `src/specle/blueprints/skills/`, relevant lifecycle policy.
-- [ ] 3. Update lifecycle next-action resolution for unselected prepared abbreviated changes and their execution stages, preserving normal and spike routing and conservative task-plan handling. Files: `src/specle/lifecycle.py`, focused lifecycle and CLI tests.
-- [ ] 4. Align change-listing and other workflow guidance with the revised action and ownership contract, preserving action-name output and synced blueprint and installed copies. Files: `.agents/skills/`, `src/specle/blueprints/skills/`, documentation as applicable.

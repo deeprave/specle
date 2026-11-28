@@ -61,8 +61,8 @@
       "skills": [
         {
           "name": "activate",
-          "description": "Explicitly select and commence an unselected normal change.",
-          "usage": "Use with a named unselected normal change to select it in this worktree and begin its planning lifecycle."
+          "description": "Commence a named change using the workflow appropriate to its kind.",
+          "usage": "Use with a named normal change, spike, bugfix, or refactor to begin or resume its applicable workflow."
         },
         {
           "name": "define",
@@ -97,7 +97,7 @@
         {
           "name": "build",
           "description": "Implement active Specle tasks with TDD.",
-          "usage": "Use when the active normal change, or an explicitly named committed normal target, is planned or building with incomplete tasks; execute tasks in order and stop at verify when they are complete."
+          "usage": "Use for a planned or building normal change or explicitly named bugfix or refactor; execute its tasks and continue to verification."
         }
       ]
     },
