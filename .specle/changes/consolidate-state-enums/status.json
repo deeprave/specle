@@ -1,0 +1,18 @@
+{
+  "$schema": "specle://schemas/change-status/1.0",
+  "kind": "change",
+  "status": "defined",
+  "progress": {},
+  "verification": {
+    "status": "not-run"
+  },
+  "review": {
+    "status": "not-run"
+  },
+  "delivery": null,
+  "relationships": [],
+  "dependencies": [],
+  "created_at": 1795837442,
+  "updated_at": 1795838999,
+  "activated_at": null
+}

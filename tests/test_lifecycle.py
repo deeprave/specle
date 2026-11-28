@@ -43,6 +43,18 @@ async def test_next_lifecycle_action_uses_kind_and_selection_context() -> None:
 
 
 @pytest.mark.anyio
+async def test_defined_spike_next_action_depends_on_selection() -> None:
+    spike = ChangeRecord(
+        "investigate",
+        Path("investigate"),
+        {"kind": "spike", "status": "defined"},
+        False,
+    )
+    assert await next_lifecycle_action(spike, None) == "activate"
+    assert await next_lifecycle_action(spike, "investigate") == "spike"
+
+
+@pytest.mark.anyio
 async def test_archived_delivery_allows_only_completion_resumption() -> None:
     root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
     skills = {

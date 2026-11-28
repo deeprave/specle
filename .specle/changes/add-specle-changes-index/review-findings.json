@@ -138,6 +138,14 @@
       "revision": "diff:fc731b7578d1f8aad31f6ac3c93aa546553fd9113e62a26af3eb77de61fc8a75",
       "outcome": "approve",
       "findings": 0
+    },
+    {
+      "id": "local-review-20261128-selected-spike-action",
+      "system": "specle",
+      "kind": "local-review",
+      "revision": "diff:89940aaaff437e252fe7c17f8b629e3f7221f9968995254b8abba297cb673080",
+      "outcome": "approve",
+      "findings": 0
     }
   ],
   "items": [

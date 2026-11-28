@@ -8,7 +8,7 @@ The project primarily contains:
 - Agent skills that guide each stage of the change-driven workflow.
 - A small Python management script, available through `uvx`, for working with the project.
 
-Python scripts in this repository are asynchronous, using `anyio` with the default `asyncio` runtime.
+Python scripts in this repository are asynchronous, using `anyio` with the default `asyncio` runtime. Use `async` functions, `await`, and `anyio.Path` for filesystem work. Do not use `anyio.to_thread.run_sync` to wrap synchronous filesystem operations.
 
 Markdown files created in this repo must not be hard-wrapped to an explicit width. Newlines should be used for paragraph endings only.
 

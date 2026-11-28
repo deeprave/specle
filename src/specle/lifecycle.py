@@ -40,6 +40,8 @@ async def next_lifecycle_action(
     status = record.status.get("status")
     if not isinstance(kind, str) or not isinstance(status, str):
         return None
+    if kind == "spike" and status == "defined" and record.name == selected_name:
+        return "spike"
     if kind in {"bugfix", "refactor"}:
         if status in {"defined", "planned"}:
             return kind
