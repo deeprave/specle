@@ -12,6 +12,8 @@ usage: >-
 Produce a read-only inventory of actionable changes under `.specle/changes/`. Terminal archives are historical evidence, not pending delivery. Do not change
 `.specle/current-change`, per-change `status.json` files, change files, or the working tree.
 
+A change name MUST be Unicode NFC-normalised and consist of non-empty components of Unicode alphanumeric characters or Unicode combining marks, separated by single ASCII hyphens (`-`); leading, trailing, and repeated hyphens are invalid. The entire name MUST NOT be `CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, or `LPT1`–`LPT9`, case-insensitively. Consider only directories with valid names as changes; do not create rows for invalid names.
+
 ## Workflow
 
 1. Read `.specle/current-change` when present and `.agents/policies/lifecycle.md` first, then any applicable steering override.

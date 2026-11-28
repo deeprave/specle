@@ -43,10 +43,10 @@ Before applying or recording a lifecycle transition, consult this skill's `lifec
 5. For a spike, immediately invoke `spike <change-name>`; the spike skill owns its durable progress and completion.
 6. For a normal change, validate the preparation chain in order, then immediately invoke the first missing stage with the selected change name:
    - no `estimate.md` — `estimate`;
-   - no `design.md` — `design`;
+   - no `design.md` and estimate is M/L/XL — `design`;
    - no `tasks.md` — `tasks`;
-   - all three artifacts exist — set `status` to `planned` if it is not already planned, then invoke `build`.
-   A task plan without a design is not build-ready: invoke design first, then reconcile tasks after design. Do not skip a preparation stage based on T-shirt size.
+   - required artifacts exist — set `status` to `planned` if it is not already planned, then invoke `build`.
+   S-sized normal changes skip design; M/L/XL changes require design before tasks. If the estimate is missing or unclear, resolve it before proceeding.
    Activation deliberately commences the selected change and invokes this stage regardless of manual or decision-gated progression policy. `build` owns the sole confirmation boundary before implementation.
 
 ## Boundaries

@@ -8,7 +8,8 @@ from specle import inventory
 from specle.inventory import SkillMetadataError
 
 
-def test_reads_managed_skill_metadata(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_reads_managed_skill_metadata(tmp_path: Path) -> None:
     skill = tmp_path / "sample" / "SKILL.md"
     skill.parent.mkdir(parents=True)
     skill.write_text(
@@ -35,16 +36,20 @@ requires:
     assert metadata.requires == ("onboard", "define")
 
 
-def test_rejects_a_non_regular_skill_file_before_reading_it(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_rejects_a_non_regular_skill_file_before_reading_it(
+    tmp_path: Path,
+) -> None:
     skill = tmp_path / "skills" / "sample" / "SKILL.md"
     skill.parent.mkdir(parents=True)
     skill.symlink_to(tmp_path, target_is_directory=True)
 
     with pytest.raises(SkillMetadataError, match="not a regular file"):
-        inventory.scan_managed_inventory(tmp_path)
+        await inventory.scan_managed_inventory(tmp_path)
 
 
-def test_every_packaged_skill_declares_a_specle_group() -> None:
+@pytest.mark.anyio
+async def test_every_packaged_skill_declares_a_specle_group() -> None:
     source_root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
 
     metadata = [_metadata(path) for path in source_root.glob("*/SKILL.md")]
@@ -53,7 +58,8 @@ def test_every_packaged_skill_declares_a_specle_group() -> None:
     assert all(skill.specle_group for skill in metadata)
 
 
-def test_lifecycle_owners_declare_lifecycle_metadata() -> None:
+@pytest.mark.anyio
+async def test_lifecycle_owners_declare_lifecycle_metadata() -> None:
     project_root = Path(__file__).parents[1]
     source_root = project_root / "src" / "specle" / "blueprints" / "skills"
     lifecycle_owners = {
@@ -86,7 +92,8 @@ def test_lifecycle_owners_declare_lifecycle_metadata() -> None:
     assert all(metadata[name].lifecycle is not None for name in lifecycle_owners)
 
 
-def test_cancel_skill_transitions_every_active_state_to_cancelled() -> None:
+@pytest.mark.anyio
+async def test_cancel_skill_transitions_every_active_state_to_cancelled() -> None:
     project_root = Path(__file__).parents[1]
     skill = _metadata(
         project_root
@@ -121,7 +128,8 @@ def test_cancel_skill_transitions_every_active_state_to_cancelled() -> None:
     assert skill.lifecycle.terminal == ("cancelled",)
 
 
-def test_active_managed_skill_metadata_matches_its_blueprint() -> None:
+@pytest.mark.anyio
+async def test_active_managed_skill_metadata_matches_its_blueprint() -> None:
     project_root = Path(__file__).parents[1]
     source_root = project_root / "src" / "specle" / "blueprints" / "skills"
     active_root = project_root / ".agents" / "skills"
@@ -130,13 +138,14 @@ def test_active_managed_skill_metadata_matches_its_blueprint() -> None:
     active = _metadata_by_directory(
         path
         for path in active_root.glob("*/SKILL.md")
-        if inventory._has_specle_group(path)
+        if inventory._has_specle_group_text(path.read_text())
     )
 
     assert active == source
 
 
-def test_pending_change_inventory_excludes_removed_skills() -> None:
+@pytest.mark.anyio
+async def test_pending_change_inventory_excludes_removed_skills() -> None:
     project_root = Path(__file__).parents[1]
     blueprint_root = project_root / "src" / "specle" / "blueprints" / "skills"
     installed_root = project_root / ".agents" / "skills"
@@ -147,7 +156,7 @@ def test_pending_change_inventory_excludes_removed_skills() -> None:
     installed_names = {
         _metadata(path).name
         for path in installed_root.glob("*/SKILL.md")
-        if inventory._has_specle_group(path)
+        if inventory._has_specle_group_text(path.read_text())
     }
     index = json.loads((installed_root / "specle" / "index.json").read_text())
     indexed_names = {
@@ -161,7 +170,8 @@ def test_pending_change_inventory_excludes_removed_skills() -> None:
     assert "wrapup" not in blueprint_names | installed_names | indexed_names
 
 
-def test_rejects_missing_description_or_usage(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_rejects_missing_description_or_usage(tmp_path: Path) -> None:
     skill = tmp_path / "sample" / "SKILL.md"
     skill.parent.mkdir()
     skill.write_text(
@@ -176,7 +186,8 @@ specle_group: Planning
         _metadata(skill)
 
 
-def test_reads_cancelled_terminal_lifecycle_metadata(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_reads_cancelled_terminal_lifecycle_metadata(tmp_path: Path) -> None:
     skill = tmp_path / "cancel" / "SKILL.md"
     skill.parent.mkdir()
     skill.write_text(
@@ -203,7 +214,8 @@ lifecycle:
     assert metadata.lifecycle.terminal == ("cancelled",)
 
 
-def test_discovers_every_valid_skill_and_rejects_mismatched_names(
+@pytest.mark.anyio
+async def test_discovers_every_valid_skill_and_rejects_mismatched_names(
     tmp_path: Path,
 ) -> None:
     skills_root = tmp_path / "skills"
@@ -231,10 +243,11 @@ specle_group: Planning
     )
 
     with pytest.raises(SkillMetadataError, match="does not match"):
-        _distribution_skills(skills_root.parent)
+        await _distribution_skills(skills_root.parent)
 
 
-def test_discovers_only_marked_installed_skills(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_discovers_only_marked_installed_skills(tmp_path: Path) -> None:
     target = tmp_path / "project"
     marked = target / ".agents" / "skills" / "managed" / "SKILL.md"
     external = target / ".agents" / "skills" / "external" / "SKILL.md"
@@ -251,13 +264,14 @@ specle_group: Planning
     )
     external.write_text("# External skill\n")
 
-    skills = _installed_skills(target)
+    skills = await _installed_skills(target)
 
     assert [skill.name for skill in skills] == ["managed"]
 
 
 @pytest.mark.parametrize("target_name", ("directory", "missing"))
-def test_rejects_a_non_regular_candidate_installed_skill_file(
+@pytest.mark.anyio
+async def test_rejects_a_non_regular_candidate_installed_skill_file(
     tmp_path: Path, target_name: str
 ) -> None:
     target = tmp_path / "project"
@@ -280,10 +294,11 @@ specle_group: Planning
     invalid.symlink_to(target_path, target_is_directory=True)
 
     with pytest.raises(SkillMetadataError, match="not a regular file"):
-        _installed_skills(target)
+        await _installed_skills(target)
 
 
-def test_rejects_invalid_marked_installed_skill(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_rejects_invalid_marked_installed_skill(tmp_path: Path) -> None:
     target = tmp_path / "project"
     skill = target / ".agents" / "skills" / "managed" / "SKILL.md"
     skill.parent.mkdir(parents=True)
@@ -297,7 +312,7 @@ unknown: value
     )
 
     with pytest.raises(SkillMetadataError, match="invalid frontmatter"):
-        _installed_skills(target)
+        await _installed_skills(target)
 
 
 @pytest.mark.parametrize(
@@ -308,7 +323,8 @@ unknown: value
         ("requires: sample", "invalid frontmatter"),
     ],
 )
-def test_rejects_invalid_schema_frontmatter(
+@pytest.mark.anyio
+async def test_rejects_invalid_schema_frontmatter(
     tmp_path: Path, frontmatter: str, message: str
 ) -> None:
     skill = tmp_path / "sample" / "SKILL.md"
@@ -330,7 +346,8 @@ specle_group: Planning
     assert str(skill) in str(error.value)
 
 
-def test_omitted_requires_has_no_dependencies(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_omitted_requires_has_no_dependencies(tmp_path: Path) -> None:
     skill = tmp_path / "sample" / "SKILL.md"
     skill.parent.mkdir()
     skill.write_text(
@@ -346,7 +363,8 @@ specle_group: Planning
     assert _metadata(skill).requires == ()
 
 
-def test_reads_lifecycle_declarations(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_reads_lifecycle_declarations(tmp_path: Path) -> None:
     skill = tmp_path / "sample" / "SKILL.md"
     skill.parent.mkdir()
     skill.write_text(
@@ -382,7 +400,8 @@ lifecycle:
     assert lifecycle.transitions[1].source.scope == "queued"
 
 
-def test_rejects_an_unknown_lifecycle_status(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_rejects_an_unknown_lifecycle_status(tmp_path: Path) -> None:
     skill = tmp_path / "sample" / "SKILL.md"
     skill.parent.mkdir()
     skill.write_text(
@@ -409,7 +428,8 @@ lifecycle:
         ("description", "''", "empty required metadata value"),
     ],
 )
-def test_rejects_invalid_required_metadata_values(
+@pytest.mark.anyio
+async def test_rejects_invalid_required_metadata_values(
     tmp_path: Path, field: str, value: str, message: str
 ) -> None:
     skill = tmp_path / "sample" / "SKILL.md"
@@ -431,7 +451,8 @@ def test_rejects_invalid_required_metadata_values(
         _metadata(skill)
 
 
-def test_rejects_an_invalid_required_skill_name(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_rejects_an_invalid_required_skill_name(tmp_path: Path) -> None:
     skill = tmp_path / "sample" / "SKILL.md"
     skill.parent.mkdir()
     skill.write_text(
@@ -470,11 +491,12 @@ def _metadata(path: Path) -> inventory.SkillMetadata:
     return inventory._read_skill_metadata(path, path.read_text())
 
 
-def _distribution_skills(root: Path) -> tuple[inventory.SkillMetadata, ...]:
+async def _distribution_skills(root: Path) -> tuple[inventory.SkillMetadata, ...]:
     return tuple(
-        record.metadata for record in inventory.scan_managed_inventory(root).skills
+        record.metadata
+        for record in (await inventory.scan_managed_inventory(root)).skills
     )
 
 
-def _installed_skills(target: Path) -> tuple[inventory.SkillMetadata, ...]:
-    return _distribution_skills(target / ".agents")
+async def _installed_skills(target: Path) -> tuple[inventory.SkillMetadata, ...]:
+    return await _distribution_skills(target / ".agents")

@@ -5,17 +5,17 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-import shutil
 import uuid
 from collections import defaultdict, deque
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from contextlib import suppress
 from dataclasses import dataclass, replace
-from importlib.resources import files
+from importlib.resources import as_file, files
 from importlib.resources.abc import Traversable
 from pathlib import Path
 from typing import NotRequired, TypedDict
 
+import anyio
 from strictyaml import Enum, Map, Optional, Seq, Str, load
 from strictyaml.exceptions import StrictYAMLError
 
@@ -221,11 +221,16 @@ class SkillFrontmatter(TypedDict):
     lifecycle: NotRequired[dict[str, object]]
 
 
-def packaged_distribution_root() -> Traversable:
+async def packaged_distribution_root() -> Traversable:
     """Return the packaged root containing skills and package policy."""
     root = files("specle").joinpath("blueprints")
-    if not root.joinpath("skills").is_dir() or not root.joinpath("policies").is_dir():
-        raise SkillMetadataError("the packaged Specle distribution is unavailable")
+    with as_file(root) as root_path:
+        path = anyio.Path(root_path)
+        if (
+            not await (path / "skills").is_dir()
+            or not await (path / "policies").is_dir()
+        ):
+            raise SkillMetadataError("the packaged Specle distribution is unavailable")
     return root
 
 
@@ -409,33 +414,34 @@ def analyse_lifecycle(skills: tuple[SkillMetadata, ...]) -> LifecycleAnalysis:
     )
 
 
-def scan_managed_inventory(distribution_root: Path) -> DistributionInventory:
-    """Scan one blueprint or installed `.agents` root into managed inventory records."""
-    root = distribution_root.expanduser().resolve()
+async def scan_managed_inventory(
+    distribution_root: Path,
+) -> DistributionInventory:
+    """Asynchronously scan one blueprint or installed `.agents` root."""
+    root = await anyio.Path(distribution_root).expanduser()
+    root = await root.resolve()
     skills_root = root / "skills"
-    if not skills_root.is_dir():
+    if not await skills_root.is_dir():
         label = (
             "installed skill inventory" if root.name == ".agents" else "skill inventory"
         )
         raise SkillMetadataError(f"the {label} is unavailable at {skills_root}")
-
     skills: list[ManagedSkillInventory] = []
     names: set[str] = set()
     unmanaged: list[Path] = []
-    for directory in sorted(skills_root.iterdir()):
-        if not directory.is_dir():
-            continue
+    directories = [path async for path in skills_root.iterdir() if await path.is_dir()]
+    for directory in sorted(directories, key=lambda path: path.name):
         skill_file = directory / "SKILL.md"
-        if not skill_file.exists() and not skill_file.is_symlink():
+        if not await skill_file.exists() and not await skill_file.is_symlink():
             continue
         try:
-            contents = read_regular_text(skill_file)
+            contents = await read_regular_text(skill_file)
         except (FileNotFoundError, OSError) as error:
             raise SkillMetadataError(f"unable to read {skill_file}: {error}") from error
         if not _has_specle_group_text(contents):
-            unmanaged.append(skill_file)
+            unmanaged.append(Path(skill_file))
             continue
-        metadata = _read_skill_metadata(skill_file, contents)
+        metadata = _read_skill_metadata(Path(skill_file), contents)
         if metadata.name != directory.name:
             raise SkillMetadataError(f"{skill_file} does not match its directory name")
         if metadata.name in names:
@@ -446,7 +452,7 @@ def scan_managed_inventory(distribution_root: Path) -> DistributionInventory:
         skills.append(
             ManagedSkillInventory(
                 metadata,
-                _checksum_resources(
+                await _checksum_resources(
                     directory,
                     Path("skills") / metadata.name,
                     exclude_generated_index=True,
@@ -455,15 +461,16 @@ def scan_managed_inventory(distribution_root: Path) -> DistributionInventory:
         )
     metadata = tuple(record.metadata for record in skills)
     _validate_skill_dependencies(metadata)
-    policy_resources, unmanaged_resources = _scan_managed_policies(root)
+    policy_resources, unmanaged_resources = await _scan_managed_policies(root)
+    root_path = Path(root)
     return DistributionInventory(
-        root,
+        root_path,
         tuple(skills),
         policy_resources,
         tuple(unmanaged),
         unmanaged_resources,
         analyse_lifecycle(metadata),
-        _package_completeness_diagnostics(root, tuple(skills), policy_resources),
+        _package_completeness_diagnostics(root_path, tuple(skills), policy_resources),
     )
 
 
@@ -521,7 +528,7 @@ def managed_resource_checksums(inventory: DistributionInventory) -> dict[Path, s
     return resources
 
 
-def build_update_plan(
+async def build_update_plan(
     blueprint: DistributionInventory,
     installed: DistributionInventory,
     generations: tuple[ManifestGeneration, ...],
@@ -531,10 +538,12 @@ def build_update_plan(
     """Compatibility entrypoint for the dedicated update planner."""
     from specle.update import build_update_plan as plan_update
 
-    return plan_update(blueprint, installed, generations, detection, target_directory)
+    return await plan_update(
+        blueprint, installed, generations, detection, target_directory
+    )
 
 
-def update_distribution(
+async def update_distribution(
     source_root: Path,
     target_directory: Path,
     blueprint: DistributionInventory,
@@ -547,37 +556,37 @@ def update_distribution(
     dry_run: bool = False,
     approve_conflicts: bool = False,
 ) -> UpdatePlan:
-    """Update a valid target using already-supplied package provenance generations."""
-    target_directory = target_directory.expanduser().resolve()
-    if not target_directory.is_dir():
+    """Asynchronously update a valid target using supplied provenance."""
+    target = await anyio.Path(target_directory).expanduser()
+    target = await target.resolve()
+    source = await anyio.Path(source_root).expanduser()
+    source = await source.resolve()
+    if not await target.is_dir():
         raise SkillInstallationError(
-            f"target directory must be an existing directory: {target_directory}"
+            f"target directory must be an existing directory: {target}"
         )
-    source_root = source_root.expanduser().resolve()
     if plan is None:
-        _validate_installed_index(target_directory, installed)
-        plan = build_update_plan(
-            blueprint, installed, generations, detection, target_directory
+        await _validate_installed_index(target, installed)
+        plan = await build_update_plan(
+            blueprint, installed, generations, detection, Path(target)
         )
     if dry_run:
         return plan
     if force:
-        initialise_distribution(source_root, target_directory, force=True)
+        await initialise_distribution(Path(source), Path(target), force=True)
         return plan
     conflicts = tuple(action for action in plan.actions if action.requires_confirmation)
     if conflicts and not approve_conflicts:
         return replace(plan, declined=conflicts)
     approved = list(plan.actions)
-    result = replace(plan)
     if not approved:
-        return result
+        return replace(plan)
     index_skills = _projected_skill_metadata(blueprint, installed, approved)
-
-    staged: list[tuple[Path, Path]] = []
-    temporary_paths: list[Path] = []
-    removals: list[Path] = []
-    staging_directories: list[Path] = []
-    agents_root = target_directory / ".agents"
+    agents_root = target / ".agents"
+    staged: list[tuple[anyio.Path, anyio.Path]] = []
+    temporary_paths: list[anyio.Path] = []
+    removals: list[anyio.Path] = []
+    staging_directories: list[anyio.Path] = []
     try:
         for action in approved:
             destination = agents_root / action.path
@@ -585,32 +594,36 @@ def update_distribution(
                 temporary = _temporary_sibling(destination)
                 temporary_paths.append(temporary)
                 staging_directories.extend(
-                    _missing_parent_directories(temporary.parent, agents_root)
+                    await _missing_parent_directories(temporary.parent, agents_root)
                 )
-                temporary.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copytree(source_root / action.path, temporary)
+                await temporary.parent.mkdir(parents=True, exist_ok=True)
+                await _copy_tree(source / action.path, temporary)
                 staged.append((temporary, destination))
             elif action.action in {"add", "upgrade"}:
                 temporary = _temporary_sibling(destination)
                 temporary_paths.append(temporary)
                 staging_directories.extend(
-                    _missing_parent_directories(temporary.parent, agents_root)
+                    await _missing_parent_directories(temporary.parent, agents_root)
                 )
-                temporary.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source_root / action.path, temporary)
+                await _copy_file(source / action.path, temporary)
                 staged.append((temporary, destination))
             elif action.action == "remove":
                 removals.append(destination)
     except (OSError, TypeError, ValueError) as error:
-        _clean_up_temporary(temporary_paths, None)
-        _remove_empty_directories(staging_directories)
+        await _clean_up_paths(temporary_paths)
+        await _remove_empty_directories(staging_directories)
         raise SkillInstallationError("unable to stage the Specle update") from error
+    except BaseException:
+        with anyio.CancelScope(shield=True):
+            await _clean_up_paths(temporary_paths)
+            await _remove_empty_directories(staging_directories)
+        raise
     index_destination = agents_root / "skills" / "specle" / "index.json"
     removals.append(index_destination)
 
-    def generate_index() -> None:
-        index_destination.parent.mkdir(parents=True, exist_ok=True)
-        index_destination.write_text(
+    async def generate_index() -> None:
+        await index_destination.parent.mkdir(parents=True, exist_ok=True)
+        await index_destination.write_text(
             json.dumps(
                 build_skill_index(
                     tuple(index_skills[name] for name in sorted(index_skills))
@@ -620,14 +633,15 @@ def update_distribution(
             + "\n"
         )
 
-    _apply_staged_changes(
-        staged,
-        removals,
-        after_apply=generate_index,
-        cleanup_directories=staging_directories,
-    )
-    _remove_empty_parents(removals, agents_root)
-    return result
+    with anyio.CancelScope(shield=True):
+        await _apply_staged_changes(
+            staged,
+            removals,
+            after_apply=generate_index,
+            cleanup_directories=staging_directories,
+        )
+        await _remove_empty_parents(removals, agents_root)
+    return replace(plan)
 
 
 def _projected_skill_metadata(
@@ -652,13 +666,12 @@ def _projected_skill_metadata(
     return result
 
 
-def _validate_installed_index(
-    target_directory: Path, installed: DistributionInventory
+async def _validate_installed_index(
+    target_directory: anyio.Path, installed: DistributionInventory
 ) -> None:
-    """Reject malformed or stale generated indexes before an update can mutate a target."""
     index_path = target_directory / ".agents" / "skills" / "specle" / "index.json"
     try:
-        index = json.loads(read_regular_text(index_path))
+        index = json.loads(await read_regular_text(index_path))
     except (
         FileNotFoundError,
         OSError,
@@ -668,29 +681,28 @@ def _validate_installed_index(
         raise SkillInstallationError(
             f"invalid generated skill index: {index_path}: {error}"
         ) from error
-    expected = build_skill_index(tuple(record.metadata for record in installed.skills))
-    if index != expected:
+    if index != build_skill_index(
+        tuple(record.metadata for record in installed.skills)
+    ):
         raise SkillInstallationError(f"invalid generated skill index: {index_path}")
 
 
-def _checksum_resources(
-    directory: Path, prefix: Path, *, exclude_generated_index: bool = False
+async def _checksum_resources(
+    directory: anyio.Path, prefix: Path, *, exclude_generated_index: bool = False
 ) -> tuple[ResourceChecksum, ...]:
-    """Checksum every regular resource below a package-owned directory."""
-    if not directory.is_dir():
+    if not await directory.is_dir():
         return ()
     resources: list[ResourceChecksum] = []
-    for path in sorted(directory.rglob("*")):
-        if not path.is_file():
-            continue
-        relative = prefix / path.relative_to(directory)
+    paths = [path async for path in directory.rglob("*") if await path.is_file()]
+    for path in sorted(paths, key=lambda candidate: str(candidate)):
+        relative = prefix / Path(path).relative_to(Path(directory))
         if (
             exclude_generated_index
             and relative == Path("skills") / "specle" / "index.json"
         ):
             continue
         try:
-            contents = read_regular_bytes(path)
+            contents = await read_regular_bytes(path)
         except OSError as error:
             raise SkillMetadataError(f"unable to read {path}: {error}") from error
         resources.append(
@@ -699,35 +711,29 @@ def _checksum_resources(
     return tuple(resources)
 
 
-def _scan_managed_policies(
-    root: Path,
+async def _scan_managed_policies(
+    root: anyio.Path,
 ) -> tuple[tuple[ResourceChecksum, ...], tuple[Path, ...]]:
-    """Return checksums for marker-owned top-level Markdown policy documents."""
     policies_root = root / "policies"
-    if not policies_root.is_dir():
+    if not await policies_root.is_dir():
         return (), ()
     resources: list[ResourceChecksum] = []
     unmanaged: list[Path] = []
-    for path in sorted(policies_root.glob("*.md")):
+    paths = [path async for path in policies_root.glob("*.md")]
+    for path in sorted(paths, key=lambda candidate: candidate.name):
         try:
-            contents = read_regular_text(path)
+            contents = await read_regular_text(path)
         except (FileNotFoundError, OSError) as error:
             raise SkillMetadataError(f"unable to read {path}: {error}") from error
         if not _has_specle_policy_text(contents):
             unmanaged.append(Path("policies") / path.name)
             continue
-        resources.append(
-            ResourceChecksum(Path("policies") / path.name, _checksum_path(path))
-        )
+        try:
+            checksum = hashlib.sha256(await read_regular_bytes(path)).hexdigest()
+        except OSError as error:
+            raise SkillMetadataError(f"unable to read {path}: {error}") from error
+        resources.append(ResourceChecksum(Path("policies") / path.name, checksum))
     return tuple(resources), tuple(unmanaged)
-
-
-def _checksum_path(path: Path) -> str:
-    """Return the SHA-256 checksum of one already-classified regular file."""
-    try:
-        return hashlib.sha256(read_regular_bytes(path)).hexdigest()
-    except OSError as error:
-        raise SkillMetadataError(f"unable to read {path}: {error}") from error
 
 
 def _compare_resources(
@@ -779,31 +785,31 @@ def _can_reach_terminal(
     return False
 
 
-def initialise_distribution(
+async def initialise_distribution(
     source_root: Path, target_directory: Path, *, force: bool = False
 ) -> tuple[Path, ...]:
-    """Install the packaged skills and policy documents at an explicit target."""
-    target_directory = target_directory.expanduser().resolve()
-    if not target_directory.is_dir():
+    """Asynchronously install packaged skills and policy documents."""
+    target = await anyio.Path(target_directory).expanduser()
+    target = await target.resolve()
+    if not await target.is_dir():
         raise SkillInstallationError(
-            f"target directory must be an existing directory: {target_directory}"
+            f"target directory must be an existing directory: {target}"
         )
-
-    source_root = source_root.expanduser().resolve()
-    inventory = scan_managed_inventory(source_root)
+    source = await anyio.Path(source_root).expanduser()
+    source = await source.resolve()
+    inventory = await scan_managed_inventory(Path(source))
     if inventory.package_diagnostics:
         raise SkillMetadataError(inventory.package_diagnostics[0])
     skills = tuple(record.metadata for record in inventory.skills)
-    policies = tuple(source_root / resource.path for resource in inventory.resources)
-
-    agents_root = target_directory / ".agents"
+    agents_root = target / ".agents"
     skills_root = agents_root / "skills"
     policies_root = agents_root / "policies"
     skill_destinations = [
-        (skill.path.parent, skills_root / skill.name) for skill in skills
+        (source / "skills" / skill.name, skills_root / skill.name) for skill in skills
     ]
     policy_destinations = [
-        (source, agents_root / source.relative_to(source_root)) for source in policies
+        (source / resource.path, agents_root / resource.path)
+        for resource in inventory.resources
     ]
     index_destination = skills_root / "specle" / "index.json"
     destinations = [
@@ -811,62 +817,63 @@ def initialise_distribution(
         *(destination for _, destination in policy_destinations),
         index_destination,
     ]
-    obsolete_skills = _discover_obsolete_managed_skills(
+    obsolete_skills = await _discover_obsolete_managed_skills(
         skills_root, {skill.name for skill in skills}
     )
-    obsolete_policies = _discover_obsolete_policies(
-        policies_root, {source.name for source in policies}
+    obsolete_policies = await _discover_obsolete_policies(
+        policies_root, {resource.path.name for resource in inventory.resources}
     )
     collisions = [
-        *(destination for destination in destinations if destination.exists()),
-        *obsolete_skills,
-        *obsolete_policies,
+        destination for destination in destinations if await destination.exists()
     ]
+    collisions.extend((*obsolete_skills, *obsolete_policies))
     if collisions and not force:
         raise SkillInstallationError(
             "distribution-managed destination already exists: "
-            + ", ".join(str(destination) for destination in collisions)
+            + ", ".join(str(path) for path in collisions)
         )
-
-    staged: list[tuple[Path, Path]] = []
-    temporary_paths: list[Path] = []
-    index_temporary: Path | None = None
-    ignore_temporary: Path | None = None
-    ignore_destination = target_directory / ".specle" / ".gitignore"
+    staged: list[tuple[anyio.Path, anyio.Path]] = []
+    temporary_paths: list[anyio.Path] = []
     try:
-        skills_root.mkdir(parents=True, exist_ok=True)
-        policies_root.mkdir(parents=True, exist_ok=True)
-        for source, destination in skill_destinations:
+        await skills_root.mkdir(parents=True, exist_ok=True)
+        await policies_root.mkdir(parents=True, exist_ok=True)
+        for source_path, destination in skill_destinations:
             temporary = _temporary_sibling(destination)
             temporary_paths.append(temporary)
-            shutil.copytree(source, temporary)
+            await _copy_tree(source_path, temporary)
             staged.append((temporary, destination))
-        for source, destination in policy_destinations:
+        for source_path, destination in policy_destinations:
             temporary = _temporary_sibling(destination)
             temporary_paths.append(temporary)
-            shutil.copy2(source, temporary)
+            await _copy_file(source_path, temporary)
             staged.append((temporary, destination))
-
         index_temporary = _temporary_sibling(skills_root / "index.json")
-        index_temporary.write_text(
+        temporary_paths.append(index_temporary)
+        await index_temporary.parent.mkdir(parents=True, exist_ok=True)
+        await index_temporary.write_text(
             json.dumps(build_skill_index(skills), indent=2) + "\n"
         )
-        ignore_contents = _local_runtime_ignore_contents(ignore_destination)
+        staged.append((index_temporary, index_destination))
+        ignore_destination = target / ".specle" / ".gitignore"
+        ignore_contents = await _local_runtime_ignore_contents(ignore_destination)
         if ignore_contents is not None:
-            ignore_destination.parent.mkdir(parents=True, exist_ok=True)
-            ignore_temporary = _temporary_sibling(ignore_destination)
-            ignore_temporary.write_text(ignore_contents)
+            temporary = _temporary_sibling(ignore_destination)
+            temporary_paths.append(temporary)
+            await temporary.parent.mkdir(parents=True, exist_ok=True)
+            await temporary.write_text(ignore_contents)
+            staged.append((temporary, ignore_destination))
     except (OSError, TypeError, ValueError) as error:
-        _clean_up_temporary(temporary_paths, index_temporary, ignore_temporary)
+        await _clean_up_paths(temporary_paths)
         raise SkillInstallationError(
             "unable to stage the Specle distribution"
         ) from error
-
-    all_staged = [*staged, (index_temporary, index_destination)]
-    if ignore_temporary is not None:
-        all_staged.append((ignore_temporary, ignore_destination))
-    _apply_staged_changes(all_staged, [*obsolete_skills, *obsolete_policies])
-    return tuple(destinations)
+    except BaseException:
+        with anyio.CancelScope(shield=True):
+            await _clean_up_paths(temporary_paths)
+        raise
+    with anyio.CancelScope(shield=True):
+        await _apply_staged_changes(staged, [*obsolete_skills, *obsolete_policies])
+    return tuple(Path(path) for path in destinations)
 
 
 def _parse_requires(value: list[str], path: Path) -> tuple[str, ...]:
@@ -946,151 +953,188 @@ def _validate_skill_dependencies(skills: tuple[SkillMetadata, ...]) -> None:
                 )
 
 
-def _temporary_sibling(destination: Path) -> Path:
-    """Return a unique temporary path in the destination's parent directory."""
+async def _copy_file(source: anyio.Path, destination: anyio.Path) -> None:
+    """Copy one file through AnyIO paths, creating its destination parent."""
+    await destination.parent.mkdir(parents=True, exist_ok=True)
+    await destination.write_bytes(await source.read_bytes())
+    await destination.chmod((await source.stat()).st_mode & 0o7777)
+
+
+def _temporary_sibling(destination: anyio.Path) -> anyio.Path:
     return destination.parent / f".specle-tmp-{destination.name}-{uuid.uuid4().hex}"
 
 
-def _backup_sibling(destination: Path) -> Path:
-    """Return a unique backup path in the destination's parent directory."""
-    return destination.parent / f".specle-backup-{destination.name}-{uuid.uuid4().hex}"
+async def _copy_tree(source: anyio.Path, destination: anyio.Path) -> None:
+    """Copy one directory tree through AnyIO paths."""
+    await destination.mkdir(parents=True)
+    async for child in source.iterdir():
+        target = destination / child.name
+        if await child.is_dir():
+            await _copy_tree(child, target)
+        else:
+            await _copy_file(child, target)
 
 
-def _replace_staged_destination(
-    temporary: Path | None,
-    destination: Path,
-    backups: list[tuple[Path, Path]],
-) -> bool:
-    """Install a staged item, retaining an existing destination as a backup."""
-    if temporary is None:
-        raise SkillInstallationError(f"missing staged destination for {destination}")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    existed = destination.exists()
-    if existed:
-        _backup_existing_destination(destination, backups)
-    temporary.replace(destination)
-    return not existed
+async def _remove_path(path: anyio.Path) -> None:
+    """Remove a file or directory tree through AnyIO paths when present."""
+    if await path.is_symlink():
+        await path.unlink()
+        return
+    if not await path.exists():
+        return
+    if await path.is_dir():
+        async for child in path.iterdir():
+            await _remove_path(child)
+        await path.rmdir()
+    else:
+        await path.unlink()
 
 
-def _apply_staged_changes(
-    staged: list[tuple[Path, Path]],
-    removals: list[Path],
+async def _clean_up_paths(paths: list[anyio.Path]) -> None:
+    for path in paths:
+        with suppress(OSError):
+            await _remove_path(path)
+
+
+async def _missing_parent_directories(
+    directory: anyio.Path, root: anyio.Path
+) -> list[anyio.Path]:
+    missing: list[anyio.Path] = []
+    while directory != root and not await directory.exists():
+        missing.append(directory)
+        directory = directory.parent
+    return missing
+
+
+async def _remove_empty_directories(directories: list[anyio.Path]) -> None:
+    for directory in sorted(
+        set(directories), key=lambda path: len(path.parts), reverse=True
+    ):
+        with suppress(OSError):
+            await directory.rmdir()
+
+
+async def _remove_empty_parents(removals: list[anyio.Path], root: anyio.Path) -> None:
+    for removed in removals:
+        parent = removed.parent
+        while parent != root:
+            try:
+                await parent.rmdir()
+            except OSError:
+                break
+            parent = parent.parent
+
+
+async def _apply_staged_changes(
+    staged: list[tuple[anyio.Path, anyio.Path]],
+    removals: list[anyio.Path],
     *,
-    after_apply: Callable[[], None] | None = None,
-    cleanup_directories: list[Path] | None = None,
+    after_apply: Callable[[], Awaitable[None]] | None = None,
+    cleanup_directories: list[anyio.Path] | None = None,
 ) -> None:
-    """Apply staged replacements and removals with shared backup recovery."""
-    backups: list[tuple[Path, Path]] = []
-    created_destinations: list[Path] = []
-    destination: Path | None = None
+    """Atomically replace staged destinations with recoverable backups."""
+    backups: list[tuple[anyio.Path, anyio.Path]] = []
+    created: list[anyio.Path] = []
+    destination: anyio.Path | None = None
     try:
         for destination in removals:
-            if destination.exists():
-                _backup_existing_destination(destination, backups)
+            if await destination.exists():
+                backup = (
+                    destination.parent
+                    / f".specle-backup-{destination.name}-{uuid.uuid4().hex}"
+                )
+                await destination.replace(backup)
+                backups.append((destination, backup))
         for temporary, destination in staged:
-            if _replace_staged_destination(temporary, destination, backups):
-                created_destinations.append(destination)
+            await destination.parent.mkdir(parents=True, exist_ok=True)
+            if await destination.exists():
+                backup = (
+                    destination.parent
+                    / f".specle-backup-{destination.name}-{uuid.uuid4().hex}"
+                )
+                await destination.replace(backup)
+                backups.append((destination, backup))
+            else:
+                created.append(destination)
+            await temporary.replace(destination)
         if after_apply is not None:
-            after_apply()
+            await after_apply()
     except OSError as error:
-        _clean_up_temporary(created_destinations, None)
-        _remove_empty_directories(cleanup_directories or [])
-        unrestored = _restore_backups(backups)
-        _clean_up_temporary([temporary for temporary, _ in staged], None)
+        failed_destination = destination
+        await _clean_up_paths(created)
+        await _remove_empty_directories(cleanup_directories or [])
+        unrestored: list[anyio.Path] = []
+        for destination, backup in reversed(backups):
+            try:
+                await _remove_path(destination)
+                if await backup.exists():
+                    await backup.replace(destination)
+            except OSError:
+                if await backup.exists():
+                    unrestored.append(backup)
+        await _clean_up_paths([temporary for temporary, _ in staged])
         recovery = ""
         if unrestored:
             recovery = "; retained recovery backup(s): " + ", ".join(
                 str(backup) for backup in unrestored
             )
         raise SkillInstallationError(
-            f"unable to replace managed destination: {destination}{recovery}"
+            f"unable to replace managed destination: {failed_destination}{recovery}"
         ) from error
-    _clean_up_temporary([backup for _, backup in backups], None)
+    await _clean_up_paths([backup for _, backup in backups])
 
 
-def _remove_empty_parents(removals: list[Path], root: Path) -> None:
-    """Remove only now-empty managed parent directories after safe file removals."""
-    for removed in removals:
-        parent = removed.parent
-        while parent != root:
-            try:
-                parent.rmdir()
-            except OSError:
-                break
-            parent = parent.parent
-
-
-def _missing_parent_directories(directory: Path, root: Path) -> tuple[Path, ...]:
-    """Return the absent parent directories that staging will create below root."""
-    missing: list[Path] = []
-    while directory != root and not directory.exists():
-        missing.append(directory)
-        directory = directory.parent
-    return tuple(missing)
-
-
-def _remove_empty_directories(directories: list[Path]) -> None:
-    """Remove only explicitly recorded directories when they remain empty."""
-    for directory in sorted(
-        set(directories), key=lambda path: len(path.parts), reverse=True
-    ):
-        with suppress(OSError):
-            directory.rmdir()
-
-
-def _discover_obsolete_managed_skills(
-    skills_root: Path, incoming_names: set[str]
-) -> tuple[Path, ...]:
-    """Return installed Specle skill directories absent from an incoming inventory."""
-    if not skills_root.is_dir():
-        return ()
-
-    obsolete: list[Path] = []
-    for directory in sorted(skills_root.iterdir()):
-        if not directory.is_dir() or directory.name in incoming_names:
-            continue
-        skill_file = directory / "SKILL.md"
-        if skill_file.is_file() and _has_specle_group(skill_file):
-            obsolete.append(directory)
-    return tuple(obsolete)
-
-
-def _discover_obsolete_policies(
-    policies_root: Path, incoming_names: set[str]
-) -> tuple[Path, ...]:
-    """Return owned policy files absent from the incoming inventory."""
-    if not policies_root.is_dir():
-        return ()
-    return tuple(
-        path
-        for path in sorted(policies_root.glob("*.md"))
-        if path.name not in incoming_names and _has_specle_policy(path)
+async def _local_runtime_ignore_contents(destination: anyio.Path) -> str | None:
+    required = ("/current-change", "/context.json")
+    try:
+        existing = await destination.read_text()
+    except FileNotFoundError:
+        return "\n".join(required) + "\n"
+    missing = [entry for entry in required if entry not in existing.splitlines()]
+    if not missing:
+        return None
+    return (
+        existing
+        + ("" if not existing or existing.endswith("\n") else "\n")
+        + "\n".join(missing)
+        + "\n"
     )
 
 
-def _local_runtime_ignore_contents(destination: Path) -> str | None:
-    """Return merged local-runtime ignore content, or None when already current."""
-    required = ("/current-change", "/context.json")
-    try:
-        existing = destination.read_text()
-    except FileNotFoundError:
-        return "\n".join(required) + "\n"
+async def _discover_obsolete_managed_skills(
+    skills_root: anyio.Path, incoming_names: set[str]
+) -> tuple[anyio.Path, ...]:
+    if not await skills_root.is_dir():
+        return ()
+    obsolete: list[anyio.Path] = []
+    async for directory in skills_root.iterdir():
+        if not await directory.is_dir() or directory.name in incoming_names:
+            continue
+        try:
+            contents = await read_regular_text(directory / "SKILL.md")
+        except (FileNotFoundError, OSError):
+            continue
+        if _has_specle_group_text(contents):
+            obsolete.append(directory)
+    return tuple(sorted(obsolete, key=lambda path: path.name))
 
-    lines = existing.splitlines()
-    missing = [entry for entry in required if entry not in lines]
-    if not missing:
-        return None
-    separator = "" if not existing or existing.endswith("\n") else "\n"
-    return existing + separator + "\n".join(missing) + "\n"
 
-
-def _has_specle_group(path: Path) -> bool:
-    """Return whether a skill frontmatter block declares the Specle marker."""
-    try:
-        lines = path.read_text().splitlines()
-    except OSError:
-        return False
-    return _has_specle_group_text("\n".join(lines))
+async def _discover_obsolete_policies(
+    policies_root: anyio.Path, incoming_names: set[str]
+) -> tuple[anyio.Path, ...]:
+    if not await policies_root.is_dir():
+        return ()
+    obsolete: list[anyio.Path] = []
+    async for path in policies_root.glob("*.md"):
+        if path.name in incoming_names:
+            continue
+        try:
+            contents = await read_regular_text(path)
+        except (FileNotFoundError, OSError):
+            continue
+        if _has_specle_policy_text(contents):
+            obsolete.append(path)
+    return tuple(sorted(obsolete, key=lambda path: path.name))
 
 
 def _has_specle_group_text(contents: str) -> bool:
@@ -1106,14 +1150,6 @@ def _has_specle_group_text(contents: str) -> bool:
     return False
 
 
-def _has_specle_policy(path: Path) -> bool:
-    """Return whether a policy frontmatter block declares Specle ownership."""
-    try:
-        return _has_specle_policy_text(read_regular_text(path))
-    except (FileNotFoundError, OSError):
-        return False
-
-
 def _has_specle_policy_text(contents: str) -> bool:
     """Classify a buffered policy document by its ownership marker."""
     lines = contents.splitlines()
@@ -1125,51 +1161,6 @@ def _has_specle_policy_text(contents: str) -> bool:
         if line == "specle_policy: true":
             return True
     return False
-
-
-def _backup_existing_destination(
-    destination: Path,
-    backups: list[tuple[Path, Path]],
-) -> None:
-    """Move an existing destination to a same-parent recovery backup."""
-    backup = _backup_sibling(destination)
-    destination.replace(backup)
-    backups.append((destination, backup))
-
-
-def _restore_backups(backups: list[tuple[Path, Path]]) -> tuple[Path, ...]:
-    """Restore retained destinations and return backups that could not be restored."""
-    unrestored: list[Path] = []
-    for destination, backup in reversed(backups):
-        try:
-            if destination.is_dir():
-                shutil.rmtree(destination)
-            elif destination.exists():
-                destination.unlink()
-            if backup.exists():
-                backup.replace(destination)
-        except OSError:
-            if backup.exists():
-                unrestored.append(backup)
-    return tuple(unrestored)
-
-
-def _clean_up_temporary(
-    staged: list[Path],
-    index_temporary: Path | None,
-    ignore_temporary: Path | None = None,
-) -> None:
-    """Remove staging paths after a preparation failure."""
-    for temporary in (*staged, index_temporary, ignore_temporary):
-        if temporary is None:
-            continue
-        try:
-            if temporary.is_dir():
-                shutil.rmtree(temporary)
-            elif temporary.exists():
-                temporary.unlink()
-        except OSError:
-            continue
 
 
 def _read_skill_frontmatter(path: Path, contents: str) -> SkillFrontmatter:
@@ -1211,9 +1202,9 @@ def _read_skill_frontmatter(path: Path, contents: str) -> SkillFrontmatter:
     return frontmatter
 
 
-def _frontmatter_text(path: Path, contents: str | None = None) -> str:
+def _frontmatter_text(path: Path, contents: str) -> str:
     """Return delimited frontmatter text or raise a path-specific metadata error."""
-    lines = (path.read_text() if contents is None else contents).splitlines()
+    lines = contents.splitlines()
     if not lines or lines[0] != "---":
         raise SkillMetadataError(f"{path} has no frontmatter")
 

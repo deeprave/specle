@@ -27,6 +27,8 @@ lifecycle:
 
 Improve structure while keeping behaviour identical, with explicit invariants and tests as the guardrail, without displacing unrelated active work.
 
+A change name MUST be Unicode NFC-normalised and consist of non-empty components of Unicode alphanumeric characters or Unicode combining marks, separated by single ASCII hyphens (`-`); leading, trailing, and repeated hyphens are invalid. The entire name MUST NOT be `CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, or `LPT1`–`LPT9`, case-insensitively. A new slug SHOULD be verb-led, for example `refactor-`, `simplify-`, or `extract-`, but this is a recommendation rather than a validity requirement.
+
 ## Workflow
 
 Before applying or recording a lifecycle transition, consult this skill's `lifecycle` frontmatter declaration.

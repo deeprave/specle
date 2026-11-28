@@ -1,8 +1,11 @@
+import pytest
+
 from specle.inventory import packaged_distribution_root
 
 
-def test_packaged_distribution_exposes_skills_and_policies() -> None:
-    root = packaged_distribution_root()
+@pytest.mark.anyio
+async def test_packaged_distribution_exposes_skills_and_policies() -> None:
+    root = await packaged_distribution_root()
 
     assert root.name == "blueprints"
     assert root.joinpath("AGENTS.md").is_file()

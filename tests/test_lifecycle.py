@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
 
-from specle.change_state import read_change_state, resolve_change
+import pytest
+
+from specle.change_state import ChangeRecord, read_change_state, resolve_change
 from specle.inventory import (
     LifecycleDeclaration,
     LifecycleState,
@@ -10,20 +12,54 @@ from specle.inventory import (
     analyse_lifecycle,
     scan_managed_inventory,
 )
-from specle.lifecycle import validate_runtime_records
+from specle.lifecycle import next_lifecycle_action, validate_runtime_records
 from specle.schema_registry import SCHEMA_IDENTIFIERS
 
 
-def test_packaged_lifecycle_has_no_graph_diagnostics() -> None:
+@pytest.mark.anyio
+async def test_packaged_lifecycle_has_no_graph_diagnostics() -> None:
     root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
-    assert scan_managed_inventory(root.parent).lifecycle.diagnostics == ()
+    assert (await scan_managed_inventory(root.parent)).lifecycle.diagnostics == ()
 
 
-def test_archived_delivery_allows_only_completion_resumption() -> None:
+@pytest.mark.anyio
+async def test_next_lifecycle_action_uses_kind_and_selection_context() -> None:
+    planned_change = ChangeRecord(
+        "normal",
+        Path("normal"),
+        {"kind": "change", "status": "planned"},
+        False,
+    )
+    planned_bugfix = ChangeRecord(
+        "repair",
+        Path("repair"),
+        {"kind": "bugfix", "status": "planned"},
+        False,
+    )
+
+    assert await next_lifecycle_action(planned_change, None) == "activate"
+    assert await next_lifecycle_action(planned_change, "normal") == "estimate"
+    assert await next_lifecycle_action(planned_bugfix, None) == "bugfix"
+
+
+@pytest.mark.anyio
+async def test_defined_spike_next_action_depends_on_selection() -> None:
+    spike = ChangeRecord(
+        "investigate",
+        Path("investigate"),
+        {"kind": "spike", "status": "defined"},
+        False,
+    )
+    assert await next_lifecycle_action(spike, None) == "activate"
+    assert await next_lifecycle_action(spike, "investigate") == "spike"
+
+
+@pytest.mark.anyio
+async def test_archived_delivery_allows_only_completion_resumption() -> None:
     root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
     skills = {
         record.metadata.name: record.metadata
-        for record in scan_managed_inventory(root.parent).skills
+        for record in (await scan_managed_inventory(root.parent)).skills
     }
 
     assert "wrapup" not in skills
@@ -42,7 +78,8 @@ def test_archived_delivery_allows_only_completion_resumption() -> None:
     assert "committed" in lifecycle.accepts
 
 
-def test_reports_missing_next_skill_and_dead_end() -> None:
+@pytest.mark.anyio
+async def test_reports_missing_next_skill_and_dead_end() -> None:
     skills = (
         _skill(
             "start",
@@ -66,7 +103,8 @@ def test_reports_missing_next_skill_and_dead_end() -> None:
     assert {"missing-next-skill", "missing-terminal", "dead-end-status"} <= codes
 
 
-def test_nested_selectors_participate_in_status_graph() -> None:
+@pytest.mark.anyio
+async def test_nested_selectors_participate_in_status_graph() -> None:
     skills = (
         _skill(
             "prepare",
@@ -88,7 +126,8 @@ def test_nested_selectors_participate_in_status_graph() -> None:
     assert analyse_lifecycle(skills).diagnostics == ()
 
 
-def test_reports_unreachable_and_contradictory_transitions() -> None:
+@pytest.mark.anyio
+async def test_reports_unreachable_and_contradictory_transitions() -> None:
     skills = (
         _skill(
             "start",
@@ -136,59 +175,65 @@ def test_reports_unreachable_and_contradictory_transitions() -> None:
     } <= codes
 
 
-def test_validates_per_change_state_and_ignored_selection(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_validates_per_change_state_and_ignored_selection(tmp_path: Path) -> None:
     target = tmp_path / "project"
     _write_status(target, "example", status="defined")
     selector = target / ".specle" / "current-change"
     selector.write_text("example\n")
 
-    assert validate_runtime_records(target, _runtime_skills()) == ()
+    assert await validate_runtime_records(target, _runtime_skills()) == ()
 
 
-def test_ignores_malformed_local_context_when_resolving_runtime_state(
+@pytest.mark.anyio
+async def test_ignores_malformed_local_context_when_resolving_runtime_state(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "project"
     _write_status(target, "example", status="defined")
     (target / ".specle" / "context.json").write_text("not valid json\n")
 
-    snapshot = read_change_state(target)
+    snapshot = await read_change_state(target)
 
     assert resolve_change(snapshot, "example").name == "example"
-    assert validate_runtime_records(target, _runtime_skills()) == ()
+    assert await validate_runtime_records(target, _runtime_skills()) == ()
 
 
-def test_accepts_a_selected_archived_change_awaiting_completion_resumption(
+@pytest.mark.anyio
+async def test_accepts_a_selected_archived_change_awaiting_completion_resumption(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "project"
     _write_status(target, "example", status="complete", archived=True)
     (target / ".specle" / "current-change").write_text("example\n")
 
-    assert validate_runtime_records(target, _runtime_skills()) == ()
+    assert await validate_runtime_records(target, _runtime_skills()) == ()
 
 
-def test_accepts_unicode_change_names_with_ascii_hyphen_separators(
+@pytest.mark.anyio
+async def test_accepts_unicode_change_names_with_ascii_hyphen_separators(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "project"
     _write_status(target, "révision-東京", status="defined")
     (target / ".specle" / "current-change").write_text("révision-東京\n")
 
-    assert validate_runtime_records(target, _runtime_skills()) == ()
+    assert await validate_runtime_records(target, _runtime_skills()) == ()
 
 
-def test_reports_non_ascii_dash_in_a_change_name(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_reports_non_ascii_dash_in_a_change_name(tmp_path: Path) -> None:
     target = tmp_path / "project"
     _write_status(target, "révision—東京", status="defined")
 
-    diagnostics = validate_runtime_records(target, _runtime_skills())
+    diagnostics = await validate_runtime_records(target, _runtime_skills())
 
     assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
     assert "invalid change directory name" in diagnostics[0].message
 
 
-def test_reports_noncanonical_durable_timestamp(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_reports_noncanonical_durable_timestamp(tmp_path: Path) -> None:
     target = tmp_path / "project"
     _write_status(target, "example", status="defined")
     status_path = target / ".specle" / "changes" / "example" / "status.json"
@@ -196,42 +241,48 @@ def test_reports_noncanonical_durable_timestamp(tmp_path: Path) -> None:
     status["created_at"] = "2026-11-21T20:14:00+11:00"
     status_path.write_text(json.dumps(status))
 
-    diagnostics = validate_runtime_records(target, _runtime_skills())
+    diagnostics = await validate_runtime_records(target, _runtime_skills())
 
     assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
     assert "failed type" in diagnostics[0].message
 
 
-def test_reports_invalid_status_and_archived_non_completion(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_reports_invalid_status_and_archived_non_completion(
+    tmp_path: Path,
+) -> None:
     target = tmp_path / "project"
     _write_status(target, "example", status="unknown")
     _write_status(target, "archived", status="defined", archived=True)
 
     codes = {
         diagnostic.code
-        for diagnostic in validate_runtime_records(target, _runtime_skills())
+        for diagnostic in await validate_runtime_records(target, _runtime_skills())
     }
 
     assert {"invalid-status", "archived-not-complete"} <= codes
 
 
-def test_accepts_archived_cancelled_change(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_accepts_archived_cancelled_change(tmp_path: Path) -> None:
     target = tmp_path / "project"
     _write_status(target, "cancelled", status="cancelled", archived=True)
 
-    assert validate_runtime_records(target, _runtime_skills()) == ()
+    assert await validate_runtime_records(target, _runtime_skills()) == ()
 
 
-def test_accepts_archived_cancelled_spike(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_accepts_archived_cancelled_spike(tmp_path: Path) -> None:
     target = tmp_path / "project"
     _write_status(
         target, "cancelled-spike", status="cancelled", archived=True, kind="spike"
     )
 
-    assert validate_runtime_records(target, _runtime_skills()) == ()
+    assert await validate_runtime_records(target, _runtime_skills()) == ()
 
 
-def test_packaged_runtime_accepts_archived_cancelled_records_for_every_kind(
+@pytest.mark.anyio
+async def test_packaged_runtime_accepts_archived_cancelled_records_for_every_kind(
     tmp_path: Path,
 ) -> None:
     root = Path(__file__).parents[1] / "src" / "specle" / "blueprints" / "skills"
@@ -241,24 +292,26 @@ def test_packaged_runtime_accepts_archived_cancelled_records_for_every_kind(
         _write_status(target, name, status="cancelled", archived=True, kind=kind)
 
     skills = tuple(
-        record.metadata for record in scan_managed_inventory(root.parent).skills
+        record.metadata for record in (await scan_managed_inventory(root.parent)).skills
     )
-    assert validate_runtime_records(target, skills) == ()
+    assert await validate_runtime_records(target, skills) == ()
 
 
-def test_rejects_active_cancelled_record(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_rejects_active_cancelled_record(tmp_path: Path) -> None:
     target = tmp_path / "project"
     _write_status(target, "active", status="cancelled")
 
     codes = {
         diagnostic.code
-        for diagnostic in validate_runtime_records(target, _runtime_skills())
+        for diagnostic in await validate_runtime_records(target, _runtime_skills())
     }
 
     assert codes == {"cancelled-not-archived"}
 
 
-def test_accepts_resolved_review_evidence_for_an_approved_change(
+@pytest.mark.anyio
+async def test_accepts_resolved_review_evidence_for_an_approved_change(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "project"
@@ -279,10 +332,11 @@ def test_accepts_resolved_review_evidence_for_an_approved_change(
         ],
     )
 
-    assert validate_runtime_records(target, _runtime_skills()) == ()
+    assert await validate_runtime_records(target, _runtime_skills()) == ()
 
 
-def test_accepts_direct_delivery_evidence_for_a_committed_change(
+@pytest.mark.anyio
+async def test_accepts_direct_delivery_evidence_for_a_committed_change(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "project"
@@ -292,10 +346,13 @@ def test_accepts_direct_delivery_evidence_for_a_committed_change(
     status["delivery"] = {"branch": "main", "commit": "abcdef0"}
     status_path.write_text(json.dumps(status))
 
-    assert validate_runtime_records(target, _runtime_skills()) == ()
+    assert await validate_runtime_records(target, _runtime_skills()) == ()
 
 
-def test_rejects_unsettled_or_missing_resolved_review_evidence(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_rejects_unsettled_or_missing_resolved_review_evidence(
+    tmp_path: Path,
+) -> None:
     target = tmp_path / "project"
     _write_status(target, "missing", status="approved", review_status="resolved")
     _write_status(target, "unsettled", status="approved", review_status="resolved")
@@ -303,55 +360,61 @@ def test_rejects_unsettled_or_missing_resolved_review_evidence(tmp_path: Path) -
     _write_status(target, "unreadable", status="approved", review_status="resolved")
     (target / ".specle" / "changes" / "unreadable" / "review-findings.json").mkdir()
 
-    diagnostics = validate_runtime_records(target, _runtime_skills())
+    diagnostics = await validate_runtime_records(target, _runtime_skills())
 
     assert {diagnostic.code for diagnostic in diagnostics} == {"missing-evidence"}
     assert len(diagnostics) == 3
     assert all("invalid review" in diagnostic.message for diagnostic in diagnostics)
 
 
-def test_rejects_unsupported_review_evidence_for_an_approved_change(
+@pytest.mark.anyio
+async def test_rejects_unsupported_review_evidence_for_an_approved_change(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "project"
     _write_status(target, "example", status="approved", review_status="not-run")
 
-    diagnostics = validate_runtime_records(target, _runtime_skills())
+    diagnostics = await validate_runtime_records(target, _runtime_skills())
 
     assert {diagnostic.code for diagnostic in diagnostics} == {"missing-evidence"}
     assert "invalid review" in diagnostics[0].message
 
 
-def test_reports_duplicate_change_names_across_active_and_archive(
+@pytest.mark.anyio
+async def test_reports_duplicate_change_names_across_active_and_archive(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "project"
     _write_status(target, "example", status="defined")
     _write_status(target, "example", status="complete", archived=True)
 
-    diagnostics = validate_runtime_records(target, _runtime_skills())
+    diagnostics = await validate_runtime_records(target, _runtime_skills())
 
     assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
     assert "duplicate change name" in diagnostics[0].message
 
 
-def test_reports_case_folded_duplicate_change_names(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_reports_case_folded_duplicate_change_names(tmp_path: Path) -> None:
     target = tmp_path / "project"
     _write_status(target, "Foo", status="defined")
     _write_status(target, "foo", status="complete", archived=True)
 
-    diagnostics = validate_runtime_records(target, _runtime_skills())
+    diagnostics = await validate_runtime_records(target, _runtime_skills())
 
     assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
     assert "duplicate change name" in diagnostics[0].message
 
 
-def test_reports_non_nfc_and_windows_reserved_change_names(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_reports_non_nfc_and_windows_reserved_change_names(
+    tmp_path: Path,
+) -> None:
     target = tmp_path / "project"
     _write_status(target, "cafe\u0301", status="defined")
     _write_status(target, "CON", status="defined")
 
-    diagnostics = validate_runtime_records(target, _runtime_skills())
+    diagnostics = await validate_runtime_records(target, _runtime_skills())
 
     assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
     assert len(diagnostics) == 2
@@ -361,7 +424,8 @@ def test_reports_non_nfc_and_windows_reserved_change_names(tmp_path: Path) -> No
     )
 
 
-def test_reports_an_implementation_status_for_a_spike(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_reports_an_implementation_status_for_a_spike(tmp_path: Path) -> None:
     target = tmp_path / "project"
     _write_status(target, "example", status="building", kind="spike")
     skills = (
@@ -387,25 +451,29 @@ def test_reports_an_implementation_status_for_a_spike(tmp_path: Path) -> None:
         ),
     )
 
-    diagnostics = validate_runtime_records(target, skills)
+    diagnostics = await validate_runtime_records(target, skills)
 
     assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-status"}
 
 
-def test_reports_malformed_status_and_invalid_local_selector(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_reports_malformed_status_and_invalid_local_selector(
+    tmp_path: Path,
+) -> None:
     target = tmp_path / "project"
     directory = target / ".specle" / "changes" / "example"
     directory.mkdir(parents=True)
     (directory / "status.json").write_text("{")
     (target / ".specle" / "current-change").write_text("not-a-change\nsecond\n")
 
-    diagnostics = validate_runtime_records(target, _runtime_skills())
+    diagnostics = await validate_runtime_records(target, _runtime_skills())
 
     assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
     assert "malformed JSON" in diagnostics[0].message
 
 
-def test_accepts_a_status_symlink_to_a_regular_file(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_accepts_a_status_symlink_to_a_regular_file(tmp_path: Path) -> None:
     target = tmp_path / "project"
     name = "example"
     _write_status(target, name, status="defined")
@@ -415,23 +483,25 @@ def test_accepts_a_status_symlink_to_a_regular_file(tmp_path: Path) -> None:
     status_path.unlink()
     status_path.symlink_to(source)
 
-    assert validate_runtime_records(target, _runtime_skills()) == ()
+    assert await validate_runtime_records(target, _runtime_skills()) == ()
 
 
-def test_reports_a_non_regular_status_before_reading_it(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_reports_a_non_regular_status_before_reading_it(tmp_path: Path) -> None:
     target = tmp_path / "project"
     name = "example"
     directory = target / ".specle" / "changes" / name
     directory.mkdir(parents=True)
     (directory / "status.json").symlink_to(tmp_path, target_is_directory=True)
 
-    diagnostics = validate_runtime_records(target, _runtime_skills())
+    diagnostics = await validate_runtime_records(target, _runtime_skills())
 
     assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
     assert "not a regular file" in diagnostics[0].message
 
 
-def test_runtime_validation_reports_malformed_reciprocal_relationship(
+@pytest.mark.anyio
+async def test_runtime_validation_reports_malformed_reciprocal_relationship(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "project"
@@ -463,7 +533,7 @@ def test_runtime_validation_reports_malformed_reciprocal_relationship(
         ],
     )
 
-    diagnostics = validate_runtime_records(target, _runtime_skills())
+    diagnostics = await validate_runtime_records(target, _runtime_skills())
 
     assert {diagnostic.code for diagnostic in diagnostics} == {
         "invalid-sidecar-relationship",
@@ -471,7 +541,8 @@ def test_runtime_validation_reports_malformed_reciprocal_relationship(
     }
 
 
-def test_runtime_validation_reports_an_orphaned_sidecar_relationship(
+@pytest.mark.anyio
+async def test_runtime_validation_reports_an_orphaned_sidecar_relationship(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "project"
@@ -490,14 +561,15 @@ def test_runtime_validation_reports_an_orphaned_sidecar_relationship(
         ],
     )
 
-    diagnostics = validate_runtime_records(target, _runtime_skills())
+    diagnostics = await validate_runtime_records(target, _runtime_skills())
 
     assert {diagnostic.code for diagnostic in diagnostics} == {
         "missing-reciprocal-parent"
     }
 
 
-def test_runtime_validation_preserves_legacy_archived_relationships(
+@pytest.mark.anyio
+async def test_runtime_validation_preserves_legacy_archived_relationships(
     tmp_path: Path,
 ) -> None:
     target = tmp_path / "project"
@@ -516,16 +588,17 @@ def test_runtime_validation_preserves_legacy_archived_relationships(
         ],
     )
 
-    assert validate_runtime_records(target, _runtime_skills()) == ()
+    assert await validate_runtime_records(target, _runtime_skills()) == ()
 
 
-def test_reports_a_broken_current_change_symlink(tmp_path: Path) -> None:
+@pytest.mark.anyio
+async def test_reports_a_broken_current_change_symlink(tmp_path: Path) -> None:
     target = tmp_path / "project"
     _write_status(target, "example", status="defined")
     selector = target / ".specle" / "current-change"
     selector.symlink_to(tmp_path / "missing-current-change")
 
-    diagnostics = validate_runtime_records(target, _runtime_skills())
+    diagnostics = await validate_runtime_records(target, _runtime_skills())
 
     assert {diagnostic.code for diagnostic in diagnostics} == {"invalid-runtime-state"}
     assert "not a regular file" in diagnostics[0].message

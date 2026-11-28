@@ -3,11 +3,18 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from specle.change_state import ChangeRecord, ChangeStateSnapshot, read_change_state
+import anyio
+
+from specle.change_state import (
+    ChangeRecord,
+    ChangeStateSnapshot,
+    read_change_state,
+)
 from specle.file_reading import read_regular_text
 from specle.inventory import (
     LifecycleDiagnostic,
@@ -23,6 +30,72 @@ class RuntimeSnapshot:
 
     state: ChangeStateSnapshot
     diagnostics: tuple[LifecycleDiagnostic, ...]
+
+
+async def next_lifecycle_action(
+    record: ChangeRecord, selected_name: str | None
+) -> str | None:
+    """Return the next owning workflow action for one listed durable record."""
+    kind = record.status.get("kind")
+    status = record.status.get("status")
+    if not isinstance(kind, str) or not isinstance(status, str):
+        return None
+    if kind == "spike" and status == "defined" and record.name == selected_name:
+        return "spike"
+    if kind in {"bugfix", "refactor"}:
+        if status in {"defined", "planned"}:
+            return kind
+        if status == "building":
+            return "verify"
+    if (
+        kind == "change"
+        and record.name == selected_name
+        and status in {"defined", "estimated", "designed", "planned"}
+    ):
+        directory = anyio.Path(record.directory)
+        estimate = directory / "estimate.md"
+        if not await estimate.is_file():
+            return "estimate"
+        try:
+            contents = await read_regular_text(estimate)
+        except (OSError, UnicodeDecodeError):
+            return "estimate"
+        small = bool(
+            re.search(r"(?im)^##\s+T-shirt size\s*\n\s*S\s*$", contents)
+            or re.search(
+                r"(?im)^\s*[-*]\s+\*\*T-shirt size:?\*\*\s*:?\s*S\s*$", contents
+            )
+        )
+        if not small and not await (directory / "design.md").is_file():
+            return "design"
+        if not await (directory / "tasks.md").is_file():
+            return "tasks"
+        return "build"
+    if (
+        kind == "change"
+        and record.name != selected_name
+        and status
+        in {
+            "defined",
+            "estimated",
+            "designed",
+            "planned",
+        }
+    ):
+        return "activate"
+    return {
+        "defined": "activate",
+        "estimated": "design",
+        "designed": "tasks",
+        "planned": "build",
+        "spiking": "spike",
+        "building": "build",
+        "verified": "review",
+        "approved": "commit",
+        "committed": "complete",
+        "review-findings": "triage",
+        "triaged": "resolve",
+    }.get(status)
 
 
 def _reciprocal_relationship_count(sidecar: ChangeRecord, parent_name: str) -> int:
@@ -46,18 +119,18 @@ def _sidecar_diagnostic(
     )
 
 
-def validate_runtime_records(
+async def validate_runtime_records(
     target_directory: Path,
     skills: Iterable[SkillMetadata],
     snapshot: RuntimeSnapshot | None = None,
 ) -> tuple[LifecycleDiagnostic, ...]:
     """Validate discovered per-change records without rejecting future fields."""
     skills = tuple(skills)
-    snapshot = snapshot or read_runtime_snapshot(target_directory)
+    snapshot = snapshot or await read_runtime_snapshot(target_directory)
     diagnostics = list(snapshot.diagnostics)
     terminal_statuses = _terminal_statuses(skills)
     for record in (*snapshot.state.active, *snapshot.state.archived):
-        _validate_record(
+        await _validate_record(
             record.status,
             record.directory / "status.json",
             _lifecycle_statuses_for_kind(skills, record.status.get("kind")),
@@ -174,9 +247,9 @@ def _validate_concurrent_relationships(
                     )
 
 
-def read_runtime_snapshot(target_directory: Path) -> RuntimeSnapshot:
-    """Read durable records once for validation and optional reporting."""
-    state = read_change_state(target_directory)
+async def read_runtime_snapshot(target_directory: Path) -> RuntimeSnapshot:
+    """Asynchronously read durable records for validation and reporting."""
+    state = await read_change_state(target_directory)
     diagnostics = tuple(
         LifecycleDiagnostic("invalid-runtime-state", message)
         for message in state.diagnostics
@@ -184,7 +257,7 @@ def read_runtime_snapshot(target_directory: Path) -> RuntimeSnapshot:
     return RuntimeSnapshot(state, diagnostics)
 
 
-def _validate_record(
+async def _validate_record(
     record: dict[str, object],
     path: Path,
     statuses: set[str],
@@ -200,7 +273,7 @@ def _validate_record(
         diagnostics.append(_diagnostic(path, "missing-evidence", "verification"))
     review_status = _nested_status(record, "review")
     if status == "approved" and review_status == "resolved":
-        if not _has_settled_resolved_review(path.parent / "review-findings.json"):
+        if not await _has_settled_resolved_review(path.parent / "review-findings.json"):
             diagnostics.append(_diagnostic(path, "missing-evidence", "review"))
     elif status == "approved" and review_status != "pass":
         diagnostics.append(_diagnostic(path, "missing-evidence", "review"))
@@ -224,9 +297,9 @@ def _nested_status(record: dict[str, object], name: str) -> object:
     return value.get("status") if isinstance(value, dict) else None
 
 
-def _has_settled_resolved_review(path: Path) -> bool:
+async def _has_settled_resolved_review(path: Path) -> bool:
     try:
-        value = json.loads(read_regular_text(path))
+        value = json.loads(await read_regular_text(anyio.Path(path)))
     except (FileNotFoundError, OSError, UnicodeDecodeError, json.JSONDecodeError):
         return False
     if not isinstance(value, dict):

@@ -2,20 +2,20 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+import anyio
 
 
-def read_regular_text(path: Path) -> str:
-    """Read text only when *path* resolves to a regular file."""
-    return read_regular_bytes(path).decode()
+async def read_regular_text(path: anyio.Path) -> str:
+    """Asynchronously read text only when *path* resolves to a regular file."""
+    return (await read_regular_bytes(path)).decode()
 
 
-def read_regular_bytes(path: Path) -> bytes:
-    """Read bytes only when *path* resolves to a regular file."""
-    if path.is_symlink() and not path.exists():
+async def read_regular_bytes(path: anyio.Path) -> bytes:
+    """Asynchronously read bytes only when *path* resolves to a regular file."""
+    if await path.is_symlink() and not await path.exists():
         raise OSError(f"{path}: not a regular file")
-    if not path.exists():
+    if not await path.exists():
         raise FileNotFoundError(path)
-    if not path.is_file(follow_symlinks=True):
+    if not await path.is_file():
         raise OSError(f"{path}: not a regular file")
-    return path.read_bytes()
+    return await path.read_bytes()

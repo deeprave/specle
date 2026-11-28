@@ -14,6 +14,8 @@ lifecycle:
 
 Create or refine a useful, evidence-led definition for a normal change without selecting or commencing it.
 
+A change name MUST be Unicode NFC-normalised and consist of non-empty components of Unicode alphanumeric characters or Unicode combining marks, separated by single ASCII hyphens (`-`); leading, trailing, and repeated hyphens are invalid. The entire name MUST NOT be `CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, or `LPT1`–`LPT9`, case-insensitively. A new slug SHOULD be verb-led, for example `add-`, `create-`, or `refactor-`, but this is a recommendation rather than a validity requirement.
+
 ## Change independence
 
 Changes are independent by default. A queued or future change must not create a dependency through ordering, conceptual overlap, or anticipated functionality. Record a dependency only for an obvious, already-implemented technical prerequisite or an explicit user decision, and make it visible in the affected change artifacts and context. Constraints, features, expectations, and functionality from a future change must not constrain this change until that future change is implemented.

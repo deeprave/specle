@@ -8,6 +8,8 @@ import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
+import anyio
+
 from specle.file_reading import read_regular_text
 from specle.schema_registry import (
     SCHEMA_IDENTIFIERS,
@@ -40,25 +42,45 @@ class ChangeRecord:
 
 
 @dataclass(frozen=True, slots=True)
+class ChangeIssue:
+    """One discoverable change directory whose durable state cannot be read."""
+
+    name: str
+    directory: Path
+    archived: bool
+    diagnostic: str
+
+
+@dataclass(frozen=True, slots=True)
 class ChangeStateSnapshot:
     """A buffered view of durable records and optional local selection."""
 
     active: tuple[ChangeRecord, ...]
     archived: tuple[ChangeRecord, ...]
+    active_issues: tuple[ChangeIssue, ...]
+    archived_issues: tuple[ChangeIssue, ...]
     selected_name: str | None
     diagnostics: tuple[str, ...]
 
 
-def read_change_state(target_directory: Path) -> ChangeStateSnapshot:
-    """Read all discoverable state once without changing the target."""
-    target = target_directory.expanduser().resolve()
+async def read_change_state(
+    target_directory: Path, *, tolerant_archive_dates: bool = False
+) -> ChangeStateSnapshot:
+    """Asynchronously read all discoverable state without changing the target."""
+    target = await anyio.Path(target_directory).expanduser()
+    target = await target.resolve()
     diagnostics: list[str] = []
-    active = _read_change_collection(target / ".specle" / "changes", False, diagnostics)
-    archived = _read_change_collection(
-        target / ".specle" / "archive", True, diagnostics
+    active, active_issues = await _read_change_collection(
+        target / ".specle" / "changes", False, diagnostics
+    )
+    archived, archived_issues = await _read_change_collection(
+        target / ".specle" / "archive",
+        True,
+        diagnostics,
+        tolerant_archive_dates=tolerant_archive_dates,
     )
     _report_duplicate_names(active, archived, diagnostics)
-    selected_name = _read_current_change(
+    selected_name = await _read_current_change(
         target / ".specle" / "current-change", diagnostics
     )
     if selected_name is not None and selected_name not in {
@@ -68,7 +90,12 @@ def read_change_state(target_directory: Path) -> ChangeStateSnapshot:
             f"{target / '.specle' / 'current-change'}: selected change is not active: {selected_name}"
         )
     return ChangeStateSnapshot(
-        tuple(active), tuple(archived), selected_name, tuple(diagnostics)
+        tuple(active),
+        tuple(archived),
+        tuple(active_issues),
+        tuple(archived_issues),
+        selected_name,
+        tuple(diagnostics),
     )
 
 
@@ -92,56 +119,81 @@ def resolve_change(
     return matches[0]
 
 
-def _read_change_collection(
-    root: Path, archived: bool, diagnostics: list[str]
-) -> list[ChangeRecord]:
-    if not root.exists():
-        return []
-    if not root.is_dir():
+async def _read_change_collection(
+    root: anyio.Path,
+    archived: bool,
+    diagnostics: list[str],
+    *,
+    tolerant_archive_dates: bool = False,
+) -> tuple[list[ChangeRecord], list[ChangeIssue]]:
+    if not await root.exists():
+        return [], []
+    if not await root.is_dir():
         diagnostics.append(f"{root}: expected a directory")
-        return []
+        return [], []
     records: list[ChangeRecord] = []
-    for directory in sorted(path for path in root.iterdir() if path.is_dir()):
+    issues: list[ChangeIssue] = []
+    directories = [path async for path in root.iterdir() if await path.is_dir()]
+    for directory in sorted(directories, key=lambda path: path.name):
+        path = Path(directory)
         if not _is_change_name(directory.name):
-            diagnostics.append(f"{directory}: invalid change directory name")
+            diagnostic = f"{directory}: invalid change directory name"
+            diagnostics.append(diagnostic)
             continue
         status_path = directory / "status.json"
-        status = _read_status(status_path, diagnostics)
+        status, diagnostic = await _read_status(
+            status_path, tolerant_archive_dates=tolerant_archive_dates
+        )
         if status is not None:
-            records.append(ChangeRecord(directory.name, directory, status, archived))
-    return records
+            records.append(ChangeRecord(directory.name, path, status, archived))
+        else:
+            assert diagnostic is not None
+            diagnostics.append(diagnostic)
+            issues.append(ChangeIssue(directory.name, path, archived, diagnostic))
+    return records, issues
 
 
-def _read_status(path: Path, diagnostics: list[str]) -> dict[str, object] | None:
+async def _read_status(
+    path: anyio.Path,
+    *,
+    tolerant_archive_dates: bool = False,
+) -> tuple[dict[str, object] | None, str | None]:
     try:
-        value = json.loads(read_regular_text(path))
+        value = json.loads(await read_regular_text(path))
     except FileNotFoundError:
-        diagnostics.append(f"missing {path}")
-        return None
+        return None, f"missing {path}"
     except json.JSONDecodeError as error:
-        diagnostics.append(f"{path}: malformed JSON: {error.msg}")
-        return None
+        return None, f"{path}: malformed JSON: {error.msg}"
     except (OSError, UnicodeDecodeError) as error:
-        diagnostics.append(f"{path}: unreadable JSON: {error}")
-        return None
+        return None, f"{path}: unreadable JSON: {error}"
     if not isinstance(value, dict):
-        diagnostics.append(f"{path}: expected a JSON object")
-        return None
+        return None, f"{path}: expected a JSON object"
+    dependencies = value.get("dependencies")
+    if isinstance(dependencies, list) and any(
+        not isinstance(name, str) or not _is_change_name(name) for name in dependencies
+    ):
+        return None, f"{path}: invalid dependencies"
     try:
         if value.get("$schema") != SCHEMA_IDENTIFIERS["change-status"]:
             raise SchemaRegistryError(
                 f"expected schema {SCHEMA_IDENTIFIERS['change-status']!r}"
             )
-        validate_instance(value)
+        checked = value
+        if tolerant_archive_dates:
+            checked = {
+                key: item
+                for key, item in value.items()
+                if key not in {"archived_at", "cancelled_at"}
+            }
+        await validate_instance(checked)
     except SchemaRegistryError as error:
-        diagnostics.append(f"{path}: invalid contract: {error}")
-        return None
-    return value
+        return None, f"{path}: invalid contract: {error}"
+    return value, None
 
 
-def _read_current_change(path: Path, diagnostics: list[str]) -> str | None:
+async def _read_current_change(path: anyio.Path, diagnostics: list[str]) -> str | None:
     try:
-        contents = read_regular_text(path)
+        contents = await read_regular_text(path)
     except FileNotFoundError:
         return None
     except (OSError, UnicodeDecodeError) as error:

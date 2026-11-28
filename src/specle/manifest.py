@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
+import anyio
+
 if TYPE_CHECKING:
     from specle.inventory import DistributionInventory
 
@@ -45,11 +47,12 @@ def build_manifest_lines(
     return tuple(sorted(lines))
 
 
-def append_manifest(
+async def append_manifest(
     output: Path, inventory: DistributionInventory, version: str
 ) -> int:
-    """Append missing release lines without changing existing identities."""
-    existing = _read_manifest_lines(output)
+    """Asynchronously append missing release lines without changing identities."""
+    path = anyio.Path(output)
+    existing = await _read_manifest_lines(path)
     identities = {_line_identity(line): line for line in existing}
     additions: list[str] = []
     for line in build_manifest_lines(inventory, version):
@@ -61,34 +64,34 @@ def append_manifest(
             raise ManifestError(f"conflicting checksum for manifest entry {identity}")
     if not additions:
         return 0
-    temporary: Path | None = None
+    temporary: anyio.Path | None = None
     try:
         for _ in range(10):
-            candidate = output.with_name(f".{output.name}.{uuid4().hex}.tmp")
-            temporary = candidate
+            candidate = path.with_name(f".{path.name}.{uuid4().hex}.tmp")
             try:
-                with candidate.open("x", encoding="utf-8") as handle:
-                    handle.write("\n".join((*existing, *additions)) + "\n")
+                handle = await candidate.open("x", encoding="utf-8")
             except FileExistsError:
-                temporary = None
                 continue
+            temporary = candidate
+            async with handle:
+                await handle.write("\n".join((*existing, *additions)) + "\n")
             break
         else:
-            raise ManifestError(f"unable to create temporary manifest: {output}")
-        temporary.replace(output)
+            raise ManifestError(f"unable to create temporary manifest: {path}")
+        await temporary.replace(path)
     except OSError as error:
         if temporary is not None:
             with suppress(OSError):
-                temporary.unlink()
-        raise ManifestError(f"unable to write manifest: {output}") from error
+                await temporary.unlink()
+        raise ManifestError(f"unable to write manifest: {path}") from error
     return len(additions)
 
 
-def _read_manifest_lines(path: Path) -> tuple[str, ...]:
-    if not path.exists():
+async def _read_manifest_lines(path: anyio.Path) -> tuple[str, ...]:
+    if not await path.exists():
         return ()
     try:
-        lines = tuple(line for line in path.read_text().splitlines() if line)
+        lines = tuple(line for line in (await path.read_text()).splitlines() if line)
     except (OSError, UnicodeDecodeError) as error:
         raise ManifestError(f"unable to read manifest: {path}") from error
     identities: set[tuple[str, str]] = set()
@@ -100,10 +103,18 @@ def _read_manifest_lines(path: Path) -> tuple[str, ...]:
     return lines
 
 
-def read_manifest_generations(path: Path) -> tuple[ManifestGeneration, ...]:
-    """Read complete release inventories keyed by deployed resource paths."""
+async def read_manifest_generations(
+    path: Path,
+) -> tuple[ManifestGeneration, ...]:
+    """Asynchronously read complete release inventories."""
+    return _manifest_generations(await _read_manifest_lines(anyio.Path(path)))
+
+
+def _manifest_generations(
+    lines: tuple[str, ...],
+) -> tuple[ManifestGeneration, ...]:
     grouped: dict[str, dict[Path, str]] = {}
-    for line in _read_manifest_lines(path):
+    for line in lines:
         match = _LINE.fullmatch(line)
         if match is None:
             raise ManifestError(f"invalid manifest line: {line!r}")
